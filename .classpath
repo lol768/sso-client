@@ -6,6 +6,6 @@
 	<classpathentry kind="lib" path="external-libs/log4j.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-httpclient.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-logging.jar"/>
-	<classpathentry kind="lib" path="sso-client/WEB-INF/lib/opensaml.jar"/>
+	<classpathentry sourcepath="/opensaml/src" kind="lib" path="sso-client/WEB-INF/lib/opensaml.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
