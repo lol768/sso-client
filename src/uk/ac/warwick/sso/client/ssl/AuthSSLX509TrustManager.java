@@ -1,8 +1,8 @@
 /*
 /*
- * $Header: /home/mat/pkgs/cvs-to-git/cvsrep/sso-client/src/uk/ac/warwick/sso/client/Attic/AuthSSLX509TrustManager.java,v 1.1 2005/03/15 16:07:02 cusyac Exp $
- * $Revision: 1.1 $
- * $Date: 2005/03/15 16:07:02 $
+ * $Header$
+ * $Revision$
+ * $Date$
  *
  * ====================================================================
  *
@@ -27,7 +27,7 @@
  * <http://www.apache.org/>.
  *
  */
-package uk.ac.warwick.sso.client;
+package uk.ac.warwick.sso.client.ssl;
 
 import java.security.cert.X509Certificate;
 

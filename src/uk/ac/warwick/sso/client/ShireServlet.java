@@ -5,15 +5,20 @@
 package uk.ac.warwick.sso.client;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.Properties;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -35,23 +40,33 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
+import uk.ac.warwick.userlookup.User;
+import uk.ac.warwick.userlookup.UserCacheItem;
+import uk.ac.warwick.userlookup.UserLookup;
+
+/**
+ * @author Kieran Shaw
+ * 
+ */
 public class ShireServlet extends HttpServlet {
 
 	private static final Logger LOGGER = Logger.getLogger(ShireServlet.class);
 
+	private Configuration _config;
+
 	public ShireServlet() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
-		process(req,res);
+		process(req, res);
 	}
 
 	protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
-		process(req,res);
+		process(req, res);
 
 	}
 
@@ -60,13 +75,13 @@ public class ShireServlet extends HttpServlet {
 	 * @throws IOException
 	 * @throws HttpException
 	 */
-	private void process(HttpServletRequest req,HttpServletResponse res) throws IOException, HttpException {
+	private void process(HttpServletRequest req, HttpServletResponse res) throws IOException, HttpException {
 		SAMLResponse samlResponse = null;
 		String saml64 = req.getParameter("SAMLResponse");
 		String target = req.getParameter("TARGET");
 		// check we've got a valid SAML request
 		try {
-			samlResponse = SAMLPOSTProfile.accept(saml64.getBytes(), "urn:moleman.warwick.ac.uk:blogbuilder:service", 5, false);
+			samlResponse = SAMLPOSTProfile.accept(saml64.getBytes(), _config.getString("shire.providerid"), 5, false);
 		} catch (SAMLException e1) {
 			LOGGER.error("SAMLException accepting SAMLPOSTProfile", e1);
 		}
@@ -80,19 +95,51 @@ public class ShireServlet extends HttpServlet {
 		LOGGER.info("Subject name:" + authStatement.getSubject().getName().toString());
 		LOGGER.info("Subject name:" + authStatement.getSubject().getName().getName());
 
-		Protocol authhttps = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(
-				"file:/j2sdk1.4.2_02/jre/lib/security/moleman.warwick.ac.uk.keystore"), "changeit", new URL(
-				"file:/j2sdk1.4.2_02/jre/lib/security/moleman.warwick.ac.uk.keystore"), "changeit"), 443);
+		SAMLResponse samlResp = getAttrRespFromAuthStatement(authStatement);
 
+		Properties attributes = getAttributesFromResponse(samlResp);
+
+		User user = createUserFromAttributes(attributes);
+
+		String SSC = attributes.getProperty("urn:websignon:ssc");
+		user.setToken(SSC);
+		user.setIsLoggedIn(true);
+
+		UserCacheItem item = new UserCacheItem(user, new Date().getTime(), SSC);
+
+		UserLookup.getInstance().getUserCache().put(SSC, item);
+		UserLookup.getInstance().getUserByToken(SSC, false);
+
+		// create cookie so that service can retrieve user from cache
+
+		Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), SSC);
+		cookie.setPath(_config.getString("shire.sscookie.path"));
+		cookie.setDomain(_config.getString("shire.sscookie.domain"));
+		res.addCookie(cookie);
+		res.setHeader("Location", target);
+		res.setStatus(302);
+
+	}
+
+	/**
+	 * @param authStatement
+	 * @return
+	 * @throws MalformedURLException
+	 * @throws IOException
+	 * @throws HttpException
+	 */
+	private SAMLResponse getAttrRespFromAuthStatement(SAMLAuthenticationStatement authStatement) throws MalformedURLException,
+			IOException, HttpException {
+		Protocol authhttps = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(_config
+				.getString("shire.keystore.location")), _config.getString("shire.keystore.password"), new URL(_config
+				.getString("shire.keystore.location")), _config.getString("shire.keystore.password")), 443);
 		Protocol.registerProtocol("https", authhttps);
 		HttpClient client = new HttpClient();
-		PostMethod method = new PostMethod("https://moleman.warwick.ac.uk/origin/aa");
+		PostMethod method = new PostMethod(_config.getString("origin.attributeauthority.location"));
 		method.addRequestHeader("Content-Type", "text/xml");
-
 		SAMLRequest samlRequest = new SAMLRequest();
 		SAMLAttributeQuery query = new SAMLAttributeQuery();
-		query.setResource("urn:moleman.warwick.ac.uk:blogbuilder:service");
-
+		query.setResource(_config.getString("shire.providerid"));
 		SAMLSubject subject = authStatement.getSubject();
 		try {
 			query.setSubject(subject);
@@ -100,52 +147,76 @@ public class ShireServlet extends HttpServlet {
 		} catch (SAMLException e) {
 			LOGGER.error("SAMLException setting up samlRequest", e);
 		}
-
-		
-		
 		String fullRequest = "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\""
 				+ " xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">"
 				+ "<soap:Body>";
-
-				
 		fullRequest += samlRequest.toString();
 		fullRequest += "</soap:Body></soap:Envelope>";
-		
 		method.setRequestBody(fullRequest);
-		
 		LOGGER.info("SAMLRequest:" + fullRequest);
-		
 		client.executeMethod(method);
-	
 		LOGGER.info("Https response:" + method.getResponseBodyAsString());
 		
+		if (method.getResponseBodyAsString().indexOf("<soap:Fault><faultcode>") > -1) {
+			throw new RuntimeException("Got bad response from AttributeAuthority:" + method.getResponseBodyAsString());
+		}
+			
+			
+		
+		// turn https response into a SAML document and get the attributes out
+		SAMLResponse samlResp = null;
 		try {
 			Document document = XML.parserPool.parse(method.getResponseBodyAsStream());
-			samlResponse = new SAMLResponse((Element) document.getDocumentElement().getFirstChild().getFirstChild());
+			samlResp = new SAMLResponse((Element) document.getDocumentElement().getFirstChild().getFirstChild());
 		} catch (SAMLException e) {
-			throw new RuntimeException("Could not create SAMLResponse from stream",e);
+			throw new RuntimeException("Could not create SAMLResponse from stream", e);
 		} catch (SAXException e) {
-			throw new RuntimeException("Could not create SAMLResponse from stream",e);
+			throw new RuntimeException("Could not create SAMLResponse from stream", e);
 		} catch (IOException e) {
-			throw new RuntimeException("Could not create SAMLResponse from stream",e);
+			throw new RuntimeException("Could not create SAMLResponse from stream", e);
 		}
-				
-		SAMLAssertion attributeAssertion = (SAMLAssertion) samlResponse.getAssertions().next();
-		
+		return samlResp;
+	}
+
+	/**
+	 * @param samlResp
+	 * @return
+	 */
+	private User createUserFromAttributes(Properties attributes) {
+		User user = new User();
+		user.setUserId((String) attributes.get("cn"));
+		user.setLastName((String) attributes.get("sn"));
+		user.setFirstName((String) attributes.get("givenName"));
+		user.setWarwickId((String) attributes.get("warwickuniid"));
+		user.setDepartmentCode((String) attributes.get("warwickdeptcode"));
+		user.setDepartment((String) attributes.get("ou"));
+
+		return user;
+	}
+
+	/**
+	 * @param samlResp
+	 * @return
+	 */
+	private Properties getAttributesFromResponse(SAMLResponse samlResp) {
+		Properties attributes = new Properties();
+		SAMLAssertion attributeAssertion = (SAMLAssertion) samlResp.getAssertions().next();
 		SAMLAttributeStatement attributeStatement = (SAMLAttributeStatement) attributeAssertion.getStatements().next();
 		Iterator it = attributeStatement.getAttributes();
 		while (it.hasNext()) {
 			SAMLAttribute attribute = (SAMLAttribute) it.next();
-			LOGGER.info(attribute.getName() + "=" + attribute.getValues().next());			
+			String name = attribute.getName();
+			String value = (String) attribute.getValues().next();
+			LOGGER.info(name + "=" + value);
+			attributes.put(name, value);
 		}
-		
-		Cookie cookie = new Cookie("SSO-BlogBuilder","1234567890");
-		cookie.setPath("/sso-client");
-		res.addCookie(cookie);
-		res.setHeader("Location",target);
-		res.setStatus(302);
-		
-		
-		
+		return attributes;
+	}
+
+	public void init(ServletConfig ctx) throws ServletException {
+		super.init(ctx);
+
+		_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
+
 	}
 }

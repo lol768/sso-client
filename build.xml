@@ -10,6 +10,7 @@
 		<property name="buildDir" value="build" />
 		<property name="buildName" value="sso-client" />
 		<property name="warFile" value="dist/${buildName}.war"/>
+		<property name="jarFile" value="dist/${buildName}.jar"/>
 		
 		<path id="project.classpath">
 			<fileset dir="external-libs">
@@ -20,11 +21,16 @@
 			</fileset>
 		</path>
 
-		<delete file="dist/${buildName}.war" />
+		<delete file="${warFile}" />
+		<delete file="${jarFile}" />	
+		
 		<delete dir="${buildDir}/${buildName}" />
+		<delete dir="${buildDir}/${buildName}-jar" />
 
 		<mkdir dir="${buildDir}/${buildName}" />
 		<mkdir dir="${buildDir}/${buildName}/WEB-INF/classes" />
+		
+		<mkdir dir="${buildDir}/${buildName}-jar/"/>
 
 	</target>
 
@@ -37,6 +43,21 @@
 			<fileset dir="${buildName}">
 				<include name="**/*.*" />
 			</fileset>
+			<fileset dir="${srcDir}">
+				<include name="**/*.xml"/>
+			</fileset>
+		</copy>
+		
+		<javac destdir="${buildDir}/${buildName}-jar" excludes="" includes="" srcdir="${srcDir}" debug="true">
+				<classpath refid="project.classpath" />
+		</javac>
+		<copy todir="${buildDir}/${buildName}-jar">
+			<fileset dir="${buildName}-jar">
+				<include name="**/*.*" />
+			</fileset>
+			<fileset dir="${srcDir}">
+				<include name="**/*.xml"/>
+			</fileset>
 		</copy>
 	</target>
 
@@ -45,8 +66,16 @@
 			<fileset dir="${buildDir}/${buildName}" />
 		</war>
 	</target>
+	
+	<target name="buildjar" depends="compile">
+		<jar destfile="${jarFile}">
+			<fileset dir="${buildDir}/${buildName}-jar/" />
+		</jar>
+	</target>
+	
+	<target name="buildwarandjar" depends="buildjar,buildwar"/>
 
-	<target name="deploywar" depends="buildwar">
+	<target name="deploywar" depends="buildwarandjar">
 		<copy file="${warFile}" todir="/apps/jboss-3.2.6/server/default/deploy/" />
 	</target>
 

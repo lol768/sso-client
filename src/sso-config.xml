@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<origin>
+		<login>
+			<location>http://moleman.warwick.ac.uk/origin/hs</location>
+		</login>
+		<logout>
+			<location>http://moleman.warwick.ac.uk/origin/logout</location>
+		</logout>
+		<attributeauthority>
+			<location>https://moleman.warwick.ac.uk/origin/aa</location>
+		</attributeauthority>
+	</origin>
+	<shire>
+		<location>http://moleman.warwick.ac.uk/sso-client/shire</location>
+		<sscookie>
+			<name>SSO-SSC-BlogBuilder</name>
+			<path>/sso-client</path>
+			<domain>moleman.warwick.ac.uk</domain>
+		</sscookie>
+		<providerid>urn:moleman.warwick.ac.uk:blogbuilder:service</providerid>
+		<keystore>
+			<location>file:/j2sdk1.4.2_02/jre/lib/security/moleman.warwick.ac.uk.keystore</location>
+			<password>changeit</password>
+		</keystore>
+	</shire>
+</config>
