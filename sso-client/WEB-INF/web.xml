@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="dummywsos" version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+	<display-name>Dummy WSOS</display-name>
+	
+	<servlet>
+    	<servlet-name>ShireServlet</servlet-name>
+	    <display-name>Shire</display-name>
+    	<servlet-class>uk.ac.warwick.sso.client.ShireServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+    	<servlet-name>ShireServlet</servlet-name>
+	    <url-pattern>/shire</url-pattern>
+	</servlet-mapping>
+	
+</web-app>

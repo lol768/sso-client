@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project basedir="." default="deploywar" name="sso-client">
+
+	
+
+	<target name="init">
+
+		<property name="srcDir" value="src" />
+		<property name="buildDir" value="build" />
+		<property name="buildName" value="sso-client" />
+		<property name="warFile" value="dist/${buildName}.war"/>
+		
+		<path id="project.classpath">
+			<fileset dir="external-libs">
+				<include name="*.jar"/>
+			</fileset>
+			<fileset dir="${buildName}/WEB-INF/lib">
+				<include name="*.jar"/>
+			</fileset>
+		</path>
+
+		<delete file="dist/${buildName}.war" />
+		<delete dir="${buildDir}/${buildName}" />
+
+		<mkdir dir="${buildDir}/${buildName}" />
+		<mkdir dir="${buildDir}/${buildName}/WEB-INF/classes" />
+
+	</target>
+
+
+	<target name="compile" depends="init">
+		<javac destdir="${buildDir}/${buildName}/WEB-INF/classes" excludes="" includes="" srcdir="${srcDir}" debug="true">
+			<classpath refid="project.classpath" />
+		</javac>
+		<copy todir="${buildDir}/${buildName}">
+			<fileset dir="${buildName}">
+				<include name="**/*.*" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="buildwar" depends="compile">
+		<war destfile="${warFile}" webxml="${buildDir}/${buildName}/WEB-INF/web.xml">
+			<fileset dir="${buildDir}/${buildName}" />
+		</war>
+	</target>
+
+	<target name="deploywar" depends="buildwar">
+		<copy file="${warFile}" todir="/apps/jboss-3.2.6/server/default/deploy/" />
+	</target>
+
+
+
+</project>
