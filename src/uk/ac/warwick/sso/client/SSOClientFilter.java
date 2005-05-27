@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.log4j.Logger;
 
 import uk.ac.warwick.userlookup.AnonymousUser;
 import uk.ac.warwick.userlookup.User;
@@ -36,6 +37,8 @@ public class SSOClientFilter implements Filter {
 	public final static String USER_KEY = "SSO-USER";
 
 	public static final String GLOBAL_LOGIN_COOKIE_NAME = "SSO-LTC";
+
+	private static final Logger LOGGER = Logger.getLogger(SSOClientFilter.class);
 
 	private Configuration _config;
 
@@ -57,27 +60,42 @@ public class SSOClientFilter implements Filter {
 		// not yet locally with this service
 		Cookie LTC = getCookie(request.getCookies(), GLOBAL_LOGIN_COOKIE_NAME);
 		Cookie SSC = getCookie(request.getCookies(), _config.getString("shire.sscookie.name"));
+
+		User user = new AnonymousUser();
+
 		if (LTC != null && SSC == null) {
+
 			response.setStatus(302);
+
+			String target = getTarget(request);
+
 			response.setHeader("Location", _config.getString("origin.login.location") + "?shire="
 					+ URLEncoder.encode(_config.getString("shire.location"), "UTF-8") + "&providerId="
 					+ URLEncoder.encode(_config.getString("shire.providerid"), "UTF-8") + "&target="
-					+ URLEncoder.encode(request.getRequestURL().toString(), "UTF-8"));
+					+ URLEncoder.encode(target, "UTF-8"));
+
+			LOGGER.debug("Found global login cookie (" + LTC.getValue() + "), but not SSC, redirecting to Handle Service "
+					+ _config.getString("origin.login.location"));
+
 			return;
+		} else if (SSC != null) {
+
+			LOGGER.debug("Found SSC (" + SSC.getValue() + ")");
+
+			// get user from cookie and put in request
+			user = UserLookup.getInstance().getUserByToken(SSC.getValue(), false);
+
+			if (!user.isLoggedIn()) {
+				LOGGER.debug("Didn't find user from SSC (" + SSC.getValue() + "), so invalidating SSC");
+				// didn't find user, so cookie is invalid, destroy it!
+				Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), "");
+				cookie.setPath(_config.getString("shire.sscookie.path"));
+				cookie.setDomain(_config.getString("shire.sscookie.domain"));
+				cookie.setMaxAge(0);
+				response.addCookie(cookie);
+			}
 		}
 
-		// get user from cookie and put in request
-		User user = getUserFromRequest(request);
-		
-		if (!user.isLoggedIn()) {
-			// didn't find user, so cookie is invalid, destroy it!
-			Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), "");
-			cookie.setPath(_config.getString("shire.sscookie.path"));
-			cookie.setDomain(_config.getString("shire.sscookie.domain"));
-			cookie.setMaxAge(0);
-			response.addCookie(cookie);
-		}
-		
 		request.setAttribute(USER_KEY, user);
 
 		// redirect onto underlying page
@@ -85,13 +103,27 @@ public class SSOClientFilter implements Filter {
 
 	}
 
-	public final User getUserFromRequest(final HttpServletRequest request) {
-		Cookie cookie = getCookie(request.getCookies(), _config.getString("shire.sscookie.name"));
-		User user = new AnonymousUser();
-		if (cookie != null) {
-			user = UserLookup.getInstance().getUserByToken(cookie.getValue(), false);
+	/**
+	 * @param request
+	 * @return
+	 */
+	private String getTarget(HttpServletRequest request) {
+		String target = request.getRequestURL().toString();
+
+		String urlParamKey = _config.getString("shire.urlparamkey");
+		if (urlParamKey != null) {
+			// try looking in the request for the real url of this page
+			if (request.getParameter(urlParamKey) != null) {
+				target = request.getParameter(urlParamKey);
+			} else {
+				target = request.getScheme() + "://" + request.getServerName() + request.getRequestURI();
+				if (request.getQueryString() != null) {
+					target += "?" + request.getQueryString();
+				}
+			}
+
 		}
-		return user;
+		return target;
 	}
 
 	private Cookie getCookie(final Cookie[] cookies, final String name) {

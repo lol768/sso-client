@@ -14,12 +14,14 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 
 /**
- * Requires a ServletContext Parameter to be set "ssoclient.config=/sso-config.xml"
+ * Requires a ServletContext Parameter to be set
+ * "ssoclient.config=/sso-config.xml"
+ * 
  * @author Kieran Shaw
- *
+ * 
  */
 public class SSOConfigLoader implements ServletContextListener {
-	
+
 	public static final String SSO_CONFIG_KEY = "SSO-CONFIG";
 
 	public SSOConfigLoader() {
@@ -27,7 +29,7 @@ public class SSOConfigLoader implements ServletContextListener {
 	}
 
 	public void contextInitialized(ServletContextEvent event) {
-		
+
 		XMLConfiguration config;
 		try {
 			URL configUrl = getClass().getResource(event.getServletContext().getInitParameter("ssoclient.config"));
@@ -35,8 +37,6 @@ public class SSOConfigLoader implements ServletContextListener {
 		} catch (ConfigurationException e) {
 			throw new RuntimeException("Could not setup configuration", e);
 		}
-		
-		
 
 		event.getServletContext().setAttribute(SSO_CONFIG_KEY, config);
 	}

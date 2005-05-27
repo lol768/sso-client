@@ -41,13 +41,11 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
 import org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 
 import com.sun.net.ssl.KeyManager;
 import com.sun.net.ssl.KeyManagerFactory;
@@ -199,7 +197,7 @@ import com.sun.net.ssl.X509TrustManager;
 public class AuthSSLProtocolSocketFactory implements SecureProtocolSocketFactory {
 
 	/** Log object for this class. */
-	private static final Log LOG = LogFactory.getLog(AuthSSLProtocolSocketFactory.class);
+	private static final Logger LOGGER = Logger.getLogger(AuthSSLProtocolSocketFactory.class);
 
 	private URL keystoreUrl = null;
 
@@ -238,23 +236,12 @@ public class AuthSSLProtocolSocketFactory implements SecureProtocolSocketFactory
 		this.truststorePassword = truststorePassword;
 	}
 
-	private static KeyStore createKeyStore(final URL url, final String password) throws KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, IOException {
-		if (url == null) {
-			throw new IllegalArgumentException("Keystore url may not be null");
-		}
-		LOG.debug("Initializing key store");
-		KeyStore keystore = KeyStore.getInstance("jks");
-		keystore.load(url.openStream(), password != null ? password.toCharArray() : null);
-		return keystore;
-	}
-
 	private static KeyManager[] createKeyManagers(final KeyStore keystore, final String password) throws KeyStoreException,
 			NoSuchAlgorithmException, UnrecoverableKeyException {
 		if (keystore == null) {
 			throw new IllegalArgumentException("Keystore may not be null");
 		}
-		LOG.debug("Initializing key manager");
+		LOGGER.debug("Initializing key manager");
 		KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 		kmfactory.init(keystore, password != null ? password.toCharArray() : null);
 		return kmfactory.getKeyManagers();
@@ -264,7 +251,7 @@ public class AuthSSLProtocolSocketFactory implements SecureProtocolSocketFactory
 		if (keystore == null) {
 			throw new IllegalArgumentException("Keystore may not be null");
 		}
-		LOG.debug("Initializing trust manager");
+		LOGGER.debug("Initializing trust manager");
 		TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		tmfactory.init(keystore);
 		TrustManager[] trustmanagers = tmfactory.getTrustManagers();
@@ -281,23 +268,24 @@ public class AuthSSLProtocolSocketFactory implements SecureProtocolSocketFactory
 			KeyManager[] keymanagers = null;
 			TrustManager[] trustmanagers = null;
 			if (this.keystoreUrl != null) {
-				KeyStore keystore = createKeyStore(this.keystoreUrl, this.keystorePassword);
-				if (LOG.isDebugEnabled()) {
+				KeyStoreHelper helper = new KeyStoreHelper();
+				KeyStore keystore = helper.createKeyStore(this.keystoreUrl, this.keystorePassword);
+				if (LOGGER.isDebugEnabled()) {
 					Enumeration aliases = keystore.aliases();
 					while (aliases.hasMoreElements()) {
 						String alias = (String) aliases.nextElement();
 						Certificate[] certs = keystore.getCertificateChain(alias);
 						if (certs != null) {
-							LOG.debug("Certificate chain '" + alias + "':");
+							LOGGER.debug("Certificate chain '" + alias + "':");
 							for (int c = 0; c < certs.length; c++) {
 								if (certs[c] instanceof X509Certificate) {
 									X509Certificate cert = (X509Certificate) certs[c];
-									LOG.debug(" Certificate " + (c + 1) + ":");
-									LOG.debug("  Subject DN: " + cert.getSubjectDN());
-									LOG.debug("  Signature Algorithm: " + cert.getSigAlgName());
-									LOG.debug("  Valid from: " + cert.getNotBefore());
-									LOG.debug("  Valid until: " + cert.getNotAfter());
-									LOG.debug("  Issuer: " + cert.getIssuerDN());
+									LOGGER.debug(" Certificate " + (c + 1) + ":");
+									LOGGER.debug("  Subject DN: " + cert.getSubjectDN());
+									LOGGER.debug("  Signature Algorithm: " + cert.getSigAlgName());
+									LOGGER.debug("  Valid from: " + cert.getNotBefore());
+									LOGGER.debug("  Valid until: " + cert.getNotAfter());
+									LOGGER.debug("  Issuer: " + cert.getIssuerDN());
 								}
 							}
 						}
@@ -306,20 +294,21 @@ public class AuthSSLProtocolSocketFactory implements SecureProtocolSocketFactory
 				keymanagers = createKeyManagers(keystore, this.keystorePassword);
 			}
 			if (this.truststoreUrl != null) {
-				KeyStore keystore = createKeyStore(this.truststoreUrl, this.truststorePassword);
-				if (LOG.isDebugEnabled()) {
+				KeyStoreHelper helper = new KeyStoreHelper();
+				KeyStore keystore = helper.createKeyStore(this.truststoreUrl, this.truststorePassword);
+				if (LOGGER.isDebugEnabled()) {
 					Enumeration aliases = keystore.aliases();
 					while (aliases.hasMoreElements()) {
 						String alias = (String) aliases.nextElement();
-						LOG.debug("Trusted certificate '" + alias + "':");
+						LOGGER.debug("Trusted certificate '" + alias + "':");
 						Certificate trustedcert = keystore.getCertificate(alias);
 						if (trustedcert != null && trustedcert instanceof X509Certificate) {
 							X509Certificate cert = (X509Certificate) trustedcert;
-							LOG.debug("  Subject DN: " + cert.getSubjectDN());
-							LOG.debug("  Signature Algorithm: " + cert.getSigAlgName());
-							LOG.debug("  Valid from: " + cert.getNotBefore());
-							LOG.debug("  Valid until: " + cert.getNotAfter());
-							LOG.debug("  Issuer: " + cert.getIssuerDN());
+							LOGGER.debug("  Subject DN: " + cert.getSubjectDN());
+							LOGGER.debug("  Signature Algorithm: " + cert.getSigAlgName());
+							LOGGER.debug("  Valid from: " + cert.getNotBefore());
+							LOGGER.debug("  Valid until: " + cert.getNotAfter());
+							LOGGER.debug("  Issuer: " + cert.getIssuerDN());
 						}
 					}
 				}
@@ -329,16 +318,16 @@ public class AuthSSLProtocolSocketFactory implements SecureProtocolSocketFactory
 			sslcontext.init(keymanagers, trustmanagers, null);
 			return sslcontext;
 		} catch (NoSuchAlgorithmException e) {
-			LOG.error(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			throw new AuthSSLInitializationError("Unsupported algorithm exception: " + e.getMessage());
 		} catch (KeyStoreException e) {
-			LOG.error(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			throw new AuthSSLInitializationError("Keystore exception: " + e.getMessage());
 		} catch (GeneralSecurityException e) {
-			LOG.error(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			throw new AuthSSLInitializationError("Key management exception: " + e.getMessage());
 		} catch (IOException e) {
-			LOG.error(e.getMessage(), e);
+			LOGGER.error(e.getMessage(), e);
 			throw new AuthSSLInitializationError("I/O error reading keystore/truststore file: " + e.getMessage());
 		}
 	}

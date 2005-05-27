@@ -7,6 +7,11 @@ package uk.ac.warwick.sso.client;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
@@ -41,6 +46,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
+import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserCacheItem;
 import uk.ac.warwick.userlookup.UserLookup;
@@ -79,12 +85,26 @@ public class ShireServlet extends HttpServlet {
 		SAMLResponse samlResponse = null;
 		String saml64 = req.getParameter("SAMLResponse");
 		String target = req.getParameter("TARGET");
+		LOGGER.debug("TARGET:" + target);
+		LOGGER.debug("SAML64:" + saml64);
+		if (target == null || saml64 == null) {
+			LOGGER.error("Must have a SAMLResponse and a TARGET");
+			throw new RuntimeException("Must have a SAMLResponse and a TARGET");
+		}
 		// check we've got a valid SAML request
 		try {
 			samlResponse = SAMLPOSTProfile.accept(saml64.getBytes(), _config.getString("shire.providerid"), 5, false);
-		} catch (SAMLException e1) {
-			LOGGER.error("SAMLException accepting SAMLPOSTProfile", e1);
+		} catch (SAMLException e) {
+			LOGGER.error("SAMLException accepting SAMLPOSTProfile", e);
+			throw new RuntimeException("SAMLException thrown accepting POST profile", e);
 		}
+
+		boolean validResponse = verifySAMLResponse(samlResponse);
+		if (!validResponse) {
+			LOGGER.info("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
+			throw new RuntimeException("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
+		}
+
 		LOGGER.info("SAML:" + samlResponse.toString());
 		SAMLAssertion assertion = (SAMLAssertion) samlResponse.getAssertions().next();
 		LOGGER.info("Assertion:" + assertion.toString());
@@ -116,8 +136,41 @@ public class ShireServlet extends HttpServlet {
 		cookie.setPath(_config.getString("shire.sscookie.path"));
 		cookie.setDomain(_config.getString("shire.sscookie.domain"));
 		res.addCookie(cookie);
+		
+		LOGGER.debug("Adding SSC (" + SSC + " ) to response");
+		
 		res.setHeader("Location", target);
 		res.setStatus(302);
+
+	}
+
+	/**
+	 * @param samlResponse
+	 * @throws IOException
+	 * @throws MalformedURLException
+	 */
+	private boolean verifySAMLResponse(SAMLResponse samlResponse) throws IOException, MalformedURLException {
+		try {
+			KeyStoreHelper helper = new KeyStoreHelper();
+			KeyStore keyStore = helper.createKeyStore(new URL(_config.getString("shire.keystore.location")), _config
+					.getString("shire.keystore.password"));
+			Certificate originCert = keyStore.getCertificate(_config.getString("shire.keystore.origin-alias"));
+
+			samlResponse.verify(originCert);
+			return true;
+		} catch (KeyStoreException e) {
+			LOGGER.error("Could not create keystore", e);
+			throw new RuntimeException("Could not create keystore", e);
+		} catch (CertificateException e) {
+			LOGGER.error("Could not create keystore", e);
+			throw new RuntimeException("Could not create keystore", e);
+		} catch (NoSuchAlgorithmException e) {
+			LOGGER.error("Could not create keystore", e);
+			throw new RuntimeException("Could not create keystore", e);
+		} catch (SAMLException e) {
+			LOGGER.error("Could not verify SAMLResponse", e);
+			return false;
+		}
 
 	}
 
@@ -130,12 +183,16 @@ public class ShireServlet extends HttpServlet {
 	 */
 	private SAMLResponse getAttrRespFromAuthStatement(SAMLAuthenticationStatement authStatement) throws MalformedURLException,
 			IOException, HttpException {
-		Protocol authhttps = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(_config
-				.getString("shire.keystore.location")), _config.getString("shire.keystore.password"), new URL(_config
-				.getString("shire.keystore.location")), _config.getString("shire.keystore.password")), 443);
-		Protocol.registerProtocol("https", authhttps);
+		String aaLocation = _config.getString("origin.attributeauthority.location");
+		LOGGER.info("Shire connecting to AttributeAuthority at " + aaLocation);
+		if (aaLocation.startsWith("https")) {
+			Protocol authhttps = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(_config
+					.getString("shire.keystore.location")), _config.getString("shire.keystore.password"), new URL(_config
+					.getString("shire.keystore.location")), _config.getString("shire.keystore.password")), 443);
+			Protocol.registerProtocol("https", authhttps);
+		}
 		HttpClient client = new HttpClient();
-		PostMethod method = new PostMethod(_config.getString("origin.attributeauthority.location"));
+		PostMethod method = new PostMethod(aaLocation);
 		method.addRequestHeader("Content-Type", "text/xml");
 		SAMLRequest samlRequest = new SAMLRequest();
 		SAMLAttributeQuery query = new SAMLAttributeQuery();
@@ -156,13 +213,11 @@ public class ShireServlet extends HttpServlet {
 		LOGGER.info("SAMLRequest:" + fullRequest);
 		client.executeMethod(method);
 		LOGGER.info("Https response:" + method.getResponseBodyAsString());
-		
+
 		if (method.getResponseBodyAsString().indexOf("<soap:Fault><faultcode>") > -1) {
 			throw new RuntimeException("Got bad response from AttributeAuthority:" + method.getResponseBodyAsString());
 		}
-			
-			
-		
+
 		// turn https response into a SAML document and get the attributes out
 		SAMLResponse samlResp = null;
 		try {
@@ -190,7 +245,10 @@ public class ShireServlet extends HttpServlet {
 		user.setWarwickId((String) attributes.get("warwickuniid"));
 		user.setDepartmentCode((String) attributes.get("warwickdeptcode"));
 		user.setDepartment((String) attributes.get("ou"));
-
+		user.setEmail((String) attributes.get("email"));
+		
+		user.getExtraProperties().putAll(attributes);
+		
 		return user;
 	}
 

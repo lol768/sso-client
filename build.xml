@@ -9,7 +9,6 @@
 		<property name="srcDir" value="src" />
 		<property name="buildDir" value="build" />
 		<property name="buildName" value="sso-client" />
-		<property name="warFile" value="dist/${buildName}.war"/>
 		<property name="jarFile" value="dist/${buildName}.jar"/>
 		
 		<path id="project.classpath">
@@ -21,7 +20,6 @@
 			</fileset>
 		</path>
 
-		<delete file="${warFile}" />
 		<delete file="${jarFile}" />	
 		
 		<delete dir="${buildDir}/${buildName}" />
@@ -61,22 +59,16 @@
 		</copy>
 	</target>
 
-	<target name="buildwar" depends="compile">
-		<war destfile="${warFile}" webxml="${buildDir}/${buildName}/WEB-INF/web.xml">
-			<fileset dir="${buildDir}/${buildName}" />
-		</war>
-	</target>
 	
 	<target name="buildjar" depends="compile">
-		<jar destfile="${jarFile}">
+		<jar destfile="${jarFile}" manifest="${buildName}-jar/META-INF/manifest.mf">
 			<fileset dir="${buildDir}/${buildName}-jar/" />
 		</jar>
 	</target>
 	
-	<target name="buildwarandjar" depends="buildjar,buildwar"/>
 
-	<target name="deploywar" depends="buildwarandjar">
-		<copy file="${warFile}" todir="/apps/jboss-3.2.6/server/default/deploy/" />
+	<target name="deploywar" depends="buildjar">
+		<copy file="${jarFile}" todir="/apps/jboss-3.2.6/server/default/deploy/" />
 	</target>
 
 

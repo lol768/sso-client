@@ -12,6 +12,7 @@
 		</attributeauthority>
 	</origin>
 	<shire>
+		<urlparamkey>requestedUrl</urlparamkey>
 		<location>http://moleman.warwick.ac.uk/sso-client/shire</location>
 		<sscookie>
 			<name>SSO-SSC-BlogBuilder</name>
@@ -22,6 +23,7 @@
 		<keystore>
 			<location>file:/j2sdk1.4.2_02/jre/lib/security/moleman.warwick.ac.uk.keystore</location>
 			<password>changeit</password>
+			<origin-alias>moleman.warwick.ac.uk</origin-alias>
 		</keystore>
 	</shire>
 </config>

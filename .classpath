@@ -6,8 +6,8 @@
 	<classpathentry kind="lib" path="external-libs/log4j.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-httpclient.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-logging.jar"/>
-	<classpathentry sourcepath="/opensaml/src" kind="lib" path="sso-client/WEB-INF/lib/opensaml.jar"/>
-	<classpathentry kind="lib" path="external-libs/userlookup.jar"/>
+	<classpathentry sourcepath="C:/apps/packages/opensaml/java/src" kind="lib" path="sso-client/WEB-INF/lib/opensaml.jar"/>
+	<classpathentry sourcepath="/userlookup/src" kind="lib" path="external-libs/userlookup.jar"/>
 	<classpathentry kind="src" path="test-src"/>
 	<classpathentry kind="lib" path="external-libs/junit.jar"/>
 	<classpathentry kind="lib" path="sso-client/WEB-INF/lib/standard.jar"/>
@@ -15,5 +15,6 @@
 	<classpathentry kind="lib" path="external-libs/commons-configuration-1.0.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-digester.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-lang-2.0.jar"/>
+	<classpathentry kind="lib" path="external-libs/xmlsec-1.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
