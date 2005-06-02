@@ -12,9 +12,9 @@
 	<classpathentry kind="lib" path="external-libs/junit.jar"/>
 	<classpathentry kind="lib" path="sso-client/WEB-INF/lib/standard.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-collections-3.1.jar"/>
-	<classpathentry kind="lib" path="external-libs/commons-configuration-1.0.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-digester.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-lang-2.0.jar"/>
 	<classpathentry kind="lib" path="external-libs/xmlsec-1.1.jar"/>
+	<classpathentry kind="lib" path="sso-client-jar/META-INF/lib/commons-configuration-1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
