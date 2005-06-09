@@ -32,9 +32,9 @@ import uk.ac.warwick.userlookup.UserLookup;
  * @author Kieran Shaw
  * 
  */
-public class SSOClientFilter implements Filter {
+public final class SSOClientFilter implements Filter {
 
-	public final static String USER_KEY = "SSO-USER";
+	public static final String USER_KEY = "SSO-USER";
 
 	public static final String GLOBAL_LOGIN_COOKIE_NAME = "SSO-LTC";
 
@@ -46,26 +46,26 @@ public class SSOClientFilter implements Filter {
 		super();
 	}
 
-	public void init(FilterConfig arg0) throws ServletException {
+	public void init(final FilterConfig arg0) throws ServletException {
 
 		_config = (Configuration) arg0.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
 
 	}
 
-	public void doFilter(ServletRequest arg0, ServletResponse arg1, FilterChain chain) throws IOException, ServletException {
+	public void doFilter(final ServletRequest arg0, final ServletResponse arg1, final FilterChain chain) throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) arg0;
 		HttpServletResponse response = (HttpServletResponse) arg1;
 
 		// redirect to login screen if user is already logged in globally, but
 		// not yet locally with this service
-		Cookie LTC = getCookie(request.getCookies(), GLOBAL_LOGIN_COOKIE_NAME);
-		Cookie SSC = getCookie(request.getCookies(), _config.getString("shire.sscookie.name"));
+		Cookie loginTicketCookie = getCookie(request.getCookies(), GLOBAL_LOGIN_COOKIE_NAME);
+		Cookie serviceSpecificCookie = getCookie(request.getCookies(), _config.getString("shire.sscookie.name"));
 
 		User user = new AnonymousUser();
 
-		if (LTC != null && SSC == null) {
+		if (loginTicketCookie != null && serviceSpecificCookie == null) {
 
-			response.setStatus(302);
+			response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
 
 			String target = getTarget(request);
 
@@ -74,19 +74,19 @@ public class SSOClientFilter implements Filter {
 					+ URLEncoder.encode(_config.getString("shire.providerid"), "UTF-8") + "&target="
 					+ URLEncoder.encode(target, "UTF-8"));
 
-			LOGGER.debug("Found global login cookie (" + LTC.getValue() + "), but not SSC, redirecting to Handle Service "
+			LOGGER.debug("Found global login cookie (" + loginTicketCookie.getValue() + "), but not SSC, redirecting to Handle Service "
 					+ _config.getString("origin.login.location"));
 
 			return;
-		} else if (SSC != null) {
+		} else if (serviceSpecificCookie != null) {
 
-			LOGGER.debug("Found SSC (" + SSC.getValue() + ")");
+			LOGGER.debug("Found SSC (" + serviceSpecificCookie.getValue() + ")");
 
 			// get user from cookie and put in request
-			user = UserLookup.getInstance().getUserByToken(SSC.getValue(), false);
+			user = UserLookup.getInstance().getUserByToken(serviceSpecificCookie.getValue(), false);
 
 			if (!user.isLoggedIn()) {
-				LOGGER.debug("Didn't find user from SSC (" + SSC.getValue() + "), so invalidating SSC");
+				LOGGER.debug("Didn't find user from SSC (" + serviceSpecificCookie.getValue() + "), so invalidating SSC");
 				// didn't find user, so cookie is invalid, destroy it!
 				Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), "");
 				cookie.setPath(_config.getString("shire.sscookie.path"));
@@ -107,7 +107,7 @@ public class SSOClientFilter implements Filter {
 	 * @param request
 	 * @return
 	 */
-	private String getTarget(HttpServletRequest request) {
+	private String getTarget(final HttpServletRequest request) {
 		String target = request.getRequestURL().toString();
 
 		String urlParamKey = _config.getString("shire.urlparamkey");

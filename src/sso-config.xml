@@ -23,6 +23,7 @@
 		<keystore>
 			<location>file:/j2sdk1.4.2_02/jre/lib/security/moleman.warwick.ac.uk.keystore</location>
 			<password>changeit</password>
+			<shire-alias>moleman.warwick.ac.uk</shire-alias>
 			<origin-alias>moleman.warwick.ac.uk</origin-alias>
 		</keystore>
 	</shire>
