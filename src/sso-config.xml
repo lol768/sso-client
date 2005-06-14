@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
 	<origin>
+		<originid>urn:athensams.net:testFederation:moleman.warwick.ac.uk</originid>
 		<login>
 			<location>http://moleman.warwick.ac.uk/origin/hs</location>
 		</login>

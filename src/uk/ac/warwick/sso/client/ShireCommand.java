@@ -13,8 +13,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.Properties;
 
 import javax.servlet.http.Cookie;
 
@@ -22,13 +20,12 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
 import org.opensaml.SAMLAssertion;
-import org.opensaml.SAMLAttribute;
-import org.opensaml.SAMLAttributeStatement;
 import org.opensaml.SAMLAuthenticationStatement;
 import org.opensaml.SAMLException;
 import org.opensaml.SAMLPOSTProfile;
 import org.opensaml.SAMLResponse;
 import org.opensaml.SAMLStatement;
+import org.opensaml.SAMLSubject;
 
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.userlookup.User;
@@ -51,7 +48,7 @@ public class ShireCommand {
 	 * @throws MalformedURLException
 	 * @throws HttpException
 	 */
-	public Cookie process(String saml64, String target) throws IOException, MalformedURLException, HttpException {
+	public final Cookie process(final String saml64, final String target) throws SSOException {
 		SAMLResponse samlResponse = null;
 		LOGGER.debug("TARGET:" + target);
 		LOGGER.debug("SAML64:" + saml64);
@@ -61,7 +58,8 @@ public class ShireCommand {
 		}
 		// check we've got a valid SAML request
 		try {
-			samlResponse = SAMLPOSTProfile.accept(saml64.getBytes(), _config.getString("shire.providerid"), 5, false);
+			final int timeout = 5;
+			samlResponse = SAMLPOSTProfile.accept(saml64.getBytes(), _config.getString("shire.providerid"), timeout, false);
 		} catch (SAMLException e) {
 			LOGGER.error("SAMLException accepting SAMLPOSTProfile", e);
 			throw new RuntimeException("SAMLException thrown accepting POST profile", e);
@@ -80,36 +78,39 @@ public class ShireCommand {
 		LOGGER.info("Statement:" + statement.toString());
 		SAMLAuthenticationStatement authStatement = (SAMLAuthenticationStatement) statement;
 		LOGGER.info("Auth Statement:" + authStatement.toString());
-		LOGGER.info("Subject name:" + authStatement.getSubject().getName().toString());
-		LOGGER.info("Subject name:" + authStatement.getSubject().getName().getName());
+		SAMLSubject subject = authStatement.getSubject();
+		LOGGER.info("Subject name:" + subject.getName().toString());
+		LOGGER.info("Subject name:" + subject.getName().getName());
 
-		SAMLResponse samlResp = getAaFetcher().getSAMLResponse(authStatement);
+		User user = getUserFromAuthSubject(subject);
 
-		Properties attributes = getAttributesFromResponse(samlResp);
-
-		User user = createUserFromAttributes(attributes);
-
-		String SSC = attributes.getProperty("urn:websignon:ssc");
-		if (SSC != null) {
-			user.setToken(SSC);
+		String serviceSpecificCookie = (String) user.getExtraProperty("urn:websignon:ssc");
+		if (serviceSpecificCookie != null) {
+			user.setToken(serviceSpecificCookie);
 			user.setIsLoggedIn(true);
-			UserCacheItem item = new UserCacheItem(user, new Date().getTime(), SSC);
-			UserLookup.getInstance().getUserCache().put(SSC, item);
-			UserLookup.getInstance().getUserByToken(SSC, false);
-			Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), SSC);
+			UserCacheItem item = new UserCacheItem(user, new Date().getTime(), serviceSpecificCookie);
+			UserLookup.getInstance().getUserCache().put(serviceSpecificCookie, item);
+			UserLookup.getInstance().getUserByToken(serviceSpecificCookie, false);
+			Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), serviceSpecificCookie);
 			cookie.setPath(_config.getString("shire.sscookie.path"));
 			cookie.setDomain(_config.getString("shire.sscookie.domain"));
 			// create cookie so that service can retrieve user from cache
 			return cookie;
 		}
-		
+
 		// no SSC found, so can't create cookie
 		return null;
-		
 
+	}
 
-
-		
+	/**
+	 * @param subject
+	 * @return
+	 * @throws MalformedURLException
+	 * @throws IOException
+	 */
+	private User getUserFromAuthSubject(final SAMLSubject subject) throws SSOException {
+		return getAaFetcher().getUserFromSubject(subject);
 	}
 
 	/**
@@ -117,7 +118,7 @@ public class ShireCommand {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	private boolean verifySAMLResponse(SAMLResponse samlResponse) throws IOException, MalformedURLException {
+	private boolean verifySAMLResponse(final SAMLResponse samlResponse) {
 		try {
 			Certificate originCert = getCertificate(_config.getString("shire.keystore.origin-alias"));
 
@@ -138,21 +139,15 @@ public class ShireCommand {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	private Certificate getCertificate(final String alias) throws IOException, MalformedURLException {
+	private Certificate getCertificate(final String alias) {
 
 		try {
 			KeyStore keyStore = getKeyStore();
 			Certificate originCert = keyStore.getCertificate(alias);
 			return originCert;
-		} catch (KeyStoreException e) {
-			LOGGER.error("Could not create keystore", e);
-			throw new RuntimeException("Could not create keystore", e);
-		} catch (CertificateException e) {
-			LOGGER.error("Could not create keystore", e);
-			throw new RuntimeException("Could not create keystore", e);
-		} catch (NoSuchAlgorithmException e) {
-			LOGGER.error("Could not create keystore", e);
-			throw new RuntimeException("Could not create keystore", e);
+		} catch (Exception e) {
+			LOGGER.error("Could not get certificate", e);
+			throw new RuntimeException("Could not get certificate", e);
 		}
 
 	}
@@ -171,49 +166,6 @@ public class ShireCommand {
 		KeyStore keyStore = helper.createKeyStore(new URL(_config.getString("shire.keystore.location")), _config
 				.getString("shire.keystore.password"));
 		return keyStore;
-	}
-
-	/**
-	 * @param samlResp
-	 * @return
-	 */
-	private User createUserFromAttributes(Properties attributes) {
-		User user = new User();
-		user.setUserId((String) attributes.get("cn"));
-		user.setLastName((String) attributes.get("sn"));
-		user.setFirstName((String) attributes.get("givenName"));
-		user.setWarwickId((String) attributes.get("warwickuniid"));
-		user.setDepartmentCode((String) attributes.get("warwickdeptcode"));
-		user.setDepartment((String) attributes.get("ou"));
-		user.setEmail((String) attributes.get("email"));
-
-		user.getExtraProperties().putAll(attributes);
-
-		return user;
-	}
-
-	/**
-	 * @param samlResp
-	 * @return
-	 */
-	private Properties getAttributesFromResponse(final SAMLResponse samlResp) {
-		Properties attributes = new Properties();
-		
-		if (samlResp.getAssertions() == null || !samlResp.getAssertions().hasNext()) {
-			return attributes;
-		}
-		
-		SAMLAssertion attributeAssertion = (SAMLAssertion) samlResp.getAssertions().next();
-		SAMLAttributeStatement attributeStatement = (SAMLAttributeStatement) attributeAssertion.getStatements().next();
-		Iterator it = attributeStatement.getAttributes();
-		while (it.hasNext()) {
-			SAMLAttribute attribute = (SAMLAttribute) it.next();
-			String name = attribute.getName();
-			String value = (String) attribute.getValues().next();
-			LOGGER.info(name + "=" + value);
-			attributes.put(name, value);
-		}
-		return attributes;
 	}
 
 	public final Configuration getConfig() {

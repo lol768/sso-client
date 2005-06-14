@@ -4,18 +4,20 @@
  */
 package uk.ac.warwick.sso.client;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-
 import org.apache.commons.configuration.Configuration;
-import org.opensaml.SAMLAuthenticationStatement;
 import org.opensaml.SAMLResponse;
+import org.opensaml.SAMLSubject;
 
+import uk.ac.warwick.userlookup.User;
 
 public interface AttributeAuthorityResponseFetcher {
-	
-	SAMLResponse getSAMLResponse(SAMLAuthenticationStatement authStatement) throws MalformedURLException, IOException;
-	
+
+	SAMLResponse getSAMLResponse(SAMLSubject subject) throws SSOException;
+
+	User getUserFromSubject(SAMLSubject subject) throws SSOException;
+
+	String getProxyTicket(SAMLSubject subject, String resource) throws SSOException;
+
 	void setConfig(Configuration config);
 
 }

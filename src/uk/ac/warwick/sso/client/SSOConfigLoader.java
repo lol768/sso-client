@@ -28,7 +28,7 @@ public class SSOConfigLoader implements ServletContextListener {
 		super();
 	}
 
-	public void contextInitialized(ServletContextEvent event) {
+	public final void contextInitialized(final ServletContextEvent event) {
 
 		XMLConfiguration config;
 		try {
@@ -41,7 +41,7 @@ public class SSOConfigLoader implements ServletContextListener {
 		event.getServletContext().setAttribute(SSO_CONFIG_KEY, config);
 	}
 
-	public void contextDestroyed(ServletContextEvent arg0) {
+	public final void contextDestroyed(final ServletContextEvent arg0) {
 		// do nothing
 	}
 

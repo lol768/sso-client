@@ -5,6 +5,7 @@
 package uk.ac.warwick.sso.client;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import javax.servlet.Filter;
@@ -19,6 +20,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
+import org.opensaml.SAMLException;
+import org.opensaml.SAMLNameIdentifier;
+import org.opensaml.SAMLSubject;
 
 import uk.ac.warwick.userlookup.AnonymousUser;
 import uk.ac.warwick.userlookup.User;
@@ -38,9 +42,13 @@ public final class SSOClientFilter implements Filter {
 
 	public static final String GLOBAL_LOGIN_COOKIE_NAME = "SSO-LTC";
 
+	public static final String PROXY_TICKET_COOKIE_NAME = "SSO-Proxy";
+
 	private static final Logger LOGGER = Logger.getLogger(SSOClientFilter.class);
 
 	private Configuration _config;
+
+	private AttributeAuthorityResponseFetcher _aaFetcher;
 
 	public SSOClientFilter() {
 		super();
@@ -49,35 +57,49 @@ public final class SSOClientFilter implements Filter {
 	public void init(final FilterConfig arg0) throws ServletException {
 
 		_config = (Configuration) arg0.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
+		setAaFetcher(new AttributeAuthorityResponseFetcherImpl(_config));
 
 	}
 
-	public void doFilter(final ServletRequest arg0, final ServletResponse arg1, final FilterChain chain) throws IOException, ServletException {
+	public void doFilter(final ServletRequest arg0, final ServletResponse arg1, final FilterChain chain) throws IOException,
+			ServletException {
 		HttpServletRequest request = (HttpServletRequest) arg0;
 		HttpServletResponse response = (HttpServletResponse) arg1;
+		response.setContentType("text/html");
 
 		// redirect to login screen if user is already logged in globally, but
 		// not yet locally with this service
-		Cookie loginTicketCookie = getCookie(request.getCookies(), GLOBAL_LOGIN_COOKIE_NAME);
-		Cookie serviceSpecificCookie = getCookie(request.getCookies(), _config.getString("shire.sscookie.name"));
+
+		Cookie[] cookies = request.getCookies();
+		String target = getTarget(request);
 
 		User user = new AnonymousUser();
 
+		Cookie loginTicketCookie = getCookie(cookies, GLOBAL_LOGIN_COOKIE_NAME);
+		Cookie serviceSpecificCookie = getCookie(cookies, _config.getString("shire.sscookie.name"));
+
+		Cookie proxyTicketCookie = getCookie(cookies, PROXY_TICKET_COOKIE_NAME);
+
 		if (loginTicketCookie != null && serviceSpecificCookie == null) {
-
-			response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
-
-			String target = getTarget(request);
-
-			response.setHeader("Location", _config.getString("origin.login.location") + "?shire="
-					+ URLEncoder.encode(_config.getString("shire.location"), "UTF-8") + "&providerId="
-					+ URLEncoder.encode(_config.getString("shire.providerid"), "UTF-8") + "&target="
-					+ URLEncoder.encode(target, "UTF-8"));
-
-			LOGGER.debug("Found global login cookie (" + loginTicketCookie.getValue() + "), but not SSC, redirecting to Handle Service "
-					+ _config.getString("origin.login.location"));
-
+			redirectToLogin(response, target, loginTicketCookie);
 			return;
+		}
+
+		if (proxyTicketCookie != null) {
+			try {
+				SAMLSubject subject = new SAMLSubject();
+				SAMLNameIdentifier nameId = new SAMLNameIdentifier(proxyTicketCookie.getValue(), _config
+						.getString("origin.originid"), "urn:websignon:proxyticket");
+				subject.setName(nameId);
+				LOGGER.info("Trying to get user from proxy cookie:" + nameId);
+				user = getAaFetcher().getUserFromSubject(subject);
+
+			} catch (SSOException e) {
+				LOGGER.error("Could not get user from proxy cookie", e);
+			} catch (SAMLException e) {
+				LOGGER.error("Could not get user from proxy cookie", e);
+			}
+
 		} else if (serviceSpecificCookie != null) {
 
 			LOGGER.debug("Found SSC (" + serviceSpecificCookie.getValue() + ")");
@@ -85,15 +107,17 @@ public final class SSOClientFilter implements Filter {
 			// get user from cookie and put in request
 			user = UserLookup.getInstance().getUserByToken(serviceSpecificCookie.getValue(), false);
 
-			if (!user.isLoggedIn()) {
-				LOGGER.debug("Didn't find user from SSC (" + serviceSpecificCookie.getValue() + "), so invalidating SSC");
+			if (!user.isLoggedIn() && loginTicketCookie != null) {
+				redirectToLogin(response, target, loginTicketCookie);
 				// didn't find user, so cookie is invalid, destroy it!
 				Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), "");
 				cookie.setPath(_config.getString("shire.sscookie.path"));
 				cookie.setDomain(_config.getString("shire.sscookie.domain"));
 				cookie.setMaxAge(0);
 				response.addCookie(cookie);
+				return;
 			}
+
 		}
 
 		request.setAttribute(USER_KEY, user);
@@ -104,24 +128,37 @@ public final class SSOClientFilter implements Filter {
 	}
 
 	/**
+	 * @param response
+	 * @param target
+	 * @param loginTicketCookie
+	 * @throws UnsupportedEncodingException
+	 */
+	private void redirectToLogin(final HttpServletResponse response, final String target, final Cookie loginTicketCookie)
+			throws UnsupportedEncodingException {
+		response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
+
+		response.setHeader("Location", _config.getString("origin.login.location") + "?shire="
+				+ URLEncoder.encode(_config.getString("shire.location"), "UTF-8") + "&providerId="
+				+ URLEncoder.encode(_config.getString("shire.providerid"), "UTF-8") + "&target="
+				+ URLEncoder.encode(target, "UTF-8"));
+
+		LOGGER.debug("Found global login cookie (" + loginTicketCookie.getValue()
+				+ "), but not a valid SSC, redirecting to Handle Service " + _config.getString("origin.login.location"));
+	}
+
+	/**
 	 * @param request
 	 * @return
 	 */
 	private String getTarget(final HttpServletRequest request) {
 		String target = request.getRequestURL().toString();
+		if (request.getQueryString() != null) {
+			target += "?" + request.getQueryString();
+		}
 
 		String urlParamKey = _config.getString("shire.urlparamkey");
-		if (urlParamKey != null) {
-			// try looking in the request for the real url of this page
-			if (request.getParameter(urlParamKey) != null) {
-				target = request.getParameter(urlParamKey);
-			} else {
-				target = request.getScheme() + "://" + request.getServerName() + request.getRequestURI();
-				if (request.getQueryString() != null) {
-					target += "?" + request.getQueryString();
-				}
-			}
-
+		if (urlParamKey != null && request.getParameter(urlParamKey) != null) {
+			target = request.getParameter(urlParamKey);
 		}
 		return target;
 	}
@@ -140,6 +177,14 @@ public final class SSOClientFilter implements Filter {
 
 	public void destroy() {
 		// don't need to do any destroying
+	}
+
+	public AttributeAuthorityResponseFetcher getAaFetcher() {
+		return _aaFetcher;
+	}
+
+	public void setAaFetcher(final AttributeAuthorityResponseFetcher aaFetcher) {
+		_aaFetcher = aaFetcher;
 	}
 
 }

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><fileset-config file-format-version="1.1.0" simple-config="false">
-<fileset name="all" check-config-name="sso_checks.xml" enabled="true"><file-match-pattern match-pattern="." include-pattern="true"/>
+<fileset name="My java source" check-config-name="sso_checks.xml" enabled="true"><file-match-pattern match-pattern=".java$" include-pattern="true"/>
+<file-match-pattern match-pattern="warwick.sso.client.ssl.*" include-pattern="false"/>
 </fileset>
 </fileset-config>

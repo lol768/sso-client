@@ -31,12 +31,12 @@ public class ShireServlet extends HttpServlet {
 		super();
 	}
 
-	protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+	protected final void doGet(final HttpServletRequest req, final HttpServletResponse res) throws ServletException, IOException {
 
 		process(req, res);
 	}
 
-	protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+	protected final void doPost(final HttpServletRequest req, final HttpServletResponse res) throws ServletException, IOException {
 
 		process(req, res);
 
@@ -47,7 +47,7 @@ public class ShireServlet extends HttpServlet {
 	 * @throws IOException
 	 * @throws HttpException
 	 */
-	private void process(HttpServletRequest req, HttpServletResponse res) throws IOException, HttpException {
+	private void process(final HttpServletRequest req, final HttpServletResponse res) {
 
 		String saml64 = req.getParameter("SAMLResponse");
 		String target = req.getParameter("TARGET");
@@ -58,7 +58,12 @@ public class ShireServlet extends HttpServlet {
 		fetcher.setConfig(_config);
 		command.setAaFetcher(fetcher);
 		command.setConfig(_config);
-		Cookie cookie = command.process(saml64, target);
+		Cookie cookie = null;
+		try {
+			cookie = command.process(saml64, target);
+		} catch (SSOException e) {
+			LOGGER.warn("Could not generate cookie");
+		}
 
 		if (cookie != null) {
 			LOGGER.debug("Adding SSC (" + cookie.getValue() + " ) to response");
@@ -68,11 +73,11 @@ public class ShireServlet extends HttpServlet {
 		}
 
 		res.setHeader("Location", target);
-		res.setStatus(302);
+		res.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
 
 	}
 
-	public void init(ServletConfig ctx) throws ServletException {
+	public final void init(final ServletConfig ctx) throws ServletException {
 		super.init(ctx);
 
 		_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);

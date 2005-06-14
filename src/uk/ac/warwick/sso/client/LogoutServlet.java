@@ -20,7 +20,7 @@ public class LogoutServlet extends HttpServlet {
 
 	private static final Logger LOGGER = Logger.getLogger(LogoutServlet.class);
 
-	protected void doPost(HttpServletRequest arg0, HttpServletResponse arg1) throws ServletException, IOException {
+	protected final void doPost(final HttpServletRequest arg0, final HttpServletResponse arg1) throws ServletException, IOException {
 		processRequest(arg0, arg1);
 	}
 
@@ -28,8 +28,8 @@ public class LogoutServlet extends HttpServlet {
 
 		java.io.PrintWriter out = res.getWriter();
 
-		String SSC = req.getParameter("logoutTicket");
-		if (SSC == null || SSC.equals("")) {
+		String serviceSpecificCookie = req.getParameter("logoutTicket");
+		if (serviceSpecificCookie == null || serviceSpecificCookie.equals("")) {
 			out.println("false");
 			LOGGER.info("Logout attempt failed because no ssc was passed in");
 			return;
@@ -37,14 +37,14 @@ public class LogoutServlet extends HttpServlet {
 
 		UserCache cache = UserLookup.getInstance().getUserCache();
 
-		if (cache.get(SSC) != null) {
-			cache.remove(SSC);
+		if (cache.get(serviceSpecificCookie) != null) {
+			cache.remove(serviceSpecificCookie);
 			out.println("true");
-			LOGGER.info("Logout attempt succeeded as ssc (" + SSC + ") was found in cache");
+			LOGGER.info("Logout attempt succeeded as ssc (" + serviceSpecificCookie + ") was found in cache");
 			return;
 		}
 
-		LOGGER.info("Logout attempt failed because the ssc (" + SSC + ") was not found in the user cache");
+		LOGGER.info("Logout attempt failed because the ssc (" + serviceSpecificCookie + ") was not found in the user cache");
 		out.println("false");
 		return;
 
