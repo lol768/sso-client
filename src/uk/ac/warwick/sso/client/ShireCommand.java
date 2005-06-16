@@ -17,7 +17,6 @@ import java.util.Date;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
 import org.opensaml.SAMLAssertion;
 import org.opensaml.SAMLAuthenticationStatement;
@@ -27,10 +26,10 @@ import org.opensaml.SAMLResponse;
 import org.opensaml.SAMLStatement;
 import org.opensaml.SAMLSubject;
 
+import uk.ac.warwick.sso.client.cache.UserCache;
+import uk.ac.warwick.sso.client.cache.UserCacheItem;
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.userlookup.User;
-import uk.ac.warwick.userlookup.UserCacheItem;
-import uk.ac.warwick.userlookup.UserLookup;
 
 public class ShireCommand {
 
@@ -39,6 +38,8 @@ public class ShireCommand {
 	private static final Logger LOGGER = Logger.getLogger(ShireCommand.class);
 
 	private AttributeAuthorityResponseFetcher _aaFetcher;
+	
+	private UserCache _cache;
 
 	/**
 	 * @param saml64
@@ -84,14 +85,16 @@ public class ShireCommand {
 
 		User user = getUserFromAuthSubject(subject);
 
-		String serviceSpecificCookie = (String) user.getExtraProperty("urn:websignon:ssc");
+		String serviceSpecificCookie = (String) user.getExtraProperty(SSOToken.SSC_TICKET_TYPE);
 		if (serviceSpecificCookie != null) {
-			user.setToken(serviceSpecificCookie);
+			SSOToken token = new SSOToken(serviceSpecificCookie,SSOToken.SSC_TICKET_TYPE);
+			user.setToken(token.getValue());
 			user.setIsLoggedIn(true);
-			UserCacheItem item = new UserCacheItem(user, new Date().getTime(), serviceSpecificCookie);
-			UserLookup.getInstance().getUserCache().put(serviceSpecificCookie, item);
-			UserLookup.getInstance().getUserByToken(serviceSpecificCookie, false);
-			Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), serviceSpecificCookie);
+			UserCacheItem item = new UserCacheItem(user, new Date().getTime(), token);
+			getCache().put(token,item);
+			//UserLookup.getInstance().getUserCache().put(token, item);
+			//UserLookup.getInstance().getUserByToken(serviceSpecificCookie, false);
+			Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), token.getValue());
 			cookie.setPath(_config.getString("shire.sscookie.path"));
 			cookie.setDomain(_config.getString("shire.sscookie.domain"));
 			// create cookie so that service can retrieve user from cache
@@ -182,6 +185,16 @@ public class ShireCommand {
 
 	public final void setAaFetcher(final AttributeAuthorityResponseFetcher aaFetcher) {
 		_aaFetcher = aaFetcher;
+	}
+
+	
+	public final UserCache getCache() {
+		return _cache;
+	}
+
+	
+	public final void setCache(final UserCache cache) {
+		_cache = cache;
 	}
 
 }

@@ -13,6 +13,8 @@ import javax.servlet.ServletContextListener;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 
+import uk.ac.warwick.sso.client.cache.UserCache;
+
 /**
  * Requires a ServletContext Parameter to be set
  * "ssoclient.config=/sso-config.xml"
@@ -23,6 +25,8 @@ import org.apache.commons.configuration.XMLConfiguration;
 public class SSOConfigLoader implements ServletContextListener {
 
 	public static final String SSO_CONFIG_KEY = "SSO-CONFIG";
+
+	public static final String SSO_CACHE_KEY = "SSO-CACHE";
 
 	public SSOConfigLoader() {
 		super();
@@ -39,6 +43,9 @@ public class SSOConfigLoader implements ServletContextListener {
 		}
 
 		event.getServletContext().setAttribute(SSO_CONFIG_KEY, config);
+
+		event.getServletContext().setAttribute(SSO_CACHE_KEY, new UserCache());
+
 	}
 
 	public final void contextDestroyed(final ServletContextEvent arg0) {

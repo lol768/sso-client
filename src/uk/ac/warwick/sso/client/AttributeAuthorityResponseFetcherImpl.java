@@ -100,8 +100,8 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		try {
 			client.executeMethod(method);
 		} catch (IOException e) {
-			LOGGER.error("Attribute request failed at client.executeMethod",e);
-			throw new SSOException("Attribute request failed at client.executeMethod",e);
+			LOGGER.error("Attribute request failed at client.executeMethod", e);
+			throw new SSOException("Attribute request failed at client.executeMethod", e);
 		}
 		LOGGER.info("Https response:" + method.getResponseBodyAsString());
 
@@ -139,6 +139,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		Properties attributes = getAttributesFromResponse(response);
 
 		User user = createUserFromAttributes(attributes);
+
 		return user;
 
 	}
@@ -218,6 +219,10 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		user.setDepartmentCode((String) attributes.get("warwickdeptcode"));
 		user.setDepartment((String) attributes.get("ou"));
 		user.setEmail((String) attributes.get("mail"));
+
+		if (attributes.get("urn:websignon:loggedin") != null && attributes.get("urn:websignon:loggedin").equals("true")) {
+			user.setIsLoggedIn(true);
+		}
 
 		user.getExtraProperties().putAll(attributes);
 

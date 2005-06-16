@@ -18,6 +18,8 @@ import org.opensaml.SAMLAttributeStatement;
 import org.opensaml.SAMLException;
 import org.opensaml.SAMLResponse;
 
+import uk.ac.warwick.sso.client.cache.UserCache;
+
 import junit.framework.TestCase;
 
 public class ShireCommandTests extends TestCase {
@@ -42,6 +44,7 @@ public class ShireCommandTests extends TestCase {
 		target = URLDecoder.decode(target, "UTF-8");
 
 		command.setConfig(config);
+		command.setCache(new UserCache());
 		Cookie cookie = command.process(saml64, target);
 
 		assertNotNull(cookie);

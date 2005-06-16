@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project basedir="." default="deploywar" name="sso-client">
+<project basedir="." default="deployjar" name="sso-client">
 
 	
 
@@ -10,41 +10,40 @@
 		<property name="buildDir" value="build" />
 		<property name="buildName" value="sso-client" />
 		<property name="jarFile" value="dist/${buildName}.jar"/>
+		<property name="embeddedJarFile" value="dist/${buildName}-embedded.jar"/>		
 		
 		<path id="project.classpath">
 			<fileset dir="external-libs">
 				<include name="*.jar"/>
 			</fileset>
-			<fileset dir="${buildName}/WEB-INF/lib">
+			<fileset dir="${buildName}-jar/META-INF/lib">
 				<include name="*.jar"/>
 			</fileset>
 		</path>
 
 		<delete file="${jarFile}" />	
 		
-		<delete dir="${buildDir}/${buildName}" />
-		<delete dir="${buildDir}/${buildName}-jar" />
+		<delete dir="${buildDir}" />
 
-		<mkdir dir="${buildDir}/${buildName}" />
-		<mkdir dir="${buildDir}/${buildName}/WEB-INF/classes" />
-		
+		<mkdir dir="${buildDir}/${buildName}-embedded-jar/"/>
 		<mkdir dir="${buildDir}/${buildName}-jar/"/>
 
 	</target>
 
 
 	<target name="compile" depends="init">
-		<javac destdir="${buildDir}/${buildName}/WEB-INF/classes" excludes="" includes="" srcdir="${srcDir}" debug="true">
+		<javac destdir="${buildDir}/${buildName}-embedded-jar" excludes="" includes="" srcdir="${srcDir}" debug="true">
 			<classpath refid="project.classpath" />
 		</javac>
-		<copy todir="${buildDir}/${buildName}">
-			<fileset dir="${buildName}">
+		<copy todir="${buildDir}/${buildName}-embedded-jar">
+			<fileset dir="${buildName}-embedded-jar">
 				<include name="**/*.*" />
 			</fileset>
 			<fileset dir="${srcDir}">
 				<include name="**/*.xml"/>
 			</fileset>
 		</copy>
+		
 		
 		<javac destdir="${buildDir}/${buildName}-jar" excludes="" includes="" srcdir="${srcDir}" debug="true">
 				<classpath refid="project.classpath" />
@@ -66,8 +65,19 @@
 		</jar>
 	</target>
 	
+	<target name="buildembeddedjar" depends="compile">
+		<jar destfile="${embeddedJarFile}" manifest="${buildName}-embedded-jar/META-INF/manifest.mf">
+			<fileset dir="${buildDir}/${buildName}-embedded-jar/" />
+		</jar>
+		<copy todir="dist/dependencies">
+			<fileset dir="${buildName}-jar/META-INF/lib">
+				<include name="**/*.jar" />
+			</fileset>
+		</copy>
+	</target>
+	
 
-	<target name="deploywar" depends="buildjar">
+	<target name="deployjar" depends="compile,buildjar,buildembeddedjar">
 		<copy file="${jarFile}" todir="/apps/jboss-3.2.6/server/default/deploy/" />
 	</target>
 

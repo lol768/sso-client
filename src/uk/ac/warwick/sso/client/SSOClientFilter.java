@@ -24,9 +24,10 @@ import org.opensaml.SAMLException;
 import org.opensaml.SAMLNameIdentifier;
 import org.opensaml.SAMLSubject;
 
+import uk.ac.warwick.sso.client.cache.UserCache;
+import uk.ac.warwick.sso.client.cache.UserCacheItem;
 import uk.ac.warwick.userlookup.AnonymousUser;
 import uk.ac.warwick.userlookup.User;
-import uk.ac.warwick.userlookup.UserLookup;
 
 /**
  * SSOClientFilter gets a User object from the request (via a cookie or a
@@ -49,16 +50,17 @@ public final class SSOClientFilter implements Filter {
 	private Configuration _config;
 
 	private AttributeAuthorityResponseFetcher _aaFetcher;
+	
+	private UserCache _cache;
 
 	public SSOClientFilter() {
 		super();
 	}
 
-	public void init(final FilterConfig arg0) throws ServletException {
-
-		_config = (Configuration) arg0.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
+	public void init(final FilterConfig ctx) throws ServletException {
+		_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
 		setAaFetcher(new AttributeAuthorityResponseFetcherImpl(_config));
-
+		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY));
 	}
 
 	public void doFilter(final ServletRequest arg0, final ServletResponse arg1, final FilterChain chain) throws IOException,
@@ -66,9 +68,6 @@ public final class SSOClientFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) arg0;
 		HttpServletResponse response = (HttpServletResponse) arg1;
 		response.setContentType("text/html");
-
-		// redirect to login screen if user is already logged in globally, but
-		// not yet locally with this service
 
 		Cookie[] cookies = request.getCookies();
 		String target = getTarget(request);
@@ -89,7 +88,7 @@ public final class SSOClientFilter implements Filter {
 			try {
 				SAMLSubject subject = new SAMLSubject();
 				SAMLNameIdentifier nameId = new SAMLNameIdentifier(proxyTicketCookie.getValue(), _config
-						.getString("origin.originid"), "urn:websignon:proxyticket");
+						.getString("origin.originid"), SSOToken.PROXY_TICKET_TYPE);
 				subject.setName(nameId);
 				LOGGER.info("Trying to get user from proxy cookie:" + nameId);
 				user = getAaFetcher().getUserFromSubject(subject);
@@ -105,9 +104,11 @@ public final class SSOClientFilter implements Filter {
 			LOGGER.debug("Found SSC (" + serviceSpecificCookie.getValue() + ")");
 
 			// get user from cookie and put in request
-			user = UserLookup.getInstance().getUserByToken(serviceSpecificCookie.getValue(), false);
+			//user = UserLookup.getInstance().getUserByToken(serviceSpecificCookie.getValue(), false);
+			SSOToken token = new SSOToken(serviceSpecificCookie.getValue(),SSOToken.SSC_TICKET_TYPE);
+			UserCacheItem item = (UserCacheItem) getCache().get(token);
 
-			if (!user.isLoggedIn() && loginTicketCookie != null) {
+			if (item == null || !item.getUser().isLoggedIn() && loginTicketCookie != null) {
 				redirectToLogin(response, target, loginTicketCookie);
 				// didn't find user, so cookie is invalid, destroy it!
 				Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), "");
@@ -117,10 +118,15 @@ public final class SSOClientFilter implements Filter {
 				response.addCookie(cookie);
 				return;
 			}
+			user = item.getUser();
 
 		}
 
-		request.setAttribute(USER_KEY, user);
+		if (_config.getString("shire.filteruserkey") != null) {
+			request.setAttribute(_config.getString("shire.filteruserkey"), user);
+		} else {
+			request.setAttribute(USER_KEY, user);
+		}
 
 		// redirect onto underlying page
 		chain.doFilter(arg0, arg1);
@@ -185,6 +191,16 @@ public final class SSOClientFilter implements Filter {
 
 	public void setAaFetcher(final AttributeAuthorityResponseFetcher aaFetcher) {
 		_aaFetcher = aaFetcher;
+	}
+
+	
+	public UserCache getCache() {
+		return _cache;
+	}
+
+	
+	public void setCache(final UserCache cache) {
+		_cache = cache;
 	}
 
 }

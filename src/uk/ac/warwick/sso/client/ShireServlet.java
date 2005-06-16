@@ -17,6 +17,8 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
 
+import uk.ac.warwick.sso.client.cache.UserCache;
+
 /**
  * @author Kieran Shaw
  * 
@@ -26,6 +28,8 @@ public class ShireServlet extends HttpServlet {
 	private static final Logger LOGGER = Logger.getLogger(ShireServlet.class);
 
 	private Configuration _config;
+
+	private UserCache _cache;
 
 	public ShireServlet() {
 		super();
@@ -53,6 +57,8 @@ public class ShireServlet extends HttpServlet {
 		String target = req.getParameter("TARGET");
 
 		ShireCommand command = new ShireCommand();
+
+		command.setCache(_cache);
 
 		AttributeAuthorityResponseFetcher fetcher = new AttributeAuthorityResponseFetcherImpl();
 		fetcher.setConfig(_config);
@@ -82,5 +88,8 @@ public class ShireServlet extends HttpServlet {
 
 		_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
 
+		_cache = (UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY);
+
 	}
+
 }

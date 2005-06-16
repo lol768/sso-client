@@ -13,6 +13,7 @@
 		</attributeauthority>
 	</origin>
 	<shire>
+		<filteruserkey>SSO-USER</filteruserkey>
 		<urlparamkey>requestedUrl</urlparamkey>
 		<location>http://moleman.warwick.ac.uk/sso-client/shire</location>
 		<sscookie>
