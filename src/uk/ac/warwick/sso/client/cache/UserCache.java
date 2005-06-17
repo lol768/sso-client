@@ -118,7 +118,7 @@ public class UserCache {
 		return _cache.size();
 	}
 
-	public final void remove(final String token) {
+	public final void remove(final Object token) {
 		long start = System.currentTimeMillis();
 		_cache.remove(token);
 		if (LOGGER.isDebugEnabled()) {

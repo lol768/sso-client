@@ -38,14 +38,16 @@ public class LogoutServlet extends HttpServlet {
 			return;
 		}
 
-		if (getCache().get(serviceSpecificCookie) != null) {
-			getCache().remove(serviceSpecificCookie);
+		SSOToken token = new SSOToken(serviceSpecificCookie,SSOToken.SSC_TICKET_TYPE);
+		
+		if (getCache().get(token) != null) {
+			getCache().remove(token);
 			out.println("true");
-			LOGGER.info("Logout attempt succeeded as ssc (" + serviceSpecificCookie + ") was found in cache");
+			LOGGER.info("Logout attempt succeeded as ssc (" + token + ") was found in cache");
 			return;
 		}
 
-		LOGGER.info("Logout attempt failed because the ssc (" + serviceSpecificCookie + ") was not found in the user cache");
+		LOGGER.info("Logout attempt failed because the ssc (" + token + ") was not found in the user cache");
 		out.println("false");
 		return;
 

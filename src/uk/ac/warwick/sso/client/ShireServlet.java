@@ -14,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
 
 import uk.ac.warwick.sso.client.cache.UserCache;

@@ -108,7 +108,7 @@ public final class SSOClientFilter implements Filter {
 			SSOToken token = new SSOToken(serviceSpecificCookie.getValue(),SSOToken.SSC_TICKET_TYPE);
 			UserCacheItem item = (UserCacheItem) getCache().get(token);
 
-			if (item == null || !item.getUser().isLoggedIn() && loginTicketCookie != null) {
+			if ((item == null || !item.getUser().isLoggedIn()) && loginTicketCookie != null) {
 				redirectToLogin(response, target, loginTicketCookie);
 				// didn't find user, so cookie is invalid, destroy it!
 				Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), "");
@@ -117,8 +117,9 @@ public final class SSOClientFilter implements Filter {
 				cookie.setMaxAge(0);
 				response.addCookie(cookie);
 				return;
+			} else if (item != null && item.getUser().isLoggedIn()) {
+				user = item.getUser();
 			}
-			user = item.getUser();
 
 		}
 
