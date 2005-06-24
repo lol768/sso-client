@@ -39,7 +39,7 @@ import uk.ac.warwick.userlookup.User;
  */
 public final class SSOClientFilter implements Filter {
 
-	public static final String USER_KEY = "SSO-USER";
+	public static final String USER_KEY = "SSO_USER";
 
 	public static final String GLOBAL_LOGIN_COOKIE_NAME = "SSO-LTC";
 
