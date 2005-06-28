@@ -2,15 +2,12 @@
 
 <project basedir="." default="deployjar" name="sso-client">
 
-	
-
 	<target name="init">
 
 		<property name="srcDir" value="src" />
 		<property name="buildDir" value="build" />
 		<property name="buildName" value="sso-client" />
 		<property name="jarFile" value="dist/${buildName}.jar"/>
-		<property name="embeddedJarFile" value="dist/${buildName}-embedded.jar"/>		
 		
 		<path id="project.classpath">
 			<fileset dir="external-libs">
@@ -25,25 +22,12 @@
 		
 		<delete dir="${buildDir}" />
 
-		<mkdir dir="${buildDir}/${buildName}-embedded-jar/"/>
 		<mkdir dir="${buildDir}/${buildName}-jar/"/>
 
 	</target>
 
 
-	<target name="compile" depends="init">
-		<javac destdir="${buildDir}/${buildName}-embedded-jar" excludes="" includes="" srcdir="${srcDir}" debug="true">
-			<classpath refid="project.classpath" />
-		</javac>
-		<copy todir="${buildDir}/${buildName}-embedded-jar">
-			<fileset dir="${buildName}-embedded-jar">
-				<include name="**/*.*" />
-			</fileset>
-			<fileset dir="${srcDir}">
-				<include name="**/*.xml"/>
-			</fileset>
-		</copy>
-		
+	<target name="compile" depends="init">		
 		
 		<javac destdir="${buildDir}/${buildName}-jar" excludes="" includes="" srcdir="${srcDir}" debug="true">
 				<classpath refid="project.classpath" />
@@ -64,20 +48,9 @@
 			<fileset dir="${buildDir}/${buildName}-jar/" />
 		</jar>
 	</target>
-	
-	<target name="buildembeddedjar" depends="compile">
-		<jar destfile="${embeddedJarFile}" manifest="${buildName}-embedded-jar/META-INF/manifest.mf">
-			<fileset dir="${buildDir}/${buildName}-embedded-jar/" />
-		</jar>
-		<copy todir="dist/dependencies">
-			<fileset dir="${buildName}-jar/META-INF/lib">
-				<include name="**/*.jar" />
-			</fileset>
-		</copy>
-	</target>
-	
+		
 
-	<target name="deployjar" depends="compile,buildjar,buildembeddedjar">
+	<target name="deployjar" depends="compile,buildjar">
 		<copy file="${jarFile}" todir="/apps/jboss-3.2.6/server/default/deploy/" />
 	</target>
 

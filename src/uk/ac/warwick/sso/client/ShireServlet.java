@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
 
 import uk.ac.warwick.sso.client.cache.UserCache;
@@ -75,6 +76,14 @@ public class ShireServlet extends HttpServlet {
 			res.addCookie(cookie);
 		} else {
 			LOGGER.warn("No SSC cookie returned to client");
+			// if you couldn't get a service specific cookie set, then we must
+			// destory the auto login cookie because it will keep redirecting
+			// the user
+			Cookie ltc = new Cookie("SSO-LTC", "");
+			ltc.setDomain(".warwick.ac.uk");
+			ltc.setPath("/");
+			ltc.setMaxAge(0);
+			res.addCookie(ltc);
 		}
 
 		res.setHeader("Location", target);
