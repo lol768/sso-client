@@ -55,7 +55,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		_config = config;
 	}
 
-	public final SAMLResponse getSAMLResponse(final SAMLSubject subject) throws SSOException {
+	public SAMLResponse getSAMLResponse(final SAMLSubject subject) throws SSOException {
 		return getSAMLResponse(subject, _config.getString("shire.providerid"));
 	}
 
@@ -206,25 +206,49 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		return keyStore;
 	}
 
+	private String getValueFromAttribute(final String key, final Properties attributes) {
+
+		if (attributes.get(key) == null) {
+			return null;
+		}
+		return (String) ((SAMLAttribute) attributes.get(key)).getValues().next();
+	}
+
 	/**
 	 * @param samlResp
 	 * @return
 	 */
 	private User createUserFromAttributes(final Properties attributes) {
 		User user = new User();
-		user.setUserId((String) attributes.get("cn"));
-		user.setLastName((String) attributes.get("sn"));
-		user.setFirstName((String) attributes.get("givenName"));
-		user.setWarwickId((String) attributes.get("warwickuniid"));
-		user.setDepartmentCode((String) attributes.get("warwickdeptcode"));
-		user.setDepartment((String) attributes.get("ou"));
-		user.setEmail((String) attributes.get("mail"));
+		user.setUserId(getValueFromAttribute("cn", attributes));
+		user.setLastName(getValueFromAttribute("sn", attributes));
+		user.setFirstName(getValueFromAttribute("givenName", attributes));
+		user.setWarwickId(getValueFromAttribute("warwickuniid", attributes));
+		user.setDepartmentCode(getValueFromAttribute("warwickdeptcode", attributes));
+		user.setDepartment(getValueFromAttribute("ou", attributes));
+		user.setEmail(getValueFromAttribute("mail", attributes));
 
-		if (attributes.get("urn:websignon:loggedin") != null && attributes.get("urn:websignon:loggedin").equals("true")) {
+		if (getValueFromAttribute("urn:websignon:usersource", attributes) != null
+				&& getValueFromAttribute("urn:websignon:usersource", attributes).equals("WarwickNDS")) {
+			if (attributes.get("staff") != null && getValueFromAttribute("staff", attributes).equals("true")) {
+				user.setStaff(true);
+			}
+			if (attributes.get("student") != null && getValueFromAttribute("student", attributes).equals("true")) {
+				user.setStudent(true);
+			}
+		}
+
+		if (getValueFromAttribute("urn:websignon:loggedin", attributes) != null
+				&& getValueFromAttribute("urn:websignon:loggedin", attributes).equals("true")) {
 			user.setIsLoggedIn(true);
 		}
 
-		user.getExtraProperties().putAll(attributes);
+		// dump all attributes as keys and strings into extraproperties map on the user
+		Iterator it = attributes.keySet().iterator();
+		while (it.hasNext()) {
+			String attrName = (String) it.next();
+			user.getExtraProperties().put(attrName, getValueFromAttribute(attrName, attributes));
+		}
 
 		return user;
 	}
@@ -246,9 +270,9 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		while (it.hasNext()) {
 			SAMLAttribute attribute = (SAMLAttribute) it.next();
 			String name = attribute.getName();
-			String value = (String) attribute.getValues().next();
-			LOGGER.info(name + "=" + value);
-			attributes.put(name, value);
+			// String value = (String) attribute.getValues().next();
+			LOGGER.info(name + "=" + attribute);
+			attributes.put(name, attribute);
 		}
 		return attributes;
 	}

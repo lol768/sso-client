@@ -15,7 +15,7 @@
 
 	<tag>
 		<name>loginlink</name>
-		<tag-class>uk.ac.warwick.sso.client.SSOLoginLinkTag</tag-class>
+		<tag-class>uk.ac.warwick.sso.client.tags.SSOLoginLinkTag</tag-class>
 		<description>Generates a link to login to the new SSO system</description>
 		<attribute>
 			<name>target</name>
@@ -24,7 +24,7 @@
 	</tag>
 	<tag>
 		<name>logoutlink</name>
-		<tag-class>uk.ac.warwick.sso.client.SSOLogoutLinkTag</tag-class>
+		<tag-class>uk.ac.warwick.sso.client.tags.SSOLogoutLinkTag</tag-class>
 		<description>Generates a link to logout of the new SSO system</description>
 		<attribute>
 			<name>target</name>

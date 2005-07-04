@@ -14,16 +14,16 @@ import org.apache.log4j.Logger;
 /**
  * 
  * A cache of <code>User</code> to prevent applications from repeatedly
- * calling the SSO service for the same user. Caches for 5 minutes.
+ * calling the SSO service for the same user. Caches for 10 hours.
  * 
  */
 public class UserCache {
 
 	private static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
-	private static final int DEFAULT_MAX_ENTRIES = 5000;
+	private static final int DEFAULT_MAX_ENTRIES = 50000;
 
-	private static final int DEFAULT_TIME_OUT = 600;
+	private static final int DEFAULT_TIME_OUT = 36000;
 
 	private int _timeout = DEFAULT_TIME_OUT;
 
@@ -34,7 +34,7 @@ public class UserCache {
 	private Map _cache;
 
 	public UserCache() {
-		// create a new LinkedHashMap with 1000 initial capacity, 0.75 load and
+		// create a new LinkedHashMap with 36000 initial capacity, 0.75 load and
 		// insertion ordering
 		this._cache = Collections.synchronizedMap(new LinkedHashMap(DEFAULT_MAX_ENTRIES, DEFAULT_LOAD_FACTOR, false) {
 

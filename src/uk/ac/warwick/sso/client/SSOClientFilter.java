@@ -28,6 +28,7 @@ import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.cache.UserCacheItem;
 import uk.ac.warwick.userlookup.AnonymousUser;
 import uk.ac.warwick.userlookup.User;
+import uk.ac.warwick.userlookup.UserLookup;
 
 /**
  * SSOClientFilter gets a User object from the request (via a cookie or a
@@ -50,7 +51,7 @@ public final class SSOClientFilter implements Filter {
 	private Configuration _config;
 
 	private AttributeAuthorityResponseFetcher _aaFetcher;
-	
+
 	private UserCache _cache;
 
 	public SSOClientFilter() {
@@ -74,53 +75,57 @@ public final class SSOClientFilter implements Filter {
 
 		User user = new AnonymousUser();
 
-		Cookie loginTicketCookie = getCookie(cookies, GLOBAL_LOGIN_COOKIE_NAME);
-		Cookie serviceSpecificCookie = getCookie(cookies, _config.getString("shire.sscookie.name"));
+		if (_config.getString("mode").equals("old")) {
+			// do old style single sign on via WarwickSSO cookie
+			user = doGetUserByOldSSO(cookies);
 
-		Cookie proxyTicketCookie = getCookie(cookies, PROXY_TICKET_COOKIE_NAME);
+		} else {
+			// do new style single sign on with shibboleth
+			Cookie loginTicketCookie = getCookie(cookies, GLOBAL_LOGIN_COOKIE_NAME);
+			Cookie serviceSpecificCookie = getCookie(cookies, _config.getString("shire.sscookie.name"));
 
-		if (loginTicketCookie != null && serviceSpecificCookie == null) {
-			redirectToLogin(response, target, loginTicketCookie);
-			return;
-		}
+			Cookie proxyTicketCookie = getCookie(cookies, PROXY_TICKET_COOKIE_NAME);
 
-		if (proxyTicketCookie != null) {
-			try {
-				SAMLSubject subject = new SAMLSubject();
-				SAMLNameIdentifier nameId = new SAMLNameIdentifier(proxyTicketCookie.getValue(), _config
-						.getString("origin.originid"), SSOToken.PROXY_TICKET_TYPE);
-				subject.setName(nameId);
-				LOGGER.info("Trying to get user from proxy cookie:" + nameId);
-				user = getAaFetcher().getUserFromSubject(subject);
-
-			} catch (SSOException e) {
-				LOGGER.error("Could not get user from proxy cookie", e);
-			} catch (SAMLException e) {
-				LOGGER.error("Could not get user from proxy cookie", e);
-			}
-
-		} else if (serviceSpecificCookie != null) {
-
-			LOGGER.debug("Found SSC (" + serviceSpecificCookie.getValue() + ")");
-
-			// get user from cookie and put in request
-			//user = UserLookup.getInstance().getUserByToken(serviceSpecificCookie.getValue(), false);
-			SSOToken token = new SSOToken(serviceSpecificCookie.getValue(),SSOToken.SSC_TICKET_TYPE);
-			UserCacheItem item = (UserCacheItem) getCache().get(token);
-
-			if ((item == null || !item.getUser().isLoggedIn()) && loginTicketCookie != null) {
+			if (loginTicketCookie != null && serviceSpecificCookie == null) {
 				redirectToLogin(response, target, loginTicketCookie);
-				// didn't find user, so cookie is invalid, destroy it!
-				Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), "");
-				cookie.setPath(_config.getString("shire.sscookie.path"));
-				cookie.setDomain(_config.getString("shire.sscookie.domain"));
-				cookie.setMaxAge(0);
-				response.addCookie(cookie);
 				return;
-			} else if (item != null && item.getUser().isLoggedIn()) {
-				user = item.getUser();
 			}
 
+			if (proxyTicketCookie != null) {
+				try {
+					SAMLSubject subject = new SAMLSubject();
+					SAMLNameIdentifier nameId = new SAMLNameIdentifier(proxyTicketCookie.getValue(), _config
+							.getString("origin.originid"), SSOToken.PROXY_TICKET_TYPE);
+					subject.setName(nameId);
+					LOGGER.info("Trying to get user from proxy cookie:" + nameId);
+					user = getAaFetcher().getUserFromSubject(subject);
+				} catch (SSOException e) {
+					LOGGER.error("Could not get user from proxy cookie", e);
+				} catch (SAMLException e) {
+					LOGGER.error("Could not get user from proxy cookie", e);
+				}
+
+			} else if (serviceSpecificCookie != null) {
+
+				LOGGER.debug("Found SSC (" + serviceSpecificCookie.getValue() + ")");
+
+				SSOToken token = new SSOToken(serviceSpecificCookie.getValue(), SSOToken.SSC_TICKET_TYPE);
+				UserCacheItem item = (UserCacheItem) getCache().get(token);
+
+				if ((item == null || !item.getUser().isLoggedIn()) && loginTicketCookie != null) {
+					redirectToLogin(response, target, loginTicketCookie);
+					// didn't find user, so cookie is invalid, destroy it!
+					Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), "");
+					cookie.setPath(_config.getString("shire.sscookie.path"));
+					cookie.setDomain(_config.getString("shire.sscookie.domain"));
+					cookie.setMaxAge(0);
+					response.addCookie(cookie);
+					return;
+				} else if (item != null && item.getUser().isLoggedIn()) {
+					user = item.getUser();
+				}
+
+			}
 		}
 
 		if (_config.getString("shire.filteruserkey") != null) {
@@ -132,6 +137,20 @@ public final class SSOClientFilter implements Filter {
 		// redirect onto underlying page
 		chain.doFilter(arg0, arg1);
 
+	}
+
+	/**
+	 * @param cookies
+	 * @param user
+	 * @return
+	 */
+	private User doGetUserByOldSSO(final Cookie[] cookies) {
+		User user = new AnonymousUser();
+		Cookie warwickSSO = getCookie(cookies, "WarwickSSO");
+		if (warwickSSO != null) {
+			user = UserLookup.getInstance().getUserByToken(warwickSSO.getValue(), false);
+		}
+		return user;
 	}
 
 	/**
@@ -162,10 +181,13 @@ public final class SSOClientFilter implements Filter {
 		if (request.getQueryString() != null) {
 			target += "?" + request.getQueryString();
 		}
+		LOGGER.debug("Target from request.getRequestURL()=" + target);
 
 		String urlParamKey = _config.getString("shire.urlparamkey");
+		LOGGER.debug("shire.urlparamkey:" + urlParamKey);
 		if (urlParamKey != null && request.getParameter(urlParamKey) != null) {
 			target = request.getParameter(urlParamKey);
+			LOGGER.debug("Found target from paramter " + urlParamKey + "=" + target);
 		}
 		return target;
 	}
@@ -194,12 +216,10 @@ public final class SSOClientFilter implements Filter {
 		_aaFetcher = aaFetcher;
 	}
 
-	
 	public UserCache getCache() {
 		return _cache;
 	}
 
-	
 	public void setCache(final UserCache cache) {
 		_cache = cache;
 	}
