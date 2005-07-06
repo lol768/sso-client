@@ -62,13 +62,13 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 	private SAMLResponse getSAMLResponse(final SAMLSubject subject, final String resource) throws SSOException {
 		String aaLocation = _config.getString("origin.attributeauthority.location");
 		LOGGER.info("Shire connecting to AttributeAuthority at " + aaLocation);
-		if (aaLocation.startsWith("https")) {
+		if (aaLocation.startsWith("aahttps")) {
 			final int standardHttpsPort = 443;
 			try {
 				Protocol authhttps = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(_config
 						.getString("shire.keystore.location")), _config.getString("shire.keystore.password"), new URL(_config
 						.getString("shire.keystore.location")), _config.getString("shire.keystore.password")), standardHttpsPort);
-				Protocol.registerProtocol("https", authhttps);
+				Protocol.registerProtocol("aahttps", authhttps);
 			} catch (MalformedURLException e) {
 				throw new SSOException("Could not setup SSL protocols", e);
 			}
