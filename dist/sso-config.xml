@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<!-- mode can be 'old' or 'new' this defines if the SSOClientFilter should use 
+		the old WarwickSSO cookie or the newer SSO-SSC-* cookies -->
+	<mode>old</mode>
+	<!--mode>new</mode-->
+	<origin>
+		<!-- This is the id of the SSO origin, this might change when the service goes live -->
+		<originid>urn:websignon.warwick.ac.uk</originid>
+		<login>
+			<!-- url of the login page, should always be HTTPS -->
+			<location>https://testsso.warwick.ac.uk/origin/hs</location>
+		</login>
+		<logout>
+			<!-- url of the logout page, should always be HTTPS -->
+			<location>https://testsso.warwick.ac.uk/origin/logout</location>
+		</logout>
+		<attributeauthority>
+			<!-- url of the Attribute Authority, strangely this needs to be protocol aahttps
+				this is for HttpClient certificate configuration reasons -->
+			<location>aahttps://testsso.warwick.ac.uk/origin/aa</location>
+		</attributeauthority>
+	</origin>
+	<shire>
+		<!-- This is the key that the filter will put the User object under in the request
+			You should be able to get a user with request.getAttribute("SSO_USER") -->
+		<filteruserkey>SSO_USER</filteruserkey>
+		<!-- To get redirects working properly, pages need to know where to redirect back to after login 
+			This is the request parameter key that contains the real url of the webpage, it is used to generate
+			correct redirects. -->
+		<urlparamkey>requestedUrl</urlparamkey>
+		<!-- location of this services SHIRE, should be HTTPS...as mapped in the web.xml -->
+		<location>https://myapp.warwick.ac.uk/myapp/shire</location>
+		<sscookie>
+			<!-- Name of the service specific cookie (SSC) that will be used for keeping a session -->
+			<name>SSO-SSC-BlogBuilder</name>
+			<!-- path scope of this cookie -->
+			<path>/sso-client</path>
+			<!-- domain scope of this cookie...should be as restrictive as possible -->
+			<domain>myapp.warwick.ac.uk</domain>
+		</sscookie>
+		<!-- provider id, as assigned by single sign on -->
+		<providerid>urn:myapp.warwick.ac.uk:myapp:service</providerid>
+		<keystore>
+			<!-- location of the java keystore -->
+			<location>file:/j2sdk1.4.2_02/jre/lib/security/myapp.warwick.ac.uk.keystore</location>
+			<!-- password for that keystore -->
+			<password>changeit</password>
+			<!-- keystore alias for the client service machine -->
+			<shire-alias>myapp.warwick.ac.uk</shire-alias>
+			<!-- keystore alias for the single sign on origin machine -->
+			<origin-alias>testsso.warwick.ac.uk</origin-alias>
+		</keystore>
+	</shire>
+</config>
