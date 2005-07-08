@@ -1,4 +1,7 @@
-1) Include sso-client.jar in your deploy directory and your project classpath in Eclipse
+1) Include sso-client.jar in your deploy directory and your project classpath in Eclipse.
+Also put all of the dist/dependencies/*.jar files in your JBoss classpath.
+Put the dist/dependencies/endorsed/*.jar in your %JAVA_HOME/jre/lib/endorsed/ directory
+
 2) Add the following snippets to your web.xml:
 
 	<context-param>
