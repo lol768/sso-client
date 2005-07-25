@@ -187,6 +187,9 @@ public final class SSOClientFilter implements Filter {
 		LOGGER.debug("shire.urlparamkey:" + urlParamKey);
 		if (urlParamKey != null && request.getParameter(urlParamKey) != null) {
 			target = request.getParameter(urlParamKey);
+			String queryString = request.getQueryString().replaceFirst(urlParamKey + "=" + target,"");
+			target = target.replaceAll("&&","&");
+			target += "?" + queryString;
 			LOGGER.debug("Found target from paramter " + urlParamKey + "=" + target);
 		}
 		return target;

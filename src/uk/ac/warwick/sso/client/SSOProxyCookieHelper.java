@@ -24,11 +24,9 @@ public final class SSOProxyCookieHelper {
 	public static final Logger LOGGER = Logger.getLogger(SSOProxyCookieHelper.class);
 
 	/**
-	 * If you are going to proxy through to another SSO enabled application, you
-	 * need a proxy cookie. Passing in an SSO config, a target url and id and a
-	 * user, the helper returns an HttpClient cookie which just needs to be
-	 * added into the HttpState for the HttpClient connection that is being made
-	 * to the target
+	 * If you are going to proxy through to another SSO enabled application, you need a proxy cookie. Passing in an SSO
+	 * config, a target url and id and a user, the helper returns an HttpClient cookie which just needs to be added into
+	 * the HttpState for the HttpClient connection that is being made to the target
 	 * 
 	 * @param config
 	 * @param targetURL
@@ -38,7 +36,7 @@ public final class SSOProxyCookieHelper {
 	 */
 	public static Cookie getProxyCookie(final Configuration config, final URL targetURL, final User user) {
 
-		String pgt = (String) user.getExtraProperty("urn:websignon:proxygrantingticket");
+		String pgt = (String) user.getExtraProperty(SSOToken.PROXY_GRANTING_TICKET_TYPE);
 
 		if (pgt == null) {
 			return null;
@@ -51,7 +49,7 @@ public final class SSOProxyCookieHelper {
 
 		try {
 			SAMLNameIdentifier nameId = new SAMLNameIdentifier(pgt, config.getString("shire.providerid"),
-					"urn:websignon:proxygrantingticket");
+					SSOToken.PROXY_GRANTING_TICKET_TYPE);
 			SAMLSubject subject = new SAMLSubject(nameId, null, null, null);
 
 			proxyTicket = fetcher.getProxyTicket(subject, targetURL.toExternalForm());

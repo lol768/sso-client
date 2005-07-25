@@ -100,7 +100,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		try {
 			client.executeMethod(method);
 		} catch (IOException e) {
-			LOGGER.error("Attribute request failed at client.executeMethod", e);
+			LOGGER.error("Attribute request failed at client.executeMethod - check aa is on aahttps protocol", e);
 			throw new SSOException("Attribute request failed at client.executeMethod", e);
 		}
 		LOGGER.info("Https response:" + method.getResponseBodyAsString());
