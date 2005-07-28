@@ -189,7 +189,9 @@ public final class SSOClientFilter implements Filter {
 			target = request.getParameter(urlParamKey);
 			String queryString = request.getQueryString().replaceFirst(urlParamKey + "=" + target,"");
 			target = target.replaceAll("&&","&");
-			target += "?" + queryString;
+			if (queryString != null && !queryString.equals("")) {
+				target += "?" + queryString;
+			}
 			LOGGER.debug("Found target from paramter " + urlParamKey + "=" + target);
 		}
 		return target;

@@ -15,7 +15,7 @@
 		</attributeauthority>
 	</origin>
 	<shire>
-		<filteruserkey>SSO-USER</filteruserkey>
+		<filteruserkey>SSO_USER</filteruserkey>
 		<urlparamkey>requestedUrl</urlparamkey>
 		<location>http://moleman.warwick.ac.uk/sso-client/shire</location>
 		<sscookie>
@@ -31,4 +31,8 @@
 			<origin-alias>moleman.warwick.ac.uk</origin-alias>
 		</keystore>
 	</shire>
+	<cacertskeystore>
+			<location>file:/j2sdk1.4.2_02/jre/lib/security/cacerts</location>
+			<password>changeit</password>
+	</cacertskeystore>
 </config>
