@@ -16,9 +16,8 @@
 			<location>https://testsso.warwick.ac.uk/origin/logout</location>
 		</logout>
 		<attributeauthority>
-			<!-- url of the Attribute Authority, strangely this needs to be protocol aahttps
-				this is for HttpClient certificate configuration reasons -->
-			<location>aahttps://testsso.warwick.ac.uk/origin/aa</location>
+			<!-- url of the Attribute Authority -->
+			<location>https://testsso.warwick.ac.uk/origin/aa</location>
 		</attributeauthority>
 	</origin>
 	<shire>
@@ -49,7 +48,11 @@
 			<!-- keystore alias for the client service machine -->
 			<shire-alias>myapp.warwick.ac.uk</shire-alias>
 			<!-- keystore alias for the single sign on origin machine -->
-			<origin-alias>testsso.warwick.ac.uk</origin-alias>
+			<origin-alias>websignon.warwick.ac.uk</origin-alias>
 		</keystore>
 	</shire>
+	<cacertskeystore>
+			<location>file:/j2sdk1.4.2_02/jre/lib/security/cacerts</location>
+			<password>changeit</password>
+	</cacertskeystore>
 </config>
