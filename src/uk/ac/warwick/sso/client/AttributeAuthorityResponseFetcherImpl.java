@@ -21,7 +21,6 @@ import java.util.Properties;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.log4j.Logger;
 import org.apache.xml.security.signature.XMLSignature;
 import org.opensaml.SAMLAssertion;
@@ -37,7 +36,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.userlookup.User;
 
@@ -62,17 +60,6 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 	private SAMLResponse getSAMLResponse(final SAMLSubject subject, final String resource) throws SSOException {
 		String aaLocation = _config.getString("origin.attributeauthority.location");
 		LOGGER.info("Shire connecting to AttributeAuthority at " + aaLocation);
-		// if (aaLocation.startsWith("aahttps")) {
-		// final int standardHttpsPort = 443;
-		// try {
-		// Protocol authhttps = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(_config
-		// .getString("shire.keystore.location")), _config.getString("shire.keystore.password"), new URL(_config
-		// .getString("shire.keystore.location")), _config.getString("shire.keystore.password")), standardHttpsPort);
-		// Protocol.registerProtocol("https", authhttps);
-		// } catch (MalformedURLException e) {
-		// throw new SSOException("Could not setup SSL protocols", e);
-		// }
-		// }
 		HttpClient client = new HttpClient();
 		PostMethod method = new PostMethod(aaLocation);
 		method.addRequestHeader("Content-Type", "text/xml");

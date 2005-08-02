@@ -72,4 +72,10 @@ public final class SSOProxyCookieHelper {
 
 	}
 
+	public static Cookie getProxyCookie(final URL targetURL, final User user) {
+
+		SSOConfiguration config = new SSOConfiguration();
+		return getProxyCookie(config.getConfig(), targetURL, user);
+	}
+
 }

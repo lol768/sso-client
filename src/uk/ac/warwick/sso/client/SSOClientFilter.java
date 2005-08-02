@@ -24,15 +24,16 @@ import org.opensaml.SAMLException;
 import org.opensaml.SAMLNameIdentifier;
 import org.opensaml.SAMLSubject;
 
+import sun.misc.BASE64Decoder;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.cache.UserCacheItem;
 import uk.ac.warwick.userlookup.AnonymousUser;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
+import uk.ac.warwick.userlookup.UserLookupException;
 
 /**
- * SSOClientFilter gets a User object from the request (via a cookie or a
- * proxyticket) and puts it in the request.
+ * SSOClientFilter gets a User object from the request (via a cookie or a proxyticket) and puts it in the request.
  * 
  * 
  * @author Kieran Shaw
@@ -60,6 +61,7 @@ public final class SSOClientFilter implements Filter {
 
 	public void init(final FilterConfig ctx) throws ServletException {
 		_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
+			
 		setAaFetcher(new AttributeAuthorityResponseFetcherImpl(_config));
 		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY));
 	}
@@ -68,17 +70,20 @@ public final class SSOClientFilter implements Filter {
 			ServletException {
 		HttpServletRequest request = (HttpServletRequest) arg0;
 		HttpServletResponse response = (HttpServletResponse) arg1;
-		response.setContentType("text/html");
-
+		
+		SSOConfiguration config = new SSOConfiguration();
+		config.setConfig(_config);
+		
+		User user = new AnonymousUser();
 		Cookie[] cookies = request.getCookies();
 		String target = getTarget(request);
 
-		User user = new AnonymousUser();
-
-		if (_config.getString("mode").equals("old")) {
+		if (_config.getString("allowbasic") != null && _config.getString("allowbasic").equals("true")
+				&& request.getHeader("Authorization") != null) {
+			user = doBasicAuth(request);
+		} else if (_config.getString("mode").equals("old")) {
 			// do old style single sign on via WarwickSSO cookie
 			user = doGetUserByOldSSO(cookies);
-
 		} else {
 			// do new style single sign on with shibboleth
 			Cookie loginTicketCookie = getCookie(cookies, GLOBAL_LOGIN_COOKIE_NAME);
@@ -153,6 +158,26 @@ public final class SSOClientFilter implements Filter {
 		return user;
 	}
 
+	private User doBasicAuth(final HttpServletRequest request) throws IOException {
+
+		String auth64 = request.getHeader("Authorization");
+		LOGGER.info("Doing BASIC auth:" + auth64);
+		final int authStartPos = 6;
+		auth64 = auth64.substring(authStartPos);
+		BASE64Decoder decoder = new BASE64Decoder();
+		String auth = new String(decoder.decodeBuffer(auth64));
+		LOGGER.info("Doing BASIC auth:" + auth);
+		String userName = auth.split(":")[0];
+		String password = auth.split(":")[1];
+
+		try {
+			return UserLookup.getInstance().getUserByIdAndPassNonLoggingIn(userName, password);
+		} catch (UserLookupException e) {
+			return new AnonymousUser();
+		}
+
+	}
+
 	/**
 	 * @param response
 	 * @param target
@@ -187,8 +212,8 @@ public final class SSOClientFilter implements Filter {
 		LOGGER.debug("shire.urlparamkey:" + urlParamKey);
 		if (urlParamKey != null && request.getParameter(urlParamKey) != null) {
 			target = request.getParameter(urlParamKey);
-			String queryString = request.getQueryString().replaceFirst(urlParamKey + "=" + target,"");
-			target = target.replaceAll("&&","&");
+			String queryString = request.getQueryString().replaceFirst(urlParamKey + "=" + target, "");
+			target = target.replaceAll("&&", "&");
 			if (queryString != null && !queryString.equals("")) {
 				target += "?" + queryString;
 			}
