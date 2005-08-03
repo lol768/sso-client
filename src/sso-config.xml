@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
-	<allowbasic>true</allowbasic>
+	<!-- Do you want to allow HTTP BASIC auth on this filter? -->
+	<httpbasic>
+		<allow>true</allow>
+		<!-- list of protocols to allow BASIC auth over. You should ALWAYS use only HTTPS in production. However, you can use http in testing if you can't get https working on your machine -->
+		<protocol>https</protocol>
+		<protocol>http</protocol>
+	</httpbasic>
 	<mode>old</mode>
 	<!--mode>new</mode-->
 	<origin>

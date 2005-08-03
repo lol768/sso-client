@@ -61,7 +61,7 @@ public final class SSOClientFilter implements Filter {
 
 	public void init(final FilterConfig ctx) throws ServletException {
 		_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
-			
+
 		setAaFetcher(new AttributeAuthorityResponseFetcherImpl(_config));
 		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY));
 	}
@@ -70,16 +70,28 @@ public final class SSOClientFilter implements Filter {
 			ServletException {
 		HttpServletRequest request = (HttpServletRequest) arg0;
 		HttpServletResponse response = (HttpServletResponse) arg1;
-		
+
 		SSOConfiguration config = new SSOConfiguration();
 		config.setConfig(_config);
-		
+
 		User user = new AnonymousUser();
 		Cookie[] cookies = request.getCookies();
 		String target = getTarget(request);
 
-		if (_config.getString("allowbasic") != null && _config.getString("allowbasic").equals("true")
-				&& request.getHeader("Authorization") != null && "https".equalsIgnoreCase(request.getScheme())) {
+		boolean allowBasic = false;
+		if (_config.getBoolean("httpbasic.allow") && _config.getList("httpbasic.protocol").contains(request.getScheme().toLowerCase())) {
+			allowBasic = true;
+		}
+		
+		if (allowBasic && "true".equals(request.getParameter("forcebasic")) && request.getHeader("Authorization") == null) {
+			String authHeader = "Basic realm=\"" + _config.getString("shire.providerid") + "\"";
+			LOGGER.info("Client is requesting forcing HTTP Basic Auth, sending WWW-Authenticate=" + authHeader);
+			response.setHeader("WWW-Authenticate",authHeader);
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			return;
+		}
+
+		if (allowBasic && request.getHeader("Authorization") != null) {
 			user = doBasicAuth(request);
 		} else if (_config.getString("mode").equals("old")) {
 			// do old style single sign on via WarwickSSO cookie
