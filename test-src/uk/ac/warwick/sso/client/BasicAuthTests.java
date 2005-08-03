@@ -4,6 +4,8 @@
  */
 package uk.ac.warwick.sso.client;
 
+import javax.servlet.http.HttpServletResponse;
+
 import junit.framework.TestCase;
 
 import org.apache.commons.httpclient.Credentials;
@@ -28,8 +30,15 @@ public class BasicAuthTests extends TestCase {
 		
 		int status = client.executeMethod(method);
 		
-		assertEquals("Should have found good response",200,status);
+		assertEquals("Should have found good response",HttpServletResponse.SC_OK,status);
 		
+		String responseBody = method.getResponseBodyAsString();
+		
+		assertTrue("Should have logged in content",responseBody.indexOf("Sign out") > -1);
+		
+		assertEquals("Should have logged in content",-1,responseBody.indexOf("Sign in"));
+		
+	
 	}
 
 }

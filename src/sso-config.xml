@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
+	<allowbasic>true</allowbasic>
 	<mode>old</mode>
 	<!--mode>new</mode-->
 	<origin>
@@ -19,11 +20,11 @@
 		<urlparamkey>requestedUrl</urlparamkey>
 		<location>http://moleman.warwick.ac.uk/sso-client/shire</location>
 		<sscookie>
-			<name>SSO-SSC-BlogBuilder</name>
+			<name>SSO-SSC-SSOClient</name>
 			<path>/sso-client</path>
 			<domain>moleman.warwick.ac.uk</domain>
 		</sscookie>
-		<providerid>urn:moleman.warwick.ac.uk:blogbuilder:service</providerid>
+		<providerid>urn:moleman.warwick.ac.uk:sso-client:service</providerid>
 		<keystore>
 			<location>file:/j2sdk1.4.2_02/jre/lib/security/moleman.warwick.ac.uk.keystore</location>
 			<password>changeit</password>

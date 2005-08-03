@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
+	<!-- Do you want to allow HTTP BASIC auth on this filter? It will only work over HTTPS -->
+	<allowbasic>true</allowbasic>
 	<!-- mode can be 'old' or 'new' this defines if the SSOClientFilter should use 
 		the old WarwickSSO cookie or the newer SSO-SSC-* cookies -->
 	<mode>old</mode>
@@ -9,15 +11,15 @@
 		<originid>urn:websignon.warwick.ac.uk</originid>
 		<login>
 			<!-- url of the login page, should always be HTTPS -->
-			<location>https://testsso.warwick.ac.uk/origin/hs</location>
+			<location>https://websignon.warwick.ac.uk/origin/hs</location>
 		</login>
 		<logout>
 			<!-- url of the logout page, should always be HTTPS -->
-			<location>https://testsso.warwick.ac.uk/origin/logout</location>
+			<location>https://websignon.warwick.ac.uk/origin/logout</location>
 		</logout>
 		<attributeauthority>
 			<!-- url of the Attribute Authority -->
-			<location>https://testsso.warwick.ac.uk/origin/aa</location>
+			<location>https://websignon.warwick.ac.uk/origin/aa</location>
 		</attributeauthority>
 	</origin>
 	<shire>

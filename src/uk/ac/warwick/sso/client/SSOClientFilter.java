@@ -79,7 +79,7 @@ public final class SSOClientFilter implements Filter {
 		String target = getTarget(request);
 
 		if (_config.getString("allowbasic") != null && _config.getString("allowbasic").equals("true")
-				&& request.getHeader("Authorization") != null) {
+				&& request.getHeader("Authorization") != null && "https".equalsIgnoreCase(request.getScheme())) {
 			user = doBasicAuth(request);
 		} else if (_config.getString("mode").equals("old")) {
 			// do old style single sign on via WarwickSSO cookie
