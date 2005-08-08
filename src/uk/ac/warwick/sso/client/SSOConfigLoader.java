@@ -41,6 +41,7 @@ public class SSOConfigLoader implements ServletContextListener {
 		try {
 			URL configUrl = getClass().getResource(event.getServletContext().getInitParameter("ssoclient.config"));
 			config = new XMLConfiguration(new File(configUrl.getFile()));
+			//config.setReloadingStrategy(new FileChangedReloadingStrategy());
 		} catch (ConfigurationException e) {
 			throw new RuntimeException("Could not setup configuration", e);
 		}

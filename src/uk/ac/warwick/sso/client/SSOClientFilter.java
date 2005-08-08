@@ -6,6 +6,8 @@ package uk.ac.warwick.sso.client;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 
 import javax.servlet.Filter;
@@ -66,6 +68,23 @@ public final class SSOClientFilter implements Filter {
 		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY));
 	}
 
+	public static User getUserFromRequest(final HttpServletRequest req) {
+
+		SSOConfiguration config = new SSOConfiguration();
+		String userKey = config.getConfig().getString("shire.filteruserkey");
+
+		if (userKey == null) {
+			userKey = USER_KEY;
+		}
+		User user = (User) req.getAttribute(userKey);
+		if (user == null) {
+			user = new AnonymousUser();
+		}
+
+		return user;
+
+	}
+
 	public void doFilter(final ServletRequest arg0, final ServletResponse arg1, final FilterChain chain) throws IOException,
 			ServletException {
 		HttpServletRequest request = (HttpServletRequest) arg0;
@@ -73,20 +92,23 @@ public final class SSOClientFilter implements Filter {
 
 		SSOConfiguration config = new SSOConfiguration();
 		config.setConfig(_config);
+		//((FileConfiguration) _config).reload();
+
+		URL target = getTarget(request);
 
 		User user = new AnonymousUser();
-		Cookie[] cookies = request.getCookies();
-		String target = getTarget(request);
 
 		boolean allowBasic = false;
-		if (_config.getBoolean("httpbasic.allow") && _config.getList("httpbasic.protocol").contains(request.getScheme().toLowerCase())) {
+		if (_config.getBoolean("httpbasic.allow")
+				&& _config.getList("httpbasic.protocol").contains(target.getProtocol().toLowerCase())) {
+			LOGGER.debug("HTTP Basic Auth is allowed");
 			allowBasic = true;
 		}
-		
+
 		if (allowBasic && "true".equals(request.getParameter("forcebasic")) && request.getHeader("Authorization") == null) {
 			String authHeader = "Basic realm=\"" + _config.getString("shire.providerid") + "\"";
 			LOGGER.info("Client is requesting forcing HTTP Basic Auth, sending WWW-Authenticate=" + authHeader);
-			response.setHeader("WWW-Authenticate",authHeader);
+			response.setHeader("WWW-Authenticate", authHeader);
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			return;
 		}
@@ -95,8 +117,10 @@ public final class SSOClientFilter implements Filter {
 			user = doBasicAuth(request);
 		} else if (_config.getString("mode").equals("old")) {
 			// do old style single sign on via WarwickSSO cookie
+			Cookie[] cookies = request.getCookies();
 			user = doGetUserByOldSSO(cookies);
 		} else {
+			Cookie[] cookies = request.getCookies();
 			// do new style single sign on with shibboleth
 			Cookie loginTicketCookie = getCookie(cookies, GLOBAL_LOGIN_COOKIE_NAME);
 			Cookie serviceSpecificCookie = getCookie(cookies, _config.getString("shire.sscookie.name"));
@@ -196,14 +220,14 @@ public final class SSOClientFilter implements Filter {
 	 * @param loginTicketCookie
 	 * @throws UnsupportedEncodingException
 	 */
-	private void redirectToLogin(final HttpServletResponse response, final String target, final Cookie loginTicketCookie)
+	private void redirectToLogin(final HttpServletResponse response, final URL target, final Cookie loginTicketCookie)
 			throws UnsupportedEncodingException {
 		response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
 
 		response.setHeader("Location", _config.getString("origin.login.location") + "?shire="
 				+ URLEncoder.encode(_config.getString("shire.location"), "UTF-8") + "&providerId="
 				+ URLEncoder.encode(_config.getString("shire.providerid"), "UTF-8") + "&target="
-				+ URLEncoder.encode(target, "UTF-8"));
+				+ URLEncoder.encode(target.toExternalForm(), "UTF-8"));
 
 		LOGGER.debug("Found global login cookie (" + loginTicketCookie.getValue()
 				+ "), but not a valid SSC, redirecting to Handle Service " + _config.getString("origin.login.location"));
@@ -213,7 +237,7 @@ public final class SSOClientFilter implements Filter {
 	 * @param request
 	 * @return
 	 */
-	private String getTarget(final HttpServletRequest request) {
+	private URL getTarget(final HttpServletRequest request) {
 		String target = request.getRequestURL().toString();
 		if (request.getQueryString() != null) {
 			target += "?" + request.getQueryString();
@@ -231,7 +255,12 @@ public final class SSOClientFilter implements Filter {
 			}
 			LOGGER.debug("Found target from paramter " + urlParamKey + "=" + target);
 		}
-		return target;
+		try {
+			return new URL(target);
+		} catch (MalformedURLException e) {
+			LOGGER.warn("Target is an invalid url: " + target);
+			return null;
+		}
 	}
 
 	private Cookie getCookie(final Cookie[] cookies, final String name) {
