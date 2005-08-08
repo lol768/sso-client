@@ -15,10 +15,19 @@ import org.opensaml.SAMLSubject;
 
 import uk.ac.warwick.userlookup.User;
 
-public final class SSOProxyCookieHelper {
+public class SSOProxyCookieHelper {
 
-	private SSOProxyCookieHelper() {
-		// static utility class
+	private AttributeAuthorityResponseFetcher _attributeAuthorityResponseFetcher;
+
+	private Configuration _config;
+
+	/**
+	 * You do not need to set the config or attributeauthorityresponsefetcher, good defaults are used, but you can
+	 * override them if you so choose
+	 * 
+	 */
+	public SSOProxyCookieHelper() {
+		// default empty constructor
 	}
 
 	public static final Logger LOGGER = Logger.getLogger(SSOProxyCookieHelper.class);
@@ -26,7 +35,8 @@ public final class SSOProxyCookieHelper {
 	/**
 	 * If you are going to proxy through to another SSO enabled application, you need a proxy cookie. Passing in an SSO
 	 * config, a target url and id and a user, the helper returns an HttpClient cookie which just needs to be added into
-	 * the HttpState for the HttpClient connection that is being made to the target
+	 * the HttpState for the HttpClient connection that is being made to the target. Will return a null cookie if a
+	 * cookie can't be generated
 	 * 
 	 * @param config
 	 * @param targetURL
@@ -34,33 +44,51 @@ public final class SSOProxyCookieHelper {
 	 * @param user
 	 * @return
 	 */
-	public static Cookie getProxyCookie(final Configuration config, final URL targetURL, final User user) {
+	public final Cookie getProxyHttpClientCookie(final URL targetURL, final User user) {
 
 		String pgt = (String) user.getExtraProperty(SSOToken.PROXY_GRANTING_TICKET_TYPE);
 
 		if (pgt == null) {
+			LOGGER.debug("User had no " + SSOToken.PROXY_GRANTING_TICKET_TYPE + " property");
 			return null;
 		}
-
-		AttributeAuthorityResponseFetcher fetcher = new AttributeAuthorityResponseFetcherImpl();
-		fetcher.setConfig(config);
 
 		String proxyTicket = null;
 
 		try {
-			SAMLNameIdentifier nameId = new SAMLNameIdentifier(pgt, config.getString("shire.providerid"),
+			SAMLNameIdentifier nameId = new SAMLNameIdentifier(pgt, getConfig().getString("shire.providerid"),
 					SSOToken.PROXY_GRANTING_TICKET_TYPE);
 			SAMLSubject subject = new SAMLSubject(nameId, null, null, null);
 
-			proxyTicket = fetcher.getProxyTicket(subject, targetURL.toExternalForm());
+			proxyTicket = getAttributeAuthorityResponseFetcher().getProxyTicket(subject, targetURL.toExternalForm());
+
+			if (proxyTicket == null) {
+				LOGGER.info("No " + SSOToken.PROXY_GRANTING_TICKET_TYPE + " returned, so returning null for cookie");
+				return null;
+			}
+
 			LOGGER.info("Got proxyticket:" + proxyTicket);
+			return generateHttpClientCookie(targetURL, proxyTicket);
 
 		} catch (SSOException e) {
 			LOGGER.error("Can not connect to AA", e);
-			throw new RuntimeException("Can not connect to AA", e);
+			return null;
 		} catch (SAMLException e) {
 			LOGGER.error("Can not generate SAMLSubject", e);
-			throw new RuntimeException("Can not generate SAMLSubject", e);
+			return null;
+		}
+
+	}
+
+	/**
+	 * @param targetURL
+	 * @param proxyTicket
+	 * @return
+	 */
+	private Cookie generateHttpClientCookie(final URL targetURL, final String proxyTicket) {
+
+		if (proxyTicket == null) {
+			return null;
 		}
 
 		Cookie cookie = new Cookie();
@@ -69,12 +97,28 @@ public final class SSOProxyCookieHelper {
 		cookie.setName("SSO-Proxy");
 		cookie.setValue(proxyTicket);
 		return cookie;
-
 	}
 
-	public static Cookie getProxyCookie(final URL targetURL, final User user) {
+	public final AttributeAuthorityResponseFetcher getAttributeAuthorityResponseFetcher() {
+		if (_attributeAuthorityResponseFetcher == null) {
+			return new AttributeAuthorityResponseFetcherImpl(getConfig());
+		}
+		return _attributeAuthorityResponseFetcher;
+	}
 
-		return getProxyCookie((new SSOConfiguration()).getConfig(), targetURL, user);
+	public final void setAttributeAuthorityResponseFetcher(final AttributeAuthorityResponseFetcher fetcher) {
+		_attributeAuthorityResponseFetcher = fetcher;
+	}
+
+	public final Configuration getConfig() {
+		if (_config == null) {
+			return (new SSOConfiguration()).getConfig();
+		}
+		return _config;
+	}
+
+	public final void setConfig(final Configuration config) {
+		_config = config;
 	}
 
 }
