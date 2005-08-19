@@ -71,17 +71,19 @@ public class ShireCommand {
 			LOGGER.info("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
 			throw new RuntimeException("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
 		}
+		
+		LOGGER.info("Accepted Shire request for target:" + target);
 
-		LOGGER.info("SAML:" + samlResponse.toString());
+		LOGGER.debug("SAML:" + samlResponse.toString());
 		SAMLAssertion assertion = (SAMLAssertion) samlResponse.getAssertions().next();
-		LOGGER.info("Assertion:" + assertion.toString());
+		LOGGER.debug("Assertion:" + assertion.toString());
 		SAMLStatement statement = (SAMLStatement) assertion.getStatements().next();
-		LOGGER.info("Statement:" + statement.toString());
+		LOGGER.debug("Statement:" + statement.toString());
 		SAMLAuthenticationStatement authStatement = (SAMLAuthenticationStatement) statement;
-		LOGGER.info("Auth Statement:" + authStatement.toString());
+		LOGGER.debug("Auth Statement:" + authStatement.toString());
 		SAMLSubject subject = authStatement.getSubject();
-		LOGGER.info("Subject name:" + subject.getName().toString());
-		LOGGER.info("Subject name:" + subject.getName().getName());
+		LOGGER.debug("Subject name:" + subject.getName().toString());
+		LOGGER.debug("Subject name:" + subject.getName().getName());
 
 		User user = getUserFromAuthSubject(subject);
 
@@ -92,8 +94,6 @@ public class ShireCommand {
 			user.setIsLoggedIn(true);
 			UserCacheItem item = new UserCacheItem(user, new Date().getTime(), token);
 			getCache().put(token,item);
-			//UserLookup.getInstance().getUserCache().put(token, item);
-			//UserLookup.getInstance().getUserByToken(serviceSpecificCookie, false);
 			Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), token.getValue());
 			cookie.setPath(_config.getString("shire.sscookie.path"));
 			cookie.setDomain(_config.getString("shire.sscookie.domain"));

@@ -92,15 +92,13 @@ public final class SSOClientFilter implements Filter {
 
 		SSOConfiguration config = new SSOConfiguration();
 		config.setConfig(_config);
-		//((FileConfiguration) _config).reload();
 
 		URL target = getTarget(request);
 
 		User user = new AnonymousUser();
 
 		boolean allowBasic = false;
-		if (_config.getBoolean("httpbasic.allow")
-				&& _config.getList("httpbasic.protocol").contains(target.getProtocol().toLowerCase())) {
+		if (_config.getBoolean("httpbasic.allow") && "https".equalsIgnoreCase(target.getProtocol())) {
 			LOGGER.debug("HTTP Basic Auth is allowed");
 			allowBasic = true;
 		}

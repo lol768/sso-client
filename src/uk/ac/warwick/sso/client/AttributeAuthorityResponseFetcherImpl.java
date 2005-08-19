@@ -82,14 +82,14 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		fullRequest += samlRequest.toString();
 		fullRequest += "</soap:Body></soap:Envelope>";
 		method.setRequestBody(fullRequest);
-		LOGGER.info("SAMLRequest:" + fullRequest);
+		LOGGER.debug("SAMLRequest:" + fullRequest);
 		try {
 			client.executeMethod(method);
 		} catch (IOException e) {
 			LOGGER.error("Attribute request failed at client.executeMethod - check aa is on aahttps protocol", e);
 			throw new SSOException("Attribute request failed at client.executeMethod", e);
 		}
-		LOGGER.info("Https response:" + method.getResponseBodyAsString());
+		LOGGER.debug("Https response:" + method.getResponseBodyAsString());
 
 		if (method.getResponseBodyAsString().indexOf("<soap:Fault><faultcode>") > -1) {
 			throw new RuntimeException("Got bad response from AttributeAuthority:" + method.getResponseBodyAsString());
@@ -123,6 +123,8 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		Properties attributes = getAttributesFromResponse(response);
 
 		User user = createUserFromAttributes(attributes);
+		
+		LOGGER.info("Returning user " + user.getFullName() + "(" + user.getUserId() + ") from SAMLSubject");
 
 		return user;
 
@@ -256,7 +258,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 			SAMLAttribute attribute = (SAMLAttribute) it.next();
 			String name = attribute.getName();
 			// String value = (String) attribute.getValues().next();
-			LOGGER.info(name + "=" + attribute);
+			LOGGER.debug(name + "=" + attribute);
 			attributes.put(name, attribute);
 		}
 		return attributes;
