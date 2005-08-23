@@ -17,6 +17,7 @@ import java.util.Date;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
 import org.opensaml.SAMLAssertion;
 import org.opensaml.SAMLAuthenticationStatement;
@@ -77,6 +78,14 @@ public class ShireCommand {
 		LOGGER.debug("SAML:" + samlResponse.toString());
 		SAMLAssertion assertion = (SAMLAssertion) samlResponse.getAssertions().next();
 		LOGGER.debug("Assertion:" + assertion.toString());
+		
+		String issuer = assertion.getIssuer();
+		if (!issuer.equals(getConfig().getString("origin.originid"))) {
+			LOGGER.warn("Someone trying to authenticate from wrong origin:" + issuer);
+			throw new RuntimeException("Someone trying to authenticate from wrong origin:" + issuer);
+		}
+		
+		
 		SAMLStatement statement = (SAMLStatement) assertion.getStatements().next();
 		LOGGER.debug("Statement:" + statement.toString());
 		SAMLAuthenticationStatement authStatement = (SAMLAuthenticationStatement) statement;
