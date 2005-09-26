@@ -99,7 +99,9 @@ State or province = West Midlands
 
 # keytool -import -keystore cacerts -alias verisign-intermediate -file verisign-intermediate-ca.crt -trustcacerts
 
-# keytool -import -keystore <your_domain_name.keystore -alias websignon.warwick.ac.uk -file websignon.warwick.ac.uk.crt.der -trustcacerts
+# keytool -import -keystore <your_domain_name>.keystore -alias testsso-ca -file testsso-ca.crt.der -trustcacerts
+
+# keytool -import -keystore <your_domain_name>.keystore -alias websignon.warwick.ac.uk -file websignon.warwick.ac.uk.crt.der -trustcacerts
 
 # keytool -import -keystore <your_domain_name>.keystore -alias <your_domain_name> -file <your_domain_name>.crt.der -trustcacerts
 
