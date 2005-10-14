@@ -229,6 +229,10 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 				&& getValueFromAttribute("urn:websignon:loggedin", attributes).equals("true")) {
 			user.setIsLoggedIn(true);
 		}
+		
+		if (getValueFromAttribute("logindisabled",attributes) != null && Boolean.valueOf(getValueFromAttribute("logindisabled",attributes)).booleanValue()) {
+			user.setLoginDisabled(true);
+		}
 
 		// dump all attributes as keys and strings into extraproperties map on the user
 		Iterator it = attributes.keySet().iterator();
