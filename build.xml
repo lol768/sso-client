@@ -4,10 +4,11 @@
 
 	<target name="init">
 
+		<property file="build.properties"/>
 		<property name="srcDir" value="src" />
 		<property name="buildDir" value="build" />
 		<property name="buildName" value="sso-client" />
-		<property name="jarFile" value="dist/${buildName}.jar"/>
+		<property name="jarFile" value="dist/${buildName}-${version}.jar"/>
 		
 		<path id="project.classpath">
 			<fileset dir="external-libs">
