@@ -110,15 +110,15 @@ public final class SSOClientFilter implements Filter {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			return;
 		}
+		
+		Cookie[] cookies = request.getCookies();
 
 		if (allowBasic && request.getHeader("Authorization") != null) {
 			user = doBasicAuth(request);
 		} else if (_config.getString("mode").equals("old")) {
 			// do old style single sign on via WarwickSSO cookie
-			Cookie[] cookies = request.getCookies();
 			user = doGetUserByOldSSO(cookies);
 		} else {
-			Cookie[] cookies = request.getCookies();
 			// do new style single sign on with shibboleth
 			Cookie loginTicketCookie = getCookie(cookies, GLOBAL_LOGIN_COOKIE_NAME);
 			Cookie serviceSpecificCookie = getCookie(cookies, _config.getString("shire.sscookie.name"));

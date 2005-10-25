@@ -99,6 +99,8 @@ State or province = West Midlands
 
 # keytool -import -keystore cacerts -alias verisign-intermediate -file verisign-intermediate-ca.crt -trustcacerts
 
+# keytool -import -keystore <your_domain_name>.keystore -alias verisign-intermediate -file verisign-intermediate-ca.crt -trustcacerts
+
 # keytool -import -keystore <your_domain_name>.keystore -alias testsso-ca -file testsso-ca.crt.der -trustcacerts
 
 # keytool -import -keystore <your_domain_name>.keystore -alias websignon.warwick.ac.uk -file websignon.warwick.ac.uk.crt.der -trustcacerts
@@ -125,6 +127,14 @@ your logout url:
 e.g. https://host-137-205-194-214.csv.warwick.ac.uk:8080/goto/logout
 
 11) Configure Apache/Jboss to run SSL with the right certificates...hard.
+
+# cp <your_domain_name>.crt /usr/local/apache/conf/ssl.crt/
+# cd /usr/local/apache/conf/ssl.crt/
+link in certificate so it can be seen by apache properly
+# ln -s <your_domain_name>.crt `openssl x509 -noout -hash -in <your_domain_name>.crt`.0
+
+
+12)
 
 add this snippet to your Jboss deploy dir/jbossweb-tomcat50.sar/server.xml:
 
