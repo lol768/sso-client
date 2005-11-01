@@ -18,17 +18,25 @@
 				<include name="*.jar"/>
 			</fileset>
 		</path>
+			
+		<path id="run.classpath">
+			<pathelement location="${buildDir}/${buildName}-jar"/>
+			<pathelement location="external-libs"/>
+			<fileset dir="external-libs">
+				<include name="*.jar"/>
+			</fileset>
+		</path>
 
 		<delete file="${jarFile}" />	
 		
 		<delete dir="${buildDir}" />
 
 		<mkdir dir="${buildDir}/${buildName}-jar/"/>
-
+		
 	</target>
 
 
-	<target name="compile" depends="init">		
+	<target name="compile" depends="init">
 		
 		<javac destdir="${buildDir}/${buildName}-jar" excludes="" includes="" srcdir="${srcDir}" debug="true">
 				<classpath refid="project.classpath" />
@@ -41,6 +49,7 @@
 				<exclude name="**/*.xml"/>
 			</fileset>
 		</copy>
+		
 	</target>
 
 	

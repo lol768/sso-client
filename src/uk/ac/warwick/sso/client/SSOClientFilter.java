@@ -62,15 +62,31 @@ public final class SSOClientFilter implements Filter {
 	}
 
 	public void init(final FilterConfig ctx) throws ServletException {
-		_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
+		String suffix = "";
+		if (ctx.getInitParameter("configsuffix") != null) {
+			suffix = ctx.getInitParameter("configsuffix");
+		}
+		_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
+		
+		if (_config == null) {
+			LOGGER.warn("Could not find sso config in servlet context attribute " + SSOConfigLoader.SSO_CONFIG_KEY + suffix);
+		} else {
+			LOGGER.info("Found sso config");
+		}
 
 		setAaFetcher(new AttributeAuthorityResponseFetcherImpl(_config));
-		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY));
+		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + suffix));
 	}
 
 	public static User getUserFromRequest(final HttpServletRequest req) {
 
 		SSOConfiguration config = new SSOConfiguration();
+		
+		if (config.getConfig() == null) {
+			LOGGER.warn("No SSOConfiguration object created, this request probably didn't go through the SSOClientFilter");
+			throw new RuntimeException("No SSOConfiguration object created, this request probably didn't go through the SSOClientFilter");
+		}
+		
 		String userKey = config.getConfig().getString("shire.filteruserkey");
 
 		if (userKey == null) {

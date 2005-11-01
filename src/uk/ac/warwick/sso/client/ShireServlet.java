@@ -92,10 +92,15 @@ public class ShireServlet extends HttpServlet {
 
 	public final void init(final ServletConfig ctx) throws ServletException {
 		super.init(ctx);
+		
+		String suffix = "";
+		if (ctx.getInitParameter("configsuffix") != null) {
+			suffix = ctx.getInitParameter("configsuffix");
+		}
 
-		_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
+		_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
 
-		_cache = (UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY);
+		_cache = (UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + suffix);
 
 	}
 

@@ -62,7 +62,13 @@ public class LogoutServlet extends HttpServlet {
 	}
 
 	public final void init(final ServletConfig ctx) throws ServletException {
-		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY));
+		
+		String suffix = "";
+		if (ctx.getInitParameter("configsuffix") != null) {
+			suffix = ctx.getInitParameter("configsuffix");
+		}
+		
+		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + suffix));
 	}
 
 }

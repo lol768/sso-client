@@ -95,9 +95,9 @@ State or province = West Midlands
 
 9) When you get the certificate <your_domain_name>.crt.der, import it back into the keystore, along with the Root CRT if needs be:
 
-# keytool -import -keystore cacerts -alias testsso-ca -file testsso-ca.crt.der -trustcacerts
+# keytool -import -keystore cacerts -alias testsso-ca -file testsso-ca.crt.der -trustcacerts -storepass changeit
 
-# keytool -import -keystore cacerts -alias verisign-intermediate -file verisign-intermediate-ca.crt -trustcacerts
+# keytool -import -keystore cacerts -alias verisign-intermediate -file verisign-intermediate-ca.crt -trustcacerts -storepass changeit
 
 # keytool -import -keystore <your_domain_name>.keystore -alias verisign-intermediate -file verisign-intermediate-ca.crt -trustcacerts
 
@@ -142,9 +142,9 @@ add this snippet to your Jboss deploy dir/jbossweb-tomcat50.sar/server.xml:
                      maxThreads="150" minSpareThreads="25" maxSpareThreads="75"
                      enableLookups="false" disableUploadTimeout="true"
                      acceptCount="100" debug="0" scheme="https" secure="true"
-                     clientAuth="true" sslProtocol="TLS" keystoreFile="C:\j2sdk1.4.2_02\jre\lib\security\host-137-205-194-214.csv.warwick.ac.uk.keystore"
+                     clientAuth="false" sslProtocol="TLS" keystoreFile="C:\j2sdk1.4.2_02\jre\lib\security\host-137-205-194-214.csv.warwick.ac.uk.keystore"
                      keystorePass="changeit"
-                     truststoreFile="C:\j2sdk1.4.2_02\jre\lib\security\host-137-205-194-214.csv.warwick.ac.uk.keystore"
+                     truststoreFile="C:\j2sdk1.4.2_02\jre\lib\security\cacerts"
                truststorePass="changeit" />
 
 (amending file names as appropriate)

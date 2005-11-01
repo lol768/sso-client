@@ -7,6 +7,7 @@ package uk.ac.warwick.sso.client;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Enumeration;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -14,18 +15,20 @@ import javax.servlet.ServletContextListener;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.httpclient.protocol.Protocol;
+import org.apache.log4j.Logger;
 
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 
 /**
- * Requires a ServletContext Parameter to be set
- * "ssoclient.config=/sso-config.xml"
+ * Requires a ServletContext Parameter to be set "ssoclient.config=/sso-config.xml"
  * 
  * @author Kieran Shaw
  * 
  */
 public class SSOConfigLoader implements ServletContextListener {
+
+	private static final Logger LOGGER = Logger.getLogger(SSOConfigLoader.class);
 
 	public static final String SSO_CONFIG_KEY = "SSO-CONFIG";
 
@@ -37,30 +40,55 @@ public class SSOConfigLoader implements ServletContextListener {
 
 	public final void contextInitialized(final ServletContextEvent event) {
 
-		XMLConfiguration config;
-		try {
-			URL configUrl = getClass().getResource(event.getServletContext().getInitParameter("ssoclient.config"));
-			config = new XMLConfiguration(new File(configUrl.getFile()));
-			//config.setReloadingStrategy(new FileChangedReloadingStrategy());
-		} catch (ConfigurationException e) {
-			throw new RuntimeException("Could not setup configuration", e);
+		Enumeration params = event.getServletContext().getInitParameterNames();
+		while (params.hasMoreElements()) {
+			String paramName = (String) params.nextElement();
+			if (paramName.startsWith("ssoclient.config")) {
+
+				String ssoConfigLocation = event.getServletContext().getInitParameter(paramName);
+				LOGGER.info("Found context param " + paramName + "=" + ssoConfigLocation);
+				if (ssoConfigLocation == null) {
+					LOGGER.warn("Could not find ssoclient.config context param");
+					throw new RuntimeException("Could not setup configuration");
+				}
+				URL configUrl = getClass().getResource(ssoConfigLocation);
+				if (configUrl == null) {
+					LOGGER.warn("Could not find config as path is null");
+					throw new RuntimeException("Could not setup configuration");
+				}
+
+				XMLConfiguration config;
+				try {
+					config = new XMLConfiguration(new File(configUrl.getFile()));
+				} catch (ConfigurationException e) {
+					throw new RuntimeException("Could not setup configuration", e);
+				}
+
+				String configSuffix = paramName.replaceFirst("ssoclient.config", "");
+				LOGGER.info("Using suffix for config:" + configSuffix);
+
+				setupHttpsProtocol(config.getString("shire.keystore.location"), config.getString("shire.keystore.password"),
+						config.getString("cacertskeystore.location"), config.getString("cacertskeystore.password"));
+
+				event.getServletContext().setAttribute(SSO_CONFIG_KEY + configSuffix, config);
+
+				event.getServletContext().setAttribute(SSO_CACHE_KEY + configSuffix, new UserCache());
+
+			}
 		}
 
-		event.getServletContext().setAttribute(SSO_CONFIG_KEY, config);
+	}
 
-		event.getServletContext().setAttribute(SSO_CACHE_KEY, new UserCache());
-		
+	private void setupHttpsProtocol(final String shireKeystoreLoc, final String shireKeystorePass,
+			final String cacertsKeystoreLoc, final String cacertsKeystorePass) {
 		final int standardHttpsPort = 443;
 		try {
-			Protocol authhttps = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(config
-					.getString("shire.keystore.location")), config.getString("shire.keystore.password"), new URL(config
-					.getString("cacertskeystore.location")), config.getString("cacertskeystore.password")), standardHttpsPort);
+			Protocol authhttps = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(shireKeystoreLoc),
+					shireKeystorePass, new URL(cacertsKeystoreLoc), cacertsKeystorePass), standardHttpsPort);
 			Protocol.registerProtocol("https", authhttps);
 		} catch (MalformedURLException e) {
 			throw new RuntimeException("Could not setup SSL protocols", e);
 		}
-		
-
 	}
 
 	public final void contextDestroyed(final ServletContextEvent arg0) {

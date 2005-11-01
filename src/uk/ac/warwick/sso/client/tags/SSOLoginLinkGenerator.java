@@ -13,7 +13,6 @@ public class SSOLoginLinkGenerator extends SSOLinkGenerator {
 
 	public SSOLoginLinkGenerator() {
 		super();
-
 	}
 
 	public final String getLoginUrl() throws ConfigurationException {
