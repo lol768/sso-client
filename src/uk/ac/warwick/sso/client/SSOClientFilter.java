@@ -109,8 +109,16 @@ public final class SSOClientFilter implements Filter {
 
 		SSOConfiguration config = new SSOConfiguration();
 		config.setConfig(_config);
-
+		
 		URL target = getTarget(request);
+		
+		// prevent ssoclientfilter from sitting in front of shire and logout servlets
+		String shireLocation = _config.getString("shire.location");
+		String logoutLocation = _config.getString("logout.location");
+		if (target.toExternalForm().equals(shireLocation) || target.toExternalForm().equals(logoutLocation)) {
+			chain.doFilter(arg0, arg1);
+			return;
+		}
 
 		User user = new AnonymousUser();
 

@@ -7,8 +7,6 @@ package uk.ac.warwick.sso.client.tags;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
-import org.apache.commons.configuration.ConfigurationException;
-
 public class SSOLogoutLinkGenerator extends SSOLinkGenerator {
 
 	/**
@@ -20,22 +18,22 @@ public class SSOLogoutLinkGenerator extends SSOLinkGenerator {
 		super();
 	}
 
-	public final String getLogoutUrl() throws ConfigurationException {
+	public final String getLogoutUrl()  {
 
 		if (getConfig() == null) {
-			throw new ConfigurationException("Should find no SSO config");
+			throw new RuntimeException("Should find no SSO config");
 		}
 
 		String logoutLocation = getConfig().getString("origin.logout.location");
 		if (logoutLocation == null || logoutLocation.equals("")) {
-			throw new ConfigurationException("SSOLogoutLinkGenerator needs a logout location origin.logout.location");
+			throw new RuntimeException("SSOLogoutLinkGenerator needs a logout location origin.logout.location");
 		}
 
 		String linkUrl;
 		try {
 			linkUrl = logoutLocation + "?target=" + URLEncoder.encode(getTarget(), "UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			throw new ConfigurationException(e.getMessage());
+			throw new RuntimeException(e.getMessage());
 		}
 
 		return linkUrl;

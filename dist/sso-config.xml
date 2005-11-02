@@ -54,6 +54,9 @@
 			<origin-alias>websignon.warwick.ac.uk</origin-alias>
 		</keystore>
 	</shire>
+	<logout>
+		<location>http://myapp.warwick.ac.uk/myapp/logout</location>
+	</logout>
 	<cacertskeystore>
 			<location>file:/j2sdk1.4.2_02/jre/lib/security/cacerts</location>
 			<password>changeit</password>

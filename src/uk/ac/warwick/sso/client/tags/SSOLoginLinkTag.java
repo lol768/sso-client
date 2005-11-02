@@ -12,7 +12,6 @@ import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.taglibs.standard.lang.support.ExpressionEvaluatorManager;
 
 import uk.ac.warwick.sso.client.SSOConfiguration;
@@ -42,8 +41,6 @@ public class SSOLoginLinkTag extends BodyTagSupport {
 			pageContext.getOut().write(linkUrl);
 		} catch (IOException e) {
 			throw new JspTagException("IOException writing url to pageContext.getOut().write: " + e.toString());
-		} catch (ConfigurationException e) {
-			throw new JspTagException("ConfigurationException getting logout url: " + e.toString());
 		}
 
 		return EVAL_PAGE;
