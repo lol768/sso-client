@@ -54,9 +54,15 @@ public class ShireServlet extends HttpServlet {
 
 		String saml64 = req.getParameter("SAMLResponse");
 		String target = req.getParameter("TARGET");
+		
+		String remoteHost = req.getRemoteHost();
+		if (req.getHeader("x-forwarded-for") != null) {
+			remoteHost = req.getHeader("x-forwarded-for");
+		}
 
 		ShireCommand command = new ShireCommand();
-
+		
+		command.setRemoteHost(remoteHost);		
 		command.setCache(_cache);
 
 		AttributeAuthorityResponseFetcher fetcher = new AttributeAuthorityResponseFetcherImpl();

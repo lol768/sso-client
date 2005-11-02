@@ -66,10 +66,10 @@ Delete existing xerces and xml api jar files.
 
 <c:choose>
   <c:when test="${SSO_USER != null && SSO_USER.loggedIn == true}">
-    <p><a href="<sso:logoutlink target="" />">Sign out</a></p>
+    <p><a href="<sso:logoutlink />">Sign out</a></p>
   </c:when>
   <c:otherwise>
-    <p><a href="<sso:loginlink target="" />">Sign in</a></p>
+    <p><a href="<sso:loginlink />">Sign in</a></p>
   </c:otherwise>
 </c:choose>
 
@@ -142,7 +142,7 @@ add this snippet to your Jboss deploy dir/jbossweb-tomcat50.sar/server.xml:
                      maxThreads="150" minSpareThreads="25" maxSpareThreads="75"
                      enableLookups="false" disableUploadTimeout="true"
                      acceptCount="100" debug="0" scheme="https" secure="true"
-                     clientAuth="false" sslProtocol="TLS" keystoreFile="C:\j2sdk1.4.2_02\jre\lib\security\host-137-205-194-214.csv.warwick.ac.uk.keystore"
+                     clientAuth="false" sslProtocol="TLS" keystoreFile="C:\apps\jboss\server\default\conf\host-137-205-194-214.csv.warwick.ac.uk.keystore"
                      keystorePass="changeit"
                      truststoreFile="C:\j2sdk1.4.2_02\jre\lib\security\cacerts"
                truststorePass="changeit" />

@@ -40,6 +40,8 @@ public class ShireCommand {
 
 	private AttributeAuthorityResponseFetcher _aaFetcher;
 	
+	private String _remoteHost;
+	
 	private UserCache _cache;
 
 	/**
@@ -95,6 +97,14 @@ public class ShireCommand {
 		LOGGER.debug("Subject name:" + subject.getName().getName());
 
 		User user = getUserFromAuthSubject(subject);
+		
+		if (user.getExtraProperty("urn:websignon:ipaddress") != null) {
+			if (user.getExtraProperty("urn:websignon:ipaddress").equals(getRemoteHost())) {
+				LOGGER.info("Users shire submission is from same host as they logged in from: Shire&Login=" + getRemoteHost());
+			} else {
+				LOGGER.warn("Users shire submission is NOT from same host as they logged in from. Login=" + user.getExtraProperty("urn:websignon:ipaddress") + ", Shire="+ getRemoteHost());
+			}
+		}
 
 		String serviceSpecificCookie = (String) user.getExtraProperty(SSOToken.SSC_TICKET_TYPE);
 		if (serviceSpecificCookie != null) {
@@ -204,6 +214,16 @@ public class ShireCommand {
 	
 	public final void setCache(final UserCache cache) {
 		_cache = cache;
+	}
+
+	
+	public final String getRemoteHost() {
+		return _remoteHost;
+	}
+
+	
+	public final void setRemoteHost(final String remoteHost) {
+		_remoteHost = remoteHost;
 	}
 
 }

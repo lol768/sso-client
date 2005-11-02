@@ -69,9 +69,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		try {
 			query.setSubject(subject);
 			samlRequest.setQuery(query);
-
 			signRequest(samlRequest);
-
 		} catch (SAMLException e) {
 			LOGGER.error("SAMLException setting up samlRequest", e);
 		}
@@ -86,7 +84,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		try {
 			client.executeMethod(method);
 		} catch (IOException e) {
-			LOGGER.error("Attribute request failed at client.executeMethod - check aa is on aahttps protocol", e);
+			LOGGER.error("Attribute request failed at client.executeMethod", e);
 			throw new SSOException("Attribute request failed at client.executeMethod", e);
 		}
 		LOGGER.debug("Https response:" + method.getResponseBodyAsString());
@@ -113,7 +111,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 	public final String getProxyTicket(final SAMLSubject subject, final String resource) throws SSOException {
 		SAMLResponse response = getSAMLResponse(subject);
 		Properties attributes = getAttributesFromResponse(response);
-		return getValueFromAttribute(SSOToken.PROXY_TICKET_TYPE,attributes);
+		return getValueFromAttribute(SSOToken.PROXY_TICKET_TYPE, attributes);
 	}
 
 	public final User getUserFromSubject(final SAMLSubject subject) throws SSOException {
@@ -123,7 +121,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		Properties attributes = getAttributesFromResponse(response);
 
 		User user = createUserFromAttributes(attributes);
-		
+
 		LOGGER.info("Returning user " + user.getFullName() + "(" + user.getUserId() + ") from SAMLSubject");
 
 		return user;
@@ -197,7 +195,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		if (attributes == null || attributes.get(key) == null) {
 			return null;
 		}
-		
+
 		return (String) ((SAMLAttribute) attributes.get(key)).getValues().next();
 	}
 
@@ -229,8 +227,9 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 				&& getValueFromAttribute("urn:websignon:loggedin", attributes).equals("true")) {
 			user.setIsLoggedIn(true);
 		}
-		
-		if (getValueFromAttribute("logindisabled",attributes) != null && Boolean.valueOf(getValueFromAttribute("logindisabled",attributes)).booleanValue()) {
+
+		if (getValueFromAttribute("logindisabled", attributes) != null
+				&& Boolean.valueOf(getValueFromAttribute("logindisabled", attributes)).booleanValue()) {
 			user.setLoginDisabled(true);
 		}
 

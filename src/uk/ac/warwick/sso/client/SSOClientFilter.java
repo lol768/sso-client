@@ -67,7 +67,7 @@ public final class SSOClientFilter implements Filter {
 			suffix = ctx.getInitParameter("configsuffix");
 		}
 		_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
-		
+
 		if (_config == null) {
 			LOGGER.warn("Could not find sso config in servlet context attribute " + SSOConfigLoader.SSO_CONFIG_KEY + suffix);
 		} else {
@@ -81,12 +81,13 @@ public final class SSOClientFilter implements Filter {
 	public static User getUserFromRequest(final HttpServletRequest req) {
 
 		SSOConfiguration config = new SSOConfiguration();
-		
+
 		if (config.getConfig() == null) {
 			LOGGER.warn("No SSOConfiguration object created, this request probably didn't go through the SSOClientFilter");
-			throw new RuntimeException("No SSOConfiguration object created, this request probably didn't go through the SSOClientFilter");
+			throw new RuntimeException(
+					"No SSOConfiguration object created, this request probably didn't go through the SSOClientFilter");
 		}
-		
+
 		String userKey = config.getConfig().getString("shire.filteruserkey");
 
 		if (userKey == null) {
@@ -126,7 +127,7 @@ public final class SSOClientFilter implements Filter {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			return;
 		}
-		
+
 		Cookie[] cookies = request.getCookies();
 
 		if (allowBasic && request.getHeader("Authorization") != null) {
@@ -189,9 +190,32 @@ public final class SSOClientFilter implements Filter {
 			request.setAttribute(USER_KEY, user);
 		}
 
+		checkIpAddress(request, user);
+
 		// redirect onto underlying page
 		chain.doFilter(arg0, arg1);
 
+	}
+
+	/**
+	 * @param request
+	 * @param user
+	 */
+	private void checkIpAddress(final HttpServletRequest request, final User user) {
+		String remoteHost = request.getRemoteHost();
+		if (request.getHeader("x-forwarded-for") != null) {
+			remoteHost = request.getHeader("x-forwarded-for");
+		}
+
+		if (user.getExtraProperty("urn:websignon:ipaddress") != null) {
+			if (user.getExtraProperty("urn:websignon:ipaddress").equals(remoteHost)) {
+				LOGGER.info("Users SSOClientFilter request is from same host as they logged in from: SSOClientFilter&Login="
+						+ remoteHost);
+			} else {
+				LOGGER.warn("Users SSOClientFilter request is NOT from same host as they logged in from. Login="
+						+ user.getExtraProperty("urn:websignon:ipaddress") + ", SSOClientFilter=" + remoteHost);
+			}
+		}
 	}
 
 	/**
