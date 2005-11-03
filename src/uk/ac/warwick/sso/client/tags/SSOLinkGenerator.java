@@ -4,6 +4,9 @@
  */
 package uk.ac.warwick.sso.client.tags;
 
+import java.util.Iterator;
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.configuration.Configuration;
@@ -20,8 +23,7 @@ public class SSOLinkGenerator {
 	private Configuration _config;
 
 	private HttpServletRequest _request;
-	
-	
+
 	/**
 	 * SSOLinkGenerator will try and get a configuration from the ThreadLocal based SSOConfiguration, but you can
 	 * override this by just setting a Configuration manually
@@ -59,12 +61,40 @@ public class SSOLinkGenerator {
 		LOGGER.debug("shire.urlparamkey:" + urlParamKey);
 		if (urlParamKey != null && getRequest().getParameter(urlParamKey) != null) {
 			target = getRequest().getParameter(urlParamKey);
-			String queryString = getRequest().getQueryString().replaceFirst(urlParamKey + "=" + target, "");
-			target += "?" + queryString;
+
+			String queryString = getRequest().getQueryString();
+
+			queryString = stripQueryStringParam(urlParamKey, queryString);
+
+			List keys = getConfig().getList("shire.stripparams.key");
+			if (keys != null && !keys.isEmpty()) {
+				Iterator it = keys.iterator();
+				while (it.hasNext()) {
+					String key = (String) it.next();
+					queryString = stripQueryStringParam(key, queryString);
+				}
+			}
+			
+			if (queryString.startsWith("&")) {
+				queryString = queryString.replaceFirst("&","");
+			}
+			if (queryString != null && queryString.length() > 0) {
+				target += "?" + queryString;
+			}
 			LOGGER.debug("Found target from paramter " + urlParamKey + "=" + target);
 		}
 		return target;
 
+	}
+
+	/**
+	 * @param urlParamKey
+	 * @param queryString
+	 * @return
+	 */
+	private String stripQueryStringParam(final String urlParamKey, final String queryString) {
+		String newQueryString = queryString.replaceFirst(urlParamKey + "=" + getRequest().getParameter(urlParamKey), "");
+		return newQueryString;
 	}
 
 	public final Configuration getConfig() {

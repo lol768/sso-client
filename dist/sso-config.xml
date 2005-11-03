@@ -31,6 +31,12 @@
 			This is the request parameter key that contains the real url of the webpage, it is used to generate
 			correct redirects. -->
 		<urlparamkey>requestedUrl</urlparamkey>
+		<!-- if there are some rewrites which are done internally to apache where querystring parameters are added 
+			and you don't want them showing up after a redirect, add in the parameter names here and they will be stripped -->
+		<stripparams>
+			<key>test</key>
+			<key>page</key>
+		</stripparams>
 		<!-- location of this services SHIRE, should be HTTPS...as mapped in the web.xml -->
 		<location>https://myapp.warwick.ac.uk/myapp/shire</location>
 		<sscookie>

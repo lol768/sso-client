@@ -4,8 +4,6 @@
 	<httpbasic>
 		<allow>true</allow>
 		<!-- list of protocols to allow BASIC auth over. You should ALWAYS use only HTTPS in production. However, you can use http in testing if you can't get https working on your machine -->
-		<protocol>https</protocol>
-		<protocol>http</protocol>
 	</httpbasic>
 	<mode>old</mode>
 	<!--mode>new</mode-->
