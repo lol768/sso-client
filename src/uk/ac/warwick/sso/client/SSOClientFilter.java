@@ -247,7 +247,7 @@ public final class SSOClientFilter implements Filter {
 		final int authStartPos = 6;
 		auth64 = auth64.substring(authStartPos);
 		BASE64Decoder decoder = new BASE64Decoder();
-		String auth = new String(decoder.decodeBuffer(auth64));
+		String auth = new String(decoder.decodeBuffer(auth64.trim()));
 		LOGGER.info("Doing BASIC auth:" + auth);
 		String userName = auth.split(":")[0];
 		String password = auth.split(":")[1];
