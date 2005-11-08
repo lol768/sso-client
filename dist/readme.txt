@@ -73,6 +73,13 @@ Delete existing xerces and xml api jar files.
   </c:otherwise>
 </c:choose>
 
+Or
+
+SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
+generator.setRequest(request);
+String loginUrl = generator.getLoginUrl();
+
+
 7) Generating a CSR for your app:
 
 Open a DOS prompt and navigate to your %JAVA_HOME/jre/lib/security directory.
