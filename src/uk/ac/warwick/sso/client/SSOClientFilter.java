@@ -78,29 +78,7 @@ public final class SSOClientFilter implements Filter {
 		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + suffix));
 	}
 
-	public static User getUserFromRequest(final HttpServletRequest req) {
-
-		SSOConfiguration config = new SSOConfiguration();
-
-		if (config.getConfig() == null) {
-			LOGGER.warn("No SSOConfiguration object created, this request probably didn't go through the SSOClientFilter");
-			throw new RuntimeException(
-					"No SSOConfiguration object created, this request probably didn't go through the SSOClientFilter");
-		}
-
-		String userKey = config.getConfig().getString("shire.filteruserkey");
-
-		if (userKey == null) {
-			userKey = USER_KEY;
-		}
-		User user = (User) req.getAttribute(userKey);
-		if (user == null) {
-			user = new AnonymousUser();
-		}
-
-		return user;
-
-	}
+	
 
 	public void doFilter(final ServletRequest arg0, final ServletResponse arg1, final FilterChain chain) throws IOException,
 			ServletException {
@@ -122,11 +100,7 @@ public final class SSOClientFilter implements Filter {
 
 		User user = new AnonymousUser();
 
-		boolean allowBasic = false;
-		if (_config.getBoolean("httpbasic.allow") && "https".equalsIgnoreCase(target.getProtocol())) {
-			LOGGER.debug("HTTP Basic Auth is allowed");
-			allowBasic = true;
-		}
+		boolean allowBasic = allowHttpBasic(target);
 
 		if (allowBasic && "true".equals(request.getParameter("forcebasic")) && request.getHeader("Authorization") == null) {
 			String authHeader = "Basic realm=\"" + _config.getString("shire.providerid") + "\"";
@@ -202,6 +176,49 @@ public final class SSOClientFilter implements Filter {
 
 		// redirect onto underlying page
 		chain.doFilter(arg0, arg1);
+
+	}
+
+	/**
+	 * @param target
+	 * @param allowBasic
+	 * @return
+	 */
+	private boolean allowHttpBasic(final URL target) {		
+		
+		if (!_config.getBoolean("httpbasic.allow")) {
+			return false;
+		}
+		
+		if ("https".equalsIgnoreCase(target.getProtocol()) || target.getHost().equalsIgnoreCase("localhost")) {
+			LOGGER.info("HTTP Basic Auth is allowed, target:" + target);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public static User getUserFromRequest(final HttpServletRequest req) {
+
+		SSOConfiguration config = new SSOConfiguration();
+
+		if (config.getConfig() == null) {
+			LOGGER.warn("No SSOConfiguration object created, this request probably didn't go through the SSOClientFilter");
+			throw new RuntimeException(
+					"No SSOConfiguration object created, this request probably didn't go through the SSOClientFilter");
+		}
+
+		String userKey = config.getConfig().getString("shire.filteruserkey");
+
+		if (userKey == null) {
+			userKey = USER_KEY;
+		}
+		User user = (User) req.getAttribute(userKey);
+		if (user == null) {
+			user = new AnonymousUser();
+		}
+
+		return user;
 
 	}
 
