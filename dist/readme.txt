@@ -82,7 +82,7 @@ String loginUrl = generator.getLoginUrl();
 
 7) Generating a CSR for your app:
 
-Open a DOS prompt and navigate to your %JAVA_HOME/jre/lib/security directory.
+Open a shell and navigate to your %JAVA_HOME/jre/lib/security directory.
 
 # keytool -keystore <your_domain_name>.keystore -alias <your_domain_name> -genkey -keyalg RSA
 

@@ -100,7 +100,7 @@ public final class SSOClientFilter implements Filter {
 
 		User user = new AnonymousUser();
 
-		boolean allowBasic = allowHttpBasic(target);
+		boolean allowBasic = allowHttpBasic(target,request);
 
 		if (allowBasic && "true".equals(request.getParameter("forcebasic")) && request.getHeader("Authorization") == null) {
 			String authHeader = "Basic realm=\"" + _config.getString("shire.providerid") + "\"";
@@ -184,17 +184,48 @@ public final class SSOClientFilter implements Filter {
 	 * @param allowBasic
 	 * @return
 	 */
-	private boolean allowHttpBasic(final URL target) {		
+	private boolean allowHttpBasic(final URL target, final HttpServletRequest request) {		
 		
 		if (!_config.getBoolean("httpbasic.allow")) {
 			return false;
 		}
 		
-		if ("https".equalsIgnoreCase(target.getProtocol()) || target.getHost().equalsIgnoreCase("localhost")) {
-			LOGGER.info("HTTP Basic Auth is allowed, target:" + target);
-			return true;
+		boolean jBossLocalhost = false;
+		boolean hasXForwardedFor = false;
+		boolean jBossSSL = false;
+		
+		URL realURL = null;
+		try {
+			realURL = new URL(request.getRequestURL().toString());
+			if (realURL.getHost().equalsIgnoreCase("localhost") || realURL.getHost().equalsIgnoreCase("localhost.warwick.ac.uk")) {
+				jBossLocalhost = true;
+			}
+			if (realURL.getProtocol().equalsIgnoreCase("https")) {
+				jBossSSL = true;
+			}
+		} catch (MalformedURLException e) {
+			throw new RuntimeException("Could not make URL out of:" + request.getRequestURI());
 		}
 		
+		if (request.getHeader("x-forwarded-for") != null) {
+			hasXForwardedFor = true;
+		}
+		
+		if (hasXForwardedFor) {
+			// was proxied...probably
+			if ("https".equalsIgnoreCase(target.getProtocol()) || target.getHost().equalsIgnoreCase("localhost") || target.getHost().equalsIgnoreCase("localhost.warwick.ac.uk")) {
+				LOGGER.debug("HTTP Basic Auth is allowed because it is proxied but has a sensible target:" + target);
+				return true;
+			}
+		} else {
+			// was not proxied...probably
+			if (jBossSSL || jBossLocalhost) {
+				LOGGER.debug("HTTP Basic Auth is allowed because jboss is running on localhost or SSL and is not proxied");
+				return true;
+			}
+		}
+				
+				
 		return false;
 	}
 	
