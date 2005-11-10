@@ -39,5 +39,9 @@ public class SSOLoginLinkGenerator extends SSOLinkGenerator {
 		return linkUrl;
 
 	}
+	
+	public final String getPermissionDeniedLink() {
+		return getLoginUrl() + "&error=permdenied";
+	}
 
 }
