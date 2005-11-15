@@ -43,7 +43,7 @@
 			<!-- Name of the service specific cookie (SSC) that will be used for keeping a session -->
 			<name>SSO-SSC-BlogBuilder</name>
 			<!-- path scope of this cookie -->
-			<path>/sso-client</path>
+			<path>/myapp</path>
 			<!-- domain scope of this cookie...should be as restrictive as possible -->
 			<domain>myapp.warwick.ac.uk</domain>
 		</sscookie>
@@ -51,7 +51,7 @@
 		<providerid>urn:myapp.warwick.ac.uk:myapp:service</providerid>
 		<keystore>
 			<!-- location of the java keystore -->
-			<location>file:/j2sdk1.4.2_02/jre/lib/security/myapp.warwick.ac.uk.keystore</location>
+			<location>file:/apps/jboss/server/default/conf/myapp.warwick.ac.uk.keystore</location>
 			<!-- password for that keystore -->
 			<password>changeit</password>
 			<!-- keystore alias for the client service machine -->
