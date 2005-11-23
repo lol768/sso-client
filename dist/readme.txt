@@ -14,7 +14,7 @@ Delete existing xerces and xml api jar files.
 <!-- The "/sso-config.xml" reference should be renamed to be more specific to your web app, eg. "/blogs-sso-config.xml" -->
 	<context-param>
 		<param-name>ssoclient.config</param-name>
-		<param-value>/sso-config.xml</param-value>
+		<param-value>/myapp-sso-config.xml</param-value>
 	</context-param>
 
 	<filter>
