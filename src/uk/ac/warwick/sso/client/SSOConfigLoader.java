@@ -17,7 +17,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.log4j.Logger;
 
-import uk.ac.warwick.sso.client.cache.UserCache;
+import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 
 /**
@@ -72,7 +72,7 @@ public class SSOConfigLoader implements ServletContextListener {
 
 				event.getServletContext().setAttribute(SSO_CONFIG_KEY + configSuffix, config);
 
-				event.getServletContext().setAttribute(SSO_CACHE_KEY + configSuffix, new UserCache());
+				event.getServletContext().setAttribute(SSO_CACHE_KEY + configSuffix, new InMemoryUserCache());
 
 			}
 		}

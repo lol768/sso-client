@@ -161,6 +161,9 @@ public final class SSOClientFilter implements Filter {
 					return;
 				} else if (item != null && item.getUser().isLoggedIn()) {
 					user = item.getUser();
+				} else {
+					// user has SSC but is not actually logged in
+					LOGGER.debug("Invalid SSC as user was not found in cache");
 				}
 
 			}

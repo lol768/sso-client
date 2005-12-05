@@ -17,7 +17,6 @@ import java.util.Date;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.log4j.Logger;
 import org.opensaml.SAMLAssertion;
 import org.opensaml.SAMLAuthenticationStatement;
@@ -39,9 +38,9 @@ public class ShireCommand {
 	private static final Logger LOGGER = Logger.getLogger(ShireCommand.class);
 
 	private AttributeAuthorityResponseFetcher _aaFetcher;
-	
+
 	private String _remoteHost;
-	
+
 	private UserCache _cache;
 
 	/**
@@ -74,20 +73,32 @@ public class ShireCommand {
 			LOGGER.info("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
 			throw new RuntimeException("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
 		}
+
 		
+		try {
+			String targetHost = new URL(target).getHost();
+			String cookieHost = _config.getString("shire.sscookie.domain");
+			if (!targetHost.endsWith(cookieHost)) {
+				throw new RuntimeException("Target is on a different host from the host that the cookie is being set on: "
+						+ targetHost + " != " + cookieHost);
+			}
+		} catch (MalformedURLException e) {
+			throw new RuntimeException("Target is not a valid URL: " + target);
+		}
+		
+
 		LOGGER.info("Accepted Shire request for target:" + target);
 
 		LOGGER.debug("SAML:" + samlResponse.toString());
 		SAMLAssertion assertion = (SAMLAssertion) samlResponse.getAssertions().next();
 		LOGGER.debug("Assertion:" + assertion.toString());
-		
+
 		String issuer = assertion.getIssuer();
 		if (!issuer.equals(getConfig().getString("origin.originid"))) {
 			LOGGER.warn("Someone trying to authenticate from wrong origin:" + issuer);
 			throw new RuntimeException("Someone trying to authenticate from wrong origin:" + issuer);
 		}
-		
-		
+
 		SAMLStatement statement = (SAMLStatement) assertion.getStatements().next();
 		LOGGER.debug("Statement:" + statement.toString());
 		SAMLAuthenticationStatement authStatement = (SAMLAuthenticationStatement) statement;
@@ -97,22 +108,23 @@ public class ShireCommand {
 		LOGGER.debug("Subject name:" + subject.getName().getName());
 
 		User user = getUserFromAuthSubject(subject);
-		
+
 		if (user.getExtraProperty("urn:websignon:ipaddress") != null) {
 			if (user.getExtraProperty("urn:websignon:ipaddress").equals(getRemoteHost())) {
 				LOGGER.info("Users shire submission is from same host as they logged in from: Shire&Login=" + getRemoteHost());
 			} else {
-				LOGGER.warn("Users shire submission is NOT from same host as they logged in from. Login=" + user.getExtraProperty("urn:websignon:ipaddress") + ", Shire="+ getRemoteHost());
+				LOGGER.warn("Users shire submission is NOT from same host as they logged in from. Login="
+						+ user.getExtraProperty("urn:websignon:ipaddress") + ", Shire=" + getRemoteHost());
 			}
 		}
 
 		String serviceSpecificCookie = (String) user.getExtraProperty(SSOToken.SSC_TICKET_TYPE);
 		if (serviceSpecificCookie != null) {
-			SSOToken token = new SSOToken(serviceSpecificCookie,SSOToken.SSC_TICKET_TYPE);
+			SSOToken token = new SSOToken(serviceSpecificCookie, SSOToken.SSC_TICKET_TYPE);
 			user.setToken(token.getValue());
 			user.setIsLoggedIn(true);
 			UserCacheItem item = new UserCacheItem(user, new Date().getTime(), token);
-			getCache().put(token,item);
+			getCache().put(token, item);
 			Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), token.getValue());
 			cookie.setPath(_config.getString("shire.sscookie.path"));
 			cookie.setDomain(_config.getString("shire.sscookie.domain"));
@@ -206,22 +218,18 @@ public class ShireCommand {
 		_aaFetcher = aaFetcher;
 	}
 
-	
 	public final UserCache getCache() {
 		return _cache;
 	}
 
-	
 	public final void setCache(final UserCache cache) {
 		_cache = cache;
 	}
 
-	
 	public final String getRemoteHost() {
 		return _remoteHost;
 	}
 
-	
 	public final void setRemoteHost(final String remoteHost) {
 		_remoteHost = remoteHost;
 	}

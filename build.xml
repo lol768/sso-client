@@ -61,7 +61,7 @@
 		
 
 	<target name="deployjar" depends="compile,buildjar">
-		<copy file="${jarFile}" todir="/apps/jboss-3.2.6/server/default/deploy/" />
+		<copy file="${jarFile}" todir="/apps/jboss-3.2.7/server/default/deploy/" />
 	</target>
 
 
