@@ -27,6 +27,7 @@ import org.opensaml.SAMLNameIdentifier;
 import org.opensaml.SAMLSubject;
 
 import sun.misc.BASE64Decoder;
+import uk.ac.warwick.sso.client.cache.TwoLevelUserCache;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.cache.UserCacheItem;
 import uk.ac.warwick.userlookup.AnonymousUser;
@@ -57,6 +58,8 @@ public final class SSOClientFilter implements Filter {
 
 	private UserCache _cache;
 
+	private boolean _clusterMode;
+
 	public SSOClientFilter() {
 		super();
 	}
@@ -76,9 +79,11 @@ public final class SSOClientFilter implements Filter {
 
 		setAaFetcher(new AttributeAuthorityResponseFetcherImpl(_config));
 		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + suffix));
-	}
 
-	
+		if (getCache() instanceof TwoLevelUserCache) {
+			setClusterMode(true);
+		}
+	}
 
 	public void doFilter(final ServletRequest arg0, final ServletResponse arg1, final FilterChain chain) throws IOException,
 			ServletException {
@@ -87,9 +92,9 @@ public final class SSOClientFilter implements Filter {
 
 		SSOConfiguration config = new SSOConfiguration();
 		config.setConfig(_config);
-		
+
 		URL target = getTarget(request);
-		
+
 		// prevent ssoclientfilter from sitting in front of shire and logout servlets
 		String shireLocation = _config.getString("shire.location");
 		String logoutLocation = _config.getString("logout.location");
@@ -100,13 +105,10 @@ public final class SSOClientFilter implements Filter {
 
 		User user = new AnonymousUser();
 
-		boolean allowBasic = allowHttpBasic(target,request);
+		boolean allowBasic = allowHttpBasic(target, request);
 
 		if (allowBasic && "true".equals(request.getParameter("forcebasic")) && request.getHeader("Authorization") == null) {
-			String authHeader = "Basic realm=\"" + _config.getString("shire.providerid") + "\"";
-			LOGGER.info("Client is requesting forcing HTTP Basic Auth, sending WWW-Authenticate=" + authHeader);
-			response.setHeader("WWW-Authenticate", authHeader);
-			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			sendBasicAuthHeaders(response);
 			return;
 		}
 
@@ -130,34 +132,28 @@ public final class SSOClientFilter implements Filter {
 			}
 
 			if (proxyTicketCookie != null) {
-				try {
-					SAMLSubject subject = new SAMLSubject();
-					SAMLNameIdentifier nameId = new SAMLNameIdentifier(proxyTicketCookie.getValue(), _config
-							.getString("origin.originid"), SSOToken.PROXY_TICKET_TYPE);
-					subject.setName(nameId);
-					LOGGER.info("Trying to get user from proxy cookie:" + nameId);
-					user = getAaFetcher().getUserFromSubject(subject);
-				} catch (SSOException e) {
-					LOGGER.error("Could not get user from proxy cookie", e);
-				} catch (SAMLException e) {
-					LOGGER.error("Could not get user from proxy cookie", e);
-				}
+				user = getUserFromProxyTicket(proxyTicketCookie);
 
 			} else if (serviceSpecificCookie != null) {
 
 				LOGGER.debug("Found SSC (" + serviceSpecificCookie.getValue() + ")");
 
+				if (loginTicketCookie == null && isClusterMode()) {
+					// if there is no loginTicketCookie when in cluster mode then you must have been logged out, but
+					// can't
+					// rely on the in memory usercache to be cleared, so assume you're logged out
+					destroySSC(response);
+					chain.doFilter(arg0, arg1);
+					return;
+				}
+
 				SSOToken token = new SSOToken(serviceSpecificCookie.getValue(), SSOToken.SSC_TICKET_TYPE);
-				UserCacheItem item = (UserCacheItem) getCache().get(token);
+				UserCacheItem item = getCache().get(token);
 
 				if ((item == null || !item.getUser().isLoggedIn()) && loginTicketCookie != null) {
 					redirectToLogin(response, target, loginTicketCookie);
 					// didn't find user, so cookie is invalid, destroy it!
-					Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), "");
-					cookie.setPath(_config.getString("shire.sscookie.path"));
-					cookie.setDomain(_config.getString("shire.sscookie.domain"));
-					cookie.setMaxAge(0);
-					response.addCookie(cookie);
+					destroySSC(response);
 					return;
 				} else if (item != null && item.getUser().isLoggedIn()) {
 					user = item.getUser();
@@ -183,20 +179,64 @@ public final class SSOClientFilter implements Filter {
 	}
 
 	/**
+	 * @param response
+	 */
+	private void destroySSC(final HttpServletResponse response) {
+		Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), "");
+		cookie.setPath(_config.getString("shire.sscookie.path"));
+		cookie.setDomain(_config.getString("shire.sscookie.domain"));
+		cookie.setMaxAge(0);
+		response.addCookie(cookie);
+	}
+
+	/**
+	 * @param response
+	 */
+	private void sendBasicAuthHeaders(final HttpServletResponse response) {
+		String authHeader = "Basic realm=\"" + _config.getString("shire.providerid") + "\"";
+		LOGGER.info("Client is requesting forcing HTTP Basic Auth, sending WWW-Authenticate=" + authHeader);
+		response.setHeader("WWW-Authenticate", authHeader);
+		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+	}
+
+	/**
+	 * @param user
+	 * @param proxyTicketCookie
+	 * @return
+	 */
+	private User getUserFromProxyTicket(final Cookie proxyTicketCookie) {
+		User user = new AnonymousUser();
+		try {
+			SAMLSubject subject = new SAMLSubject();
+			SAMLNameIdentifier nameId = new SAMLNameIdentifier(proxyTicketCookie.getValue(),
+					_config.getString("origin.originid"), SSOToken.PROXY_TICKET_TYPE);
+			subject.setName(nameId);
+			LOGGER.info("Trying to get user from proxy cookie:" + nameId);
+			user = getAaFetcher().getUserFromSubject(subject);
+		} catch (SSOException e) {
+			LOGGER.error("Could not get user from proxy cookie", e);
+
+		} catch (SAMLException e) {
+			LOGGER.error("Could not get user from proxy cookie", e);
+		}
+		return user;
+	}
+
+	/**
 	 * @param target
 	 * @param allowBasic
 	 * @return
 	 */
-	private boolean allowHttpBasic(final URL target, final HttpServletRequest request) {		
-		
+	private boolean allowHttpBasic(final URL target, final HttpServletRequest request) {
+
 		if (!_config.getBoolean("httpbasic.allow")) {
 			return false;
 		}
-		
+
 		boolean jBossLocalhost = false;
 		boolean hasXForwardedFor = false;
 		boolean jBossSSL = false;
-		
+
 		URL realURL = null;
 		try {
 			realURL = new URL(request.getRequestURL().toString());
@@ -209,14 +249,15 @@ public final class SSOClientFilter implements Filter {
 		} catch (MalformedURLException e) {
 			throw new RuntimeException("Could not make URL out of:" + request.getRequestURI());
 		}
-		
+
 		if (request.getHeader("x-forwarded-for") != null) {
 			hasXForwardedFor = true;
 		}
-		
+
 		if (hasXForwardedFor) {
 			// was proxied...probably
-			if ("https".equalsIgnoreCase(target.getProtocol()) || target.getHost().equalsIgnoreCase("localhost") || target.getHost().equalsIgnoreCase("localhost.warwick.ac.uk")) {
+			if ("https".equalsIgnoreCase(target.getProtocol()) || target.getHost().equalsIgnoreCase("localhost")
+					|| target.getHost().equalsIgnoreCase("localhost.warwick.ac.uk")) {
 				LOGGER.debug("HTTP Basic Auth is allowed because it is proxied but has a sensible target:" + target);
 				return true;
 			}
@@ -227,11 +268,10 @@ public final class SSOClientFilter implements Filter {
 				return true;
 			}
 		}
-				
-				
+
 		return false;
 	}
-	
+
 	public static User getUserFromRequest(final HttpServletRequest req) {
 
 		SSOConfiguration config = new SSOConfiguration();
@@ -390,6 +430,14 @@ public final class SSOClientFilter implements Filter {
 
 	public void setCache(final UserCache cache) {
 		_cache = cache;
+	}
+
+	public boolean isClusterMode() {
+		return _clusterMode;
+	}
+
+	public void setClusterMode(final boolean clusterMode) {
+		_clusterMode = clusterMode;
 	}
 
 }

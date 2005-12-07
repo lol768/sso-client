@@ -120,16 +120,6 @@ public class DatabaseUserCache implements UserCache {
 	 */
 	public final DataSource getDataSource() {
 		return _dataSource;
-		// InitialContext ctx;
-		// DataSource ds = null;
-		// try {
-		// ctx = new InitialContext();
-		// ds = (DataSource) ctx.lookup("java:/SSOUserCacheDS");
-		// } catch (NamingException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
-		// return ds;
 	}
 
 	public final void setDataSource(final DataSource dataSource) {
