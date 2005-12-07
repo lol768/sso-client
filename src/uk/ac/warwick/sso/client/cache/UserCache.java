@@ -4,16 +4,18 @@
  */
 package uk.ac.warwick.sso.client.cache;
 
+import uk.ac.warwick.sso.client.SSOToken;
+
 public interface UserCache {
 
 	/**
 	 * Get a user from the cache. Returns null if user not in cache.
 	 * 
 	 */
-	Object get(final Object key);
+	UserCacheItem get(final SSOToken key);
 
-	Object put(final Object key, final UserCacheItem value);
+	void put(final SSOToken key, final UserCacheItem value);
 
-	void remove(final Object token);
+	void remove(final SSOToken token);
 
 }

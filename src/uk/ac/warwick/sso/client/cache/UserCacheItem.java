@@ -4,6 +4,8 @@
  */
 package uk.ac.warwick.sso.client.cache;
 
+import java.io.Serializable;
+
 import uk.ac.warwick.sso.client.SSOToken;
 import uk.ac.warwick.userlookup.User;
 
@@ -11,7 +13,7 @@ import uk.ac.warwick.userlookup.User;
  * A wrapper for users that are cached by the UserCache
  * 
  */
-public class UserCacheItem {
+public class UserCacheItem implements Serializable{
 
 	private User _user;
 

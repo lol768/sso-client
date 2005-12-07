@@ -11,10 +11,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 
+import uk.ac.warwick.sso.client.SSOToken;
+
 /**
  * 
- * A cache of <code>User</code> to prevent applications from repeatedly
- * calling the SSO service for the same user. Caches for 10 hours.
+ * A cache of <code>User</code> to prevent applications from repeatedly calling the SSO service for the same user.
+ * Caches for 10 hours.
  * 
  */
 public class InMemoryUserCache implements UserCache {
@@ -29,7 +31,7 @@ public class InMemoryUserCache implements UserCache {
 
 	private int _maxEntries = DEFAULT_MAX_ENTRIES;
 
-	static final Logger LOGGER = Logger.getLogger(InMemoryUserCache.class);
+	private static final Logger LOGGER = Logger.getLogger(InMemoryUserCache.class);
 
 	private Map _cache;
 
@@ -52,7 +54,7 @@ public class InMemoryUserCache implements UserCache {
 	 * @param key
 	 * @return
 	 */
-	public final Object get(final Object key) {
+	public final UserCacheItem get(final SSOToken key) {
 		long start = System.currentTimeMillis();
 		UserCacheItem item = (UserCacheItem) _cache.get(key);
 		if (item != null) {
@@ -80,7 +82,7 @@ public class InMemoryUserCache implements UserCache {
 	 * @param value
 	 * @return
 	 */
-	public final Object put(final Object key, final UserCacheItem value) {
+	public final void put(final SSOToken key, final UserCacheItem value) {
 		long start = System.currentTimeMillis();
 		boolean reInserted = false;
 		// remove the element if it exists, to ensure that the insertion-order
@@ -89,12 +91,11 @@ public class InMemoryUserCache implements UserCache {
 			reInserted = true;
 			_cache.remove(key);
 		}
-		Object o = _cache.put(key, value);
+		_cache.put(key, value);
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("PUT completed (re-inserted: " + reInserted + ") in " + (System.currentTimeMillis() - start) + "ms");
 		}
 
-		return o;
 	}
 
 	public final int getMaxEntries() {
@@ -126,7 +127,7 @@ public class InMemoryUserCache implements UserCache {
 	/**
 	 * @param token
 	 */
-	public final void remove(final Object token) {
+	public final void remove(final SSOToken token) {
 		long start = System.currentTimeMillis();
 		_cache.remove(token);
 		if (LOGGER.isDebugEnabled()) {

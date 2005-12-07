@@ -16,5 +16,10 @@
 	<classpathentry sourcepath="C:/apps/packages/opensaml/java/src" kind="lib" path="sso-client-jar/META-INF/lib/opensaml.jar"/>
 	<classpathentry kind="lib" path="sso-client-jar/META-INF/lib/commons-configuration-1.0.jar"/>
 	<classpathentry sourcepath="/userlookup" kind="lib" path="external-libs/userlookup-1.2.jar"/>
+	<classpathentry kind="lib" path="external-libs/classes12.jar"/>
+	<classpathentry kind="lib" path="external-libs/spring-beans.jar"/>
+	<classpathentry kind="lib" path="external-libs/spring-core.jar"/>
+	<classpathentry kind="lib" path="external-libs/spring-dao.jar"/>
+	<classpathentry kind="lib" path="external-libs/spring-jdbc.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

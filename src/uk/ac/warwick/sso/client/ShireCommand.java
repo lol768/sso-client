@@ -74,7 +74,6 @@ public class ShireCommand {
 			throw new RuntimeException("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
 		}
 
-		
 		try {
 			String targetHost = new URL(target).getHost();
 			String cookieHost = _config.getString("shire.sscookie.domain");
@@ -85,7 +84,6 @@ public class ShireCommand {
 		} catch (MalformedURLException e) {
 			throw new RuntimeException("Target is not a valid URL: " + target);
 		}
-		
 
 		LOGGER.info("Accepted Shire request for target:" + target);
 
@@ -118,23 +116,30 @@ public class ShireCommand {
 			}
 		}
 
-		String serviceSpecificCookie = (String) user.getExtraProperty(SSOToken.SSC_TICKET_TYPE);
-		if (serviceSpecificCookie != null) {
-			SSOToken token = new SSOToken(serviceSpecificCookie, SSOToken.SSC_TICKET_TYPE);
-			user.setToken(token.getValue());
-			user.setIsLoggedIn(true);
-			UserCacheItem item = new UserCacheItem(user, new Date().getTime(), token);
-			getCache().put(token, item);
-			Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), token.getValue());
-			cookie.setPath(_config.getString("shire.sscookie.path"));
-			cookie.setDomain(_config.getString("shire.sscookie.domain"));
-			// create cookie so that service can retrieve user from cache
-			return cookie;
+		if (user.getExtraProperty(SSOToken.SSC_TICKET_TYPE) != null) {
+			return setupSSC(user);
 		}
 
 		// no SSC found, so can't create cookie
 		return null;
 
+	}
+
+	/**
+	 * @param user
+	 * @return
+	 */
+	private Cookie setupSSC(final User user) {
+		SSOToken token = new SSOToken((String) user.getExtraProperty(SSOToken.SSC_TICKET_TYPE), SSOToken.SSC_TICKET_TYPE);
+		user.setToken(token.getValue());
+		user.setIsLoggedIn(true);
+		UserCacheItem item = new UserCacheItem(user, new Date().getTime(), token);
+		getCache().put(token, item);
+		Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), token.getValue());
+		cookie.setPath(_config.getString("shire.sscookie.path"));
+		cookie.setDomain(_config.getString("shire.sscookie.domain"));
+		// create cookie so that service can retrieve user from cache
+		return cookie;
 	}
 
 	/**

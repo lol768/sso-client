@@ -4,7 +4,9 @@
  */
 package uk.ac.warwick.sso.client;
 
-public class SSOToken {
+import java.io.Serializable;
+
+public class SSOToken implements Serializable{
 
 	public static final String SSC_TICKET_TYPE = "urn:websignon:ssc";
 
