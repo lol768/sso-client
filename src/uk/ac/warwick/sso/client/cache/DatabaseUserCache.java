@@ -11,6 +11,7 @@ import java.io.ObjectOutputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Date;
 
 import javax.sql.DataSource;
 
@@ -84,16 +85,20 @@ public class DatabaseUserCache implements UserCache {
 			e.printStackTrace();
 		}
 
-		SqlUpdate su = new SqlUpdate(getDataSource(), "INSERT INTO objectcache " + "(key, objectdata) " + "VALUES (?, ?)");
+		SqlUpdate su = new SqlUpdate(getDataSource(), "INSERT INTO objectcache " + "(key, objectdata,createddate) "
+				+ "VALUES (?, ?,?)");
 		su.declareParameter(new SqlParameter("key", Types.VARCHAR));
 		su.declareParameter(new SqlParameter("objectdata", Types.BLOB));
+		su.declareParameter(new SqlParameter("createddate", Types.DATE));
 		su.compile();
-
-		Object[] parameterValues = new Object[2];
+		
+		Object[] parameterValues = new Object[3];
 		parameterValues[0] = key.toString();
 
 		LobHandler lobHandler = new DefaultLobHandler();
 		parameterValues[1] = new SqlLobValue(baos.toByteArray(), lobHandler);
+
+		parameterValues[2] = new java.sql.Date(new Date().getTime());
 
 		su.update(parameterValues);
 
