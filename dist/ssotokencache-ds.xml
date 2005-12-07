@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ===================================================================== -->
+<!--                                                                       -->
+<!--  JBoss Server Configuration                                           -->
+<!--                                                                       -->
+<!-- ===================================================================== -->
+
+<!-- $Id$ -->
+<!-- ==================================================================== -->
+<!--  Datasource config for Oracle originally from Steven Coy             -->
+<!-- ==================================================================== -->
+
+
+<datasources>
+
+	<no-tx-datasource>
+    <jndi-name>SSOUserCacheDS</jndi-name>
+    <connection-url>jdbc:oracle:thin:@ginseng:1521:ginseng</connection-url>
+    <driver-class>oracle.jdbc.driver.OracleDriver</driver-class>
+    <user-name>sso_origin</user-name>
+    <password>r1ght_j4b</password>
+    <exception-sorter-class-name>org.jboss.resource.adapter.jdbc.vendor.OracleExceptionSorter</exception-sorter-class-name>
+    <connection-property name="autocommit">false</connection-property>
+  </no-tx-datasource>
+    
+</datasources>
+    
