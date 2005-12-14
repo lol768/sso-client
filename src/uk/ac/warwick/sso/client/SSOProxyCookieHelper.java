@@ -38,9 +38,9 @@ public class SSOProxyCookieHelper {
 	 * the HttpState for the HttpClient connection that is being made to the target. Will return a null cookie if a
 	 * cookie can't be generated
 	 * 
-	 * @param config
+	 * 
 	 * @param targetURL
-	 * @param proxyTargetServiceId
+	 * 
 	 * @param user
 	 * @return
 	 */

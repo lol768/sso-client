@@ -133,15 +133,13 @@ public final class SSOClientFilter implements Filter {
 
 			if (proxyTicketCookie != null) {
 				user = getUserFromProxyTicket(proxyTicketCookie);
-
 			} else if (serviceSpecificCookie != null) {
 
 				LOGGER.debug("Found SSC (" + serviceSpecificCookie.getValue() + ")");
 
 				if (loginTicketCookie == null && isClusterMode()) {
 					// if there is no loginTicketCookie when in cluster mode then you must have been logged out, but
-					// can't
-					// rely on the in memory usercache to be cleared, so assume you're logged out
+					// can't rely on the in memory usercache to be cleared, so assume you're logged out
 					destroySSC(response);
 					chain.doFilter(arg0, arg1);
 					return;
@@ -215,7 +213,6 @@ public final class SSOClientFilter implements Filter {
 			user = getAaFetcher().getUserFromSubject(subject);
 		} catch (SSOException e) {
 			LOGGER.error("Could not get user from proxy cookie", e);
-
 		} catch (SAMLException e) {
 			LOGGER.error("Could not get user from proxy cookie", e);
 		}
@@ -261,11 +258,18 @@ public final class SSOClientFilter implements Filter {
 				LOGGER.debug("HTTP Basic Auth is allowed because it is proxied but has a sensible target:" + target);
 				return true;
 			}
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("HTTP Basic Auth NOT allowed because it is proxied but does NOT have sensible target:" + target);
+			}
+
 		} else {
 			// was not proxied...probably
 			if (jBossSSL || jBossLocalhost) {
 				LOGGER.debug("HTTP Basic Auth is allowed because jboss is running on localhost or SSL and is not proxied");
 				return true;
+			}
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("HTTP Basic Auth is NOT allowed because jboss is NOT running on localhost or SSL and is not proxied");
 			}
 		}
 
@@ -326,7 +330,7 @@ public final class SSOClientFilter implements Filter {
 		User user = new AnonymousUser();
 		Cookie warwickSSO = getCookie(cookies, "WarwickSSO");
 		if (warwickSSO != null) {
-			user = UserLookup.getInstance().getUserByToken(warwickSSO.getValue(), false);
+			user = UserLookup.getInstance().getUserByToken(warwickSSO.getValue());
 		}
 		return user;
 	}
@@ -339,7 +343,11 @@ public final class SSOClientFilter implements Filter {
 		auth64 = auth64.substring(authStartPos);
 		BASE64Decoder decoder = new BASE64Decoder();
 		String auth = new String(decoder.decodeBuffer(auth64.trim()));
-		LOGGER.info("Doing BASIC auth:" + auth);
+		//LOGGER.debug("Doing BASIC auth:" + auth);
+		if (auth.indexOf(":") == -1) {
+			LOGGER.debug("Returning anon user as auth was invalid: " + auth);
+			return new AnonymousUser();
+		}
 		String userName = auth.split(":")[0];
 		String password = auth.split(":")[1];
 

@@ -81,8 +81,7 @@ public class DatabaseUserCache implements UserCache {
 			oos = new ObjectOutputStream(baos);
 			oos.writeObject(value);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException("Could not write object to stream", e);
 		}
 
 		SqlUpdate su = new SqlUpdate(getDataSource(), "INSERT INTO objectcache " + "(key, objectdata,createddate) "
@@ -91,8 +90,9 @@ public class DatabaseUserCache implements UserCache {
 		su.declareParameter(new SqlParameter("objectdata", Types.BLOB));
 		su.declareParameter(new SqlParameter("createddate", Types.DATE));
 		su.compile();
-		
-		Object[] parameterValues = new Object[3];
+
+		final int paramSize = 3;
+		Object[] parameterValues = new Object[paramSize];
 		parameterValues[0] = key.toString();
 
 		LobHandler lobHandler = new DefaultLobHandler();

@@ -42,12 +42,16 @@ public class SSOLinkGenerator {
 		String target = _target;
 
 		if (target != null && !target.equals("")) {
-			LOGGER.debug("Using target specifically passed in:" + target);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Using target specifically passed in:" + target);
+			}
 			return target;
 		}
 
 		if (getRequest() == null) {
-			LOGGER.debug("Found not HttpServletRequest to get url information from, returning empty target");
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Found not HttpServletRequest to get url information from, returning empty target");
+			}
 			return "";
 		}
 
@@ -55,10 +59,14 @@ public class SSOLinkGenerator {
 		if (getRequest().getQueryString() != null) {
 			target += "?" + getRequest().getQueryString();
 		}
-		LOGGER.debug("Target from request.getRequestURL()=" + target);
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Target from request.getRequestURL()=" + target);
+		}
 
 		String urlParamKey = _config.getString("shire.urlparamkey");
-		LOGGER.debug("shire.urlparamkey:" + urlParamKey);
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("shire.urlparamkey:" + urlParamKey);
+		}
 		if (urlParamKey != null && getRequest().getParameter(urlParamKey) != null) {
 			target = getRequest().getParameter(urlParamKey);
 
@@ -74,14 +82,16 @@ public class SSOLinkGenerator {
 					queryString = stripQueryStringParam(key, queryString);
 				}
 			}
-			
+
 			if (queryString.startsWith("&")) {
-				queryString = queryString.replaceFirst("&","");
+				queryString = queryString.replaceFirst("&", "");
 			}
 			if (queryString != null && queryString.length() > 0) {
 				target += "?" + queryString;
 			}
-			LOGGER.debug("Found target from paramter " + urlParamKey + "=" + target);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Found target from paramter " + urlParamKey + "=" + target);
+			}
 		}
 		return target;
 
