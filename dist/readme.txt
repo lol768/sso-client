@@ -93,42 +93,13 @@ SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
 generator.setRequest(request);
 String loginUrl = generator.getLoginUrl();
 
-
-7) Generating a CSR for your app:
-
-Open a shell and navigate to your %JAVA_HOME/jre/lib/security directory.
-
-# keytool -keystore <your_domain_name>.keystore -alias <your_domain_name> -genkey -keyalg RSA
-
-first and last name = your hostname
-organizational unit = Information Technology Services
-your organization = The University of Warwick
-city or Locality = Coventry
-State or province = West Midlands
-2 letter country code for this unit = GB
-
-# keytool -certreq -alias <your_domain_name> -keystore <your_domain_name>.keystore -file <your_domain_name>.csr
-
-# skip the following line on test machines - only use if you're going to use SSL and Apache
-# java -classpath . ExportPriv <your_domain_name>.keystore <your_domain_name> <keystore_password>
-
-8) Give the <your_domain_name>.csr file to the SSO administrator, they will generate a certificate for you.
-
-9) When you get the certificate <your_domain_name>.crt.der, import it back into the keystore, along with the Root CRT if needs be:
+7) Tell Kieran what domain you want a certificate for.  
 
 # keytool -import -keystore cacerts -alias testsso-ca -file testsso-ca.crt.der -trustcacerts -storepass changeit
 
 # keytool -import -keystore cacerts -alias verisign-intermediate -file verisign-intermediate-ca.crt -trustcacerts -storepass changeit
 
-# keytool -import -keystore <your_domain_name>.keystore -alias verisign-intermediate -file verisign-intermediate-ca.crt -trustcacerts
-
-# keytool -import -keystore <your_domain_name>.keystore -alias testsso-ca -file testsso-ca.crt.der -trustcacerts
-
-# keytool -import -keystore <your_domain_name>.keystore -alias websignon.warwick.ac.uk -file websignon.warwick.ac.uk.crt.der -trustcacerts
-
-# keytool -import -keystore <your_domain_name>.keystore -alias <your_domain_name> -file <your_domain_name>.crt.der -trustcacerts
-
-10)  Send following settings to SSO Administrator:
+8)  Send following settings to SSO Administrator:
 
 provider id:
 e.g. <providerid>urn:go.warwick.ac.uk:sarahgoto:service</providerid>
@@ -147,7 +118,7 @@ e.g. https://host-137-205-194-214.csv.warwick.ac.uk:8080/goto/shire
 your logout url:
 e.g. https://host-137-205-194-214.csv.warwick.ac.uk:8080/goto/logout
 
-11) Configure Apache/Jboss to run SSL with the right certificates...hard.
+9) Configure Apache/Jboss to run SSL with the right certificates...hard.
 
 # cp <your_domain_name>.crt /usr/local/apache/conf/ssl.crt/
 # cd /usr/local/apache/conf/ssl.crt/
@@ -155,7 +126,7 @@ link in certificate so it can be seen by apache properly
 # ln -s <your_domain_name>.crt `openssl x509 -noout -hash -in <your_domain_name>.crt`.0
 
 
-12)
+10)
 
 add this snippet to your Jboss deploy dir/jbossweb-tomcat50.sar/server.xml:
 
