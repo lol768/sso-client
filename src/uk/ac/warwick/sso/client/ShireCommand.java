@@ -131,7 +131,6 @@ public class ShireCommand {
 	 */
 	private Cookie setupSSC(final User user) {
 		SSOToken token = new SSOToken((String) user.getExtraProperty(SSOToken.SSC_TICKET_TYPE), SSOToken.SSC_TICKET_TYPE);
-		user.setToken(token.getValue());
 		user.setIsLoggedIn(true);
 		UserCacheItem item = new UserCacheItem(user, new Date().getTime(), token);
 		getCache().put(token, item);

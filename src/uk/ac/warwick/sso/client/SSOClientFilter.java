@@ -30,6 +30,7 @@ import sun.misc.BASE64Decoder;
 import uk.ac.warwick.sso.client.cache.TwoLevelUserCache;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.cache.UserCacheItem;
+import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
 import uk.ac.warwick.userlookup.AnonymousUser;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
@@ -94,11 +95,19 @@ public final class SSOClientFilter implements Filter {
 		config.setConfig(_config);
 
 		URL target = getTarget(request);
+		LOGGER.debug("Target=" + target);
 
 		// prevent ssoclientfilter from sitting in front of shire and logout servlets
 		String shireLocation = _config.getString("shire.location");
 		String logoutLocation = _config.getString("logout.location");
+
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("shire.location=" + shireLocation);
+			LOGGER.debug("logout.location=" + logoutLocation);
+		}
+
 		if (target.toExternalForm().equals(shireLocation) || target.toExternalForm().equals(logoutLocation)) {
+			LOGGER.debug("Letting request through without filtering because it is a shire or logout request");
 			chain.doFilter(arg0, arg1);
 			return;
 		}
@@ -169,11 +178,27 @@ public final class SSOClientFilter implements Filter {
 			request.setAttribute(USER_KEY, user);
 		}
 
+		setOldWarwickSSOToken(user, cookies);
+
 		checkIpAddress(request, user);
 
 		// redirect onto underlying page
 		chain.doFilter(arg0, arg1);
 
+	}
+
+	/**
+	 * @param user
+	 * @param cookies
+	 */
+	private void setOldWarwickSSOToken(User user, Cookie[] cookies) {
+		// set the old WarwickSSO token for legacy reasons
+		if (user.getOldWarwickSSOToken() == null) {
+			Cookie warwickSSO = getCookie(cookies, "WarwickSSO");
+			if (warwickSSO != null) {
+				user.setOldWarwickSSOToken(warwickSSO.getValue());
+			}
+		}
 	}
 
 	/**
@@ -269,7 +294,8 @@ public final class SSOClientFilter implements Filter {
 				return true;
 			}
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("HTTP Basic Auth is NOT allowed because jboss is NOT running on localhost or SSL and is not proxied");
+				LOGGER
+						.debug("HTTP Basic Auth is NOT allowed because jboss is NOT running on localhost or SSL and is not proxied");
 			}
 		}
 
@@ -343,7 +369,7 @@ public final class SSOClientFilter implements Filter {
 		auth64 = auth64.substring(authStartPos);
 		BASE64Decoder decoder = new BASE64Decoder();
 		String auth = new String(decoder.decodeBuffer(auth64.trim()));
-		//LOGGER.debug("Doing BASIC auth:" + auth);
+		// LOGGER.debug("Doing BASIC auth:" + auth);
 		if (auth.indexOf(":") == -1) {
 			LOGGER.debug("Returning anon user as auth was invalid: " + auth);
 			return new AnonymousUser();
@@ -383,29 +409,16 @@ public final class SSOClientFilter implements Filter {
 	 * @return
 	 */
 	private URL getTarget(final HttpServletRequest request) {
-		String target = request.getRequestURL().toString();
-		if (request.getQueryString() != null) {
-			target += "?" + request.getQueryString();
-		}
-		LOGGER.debug("Target from request.getRequestURL()=" + target);
 
-		String urlParamKey = _config.getString("shire.urlparamkey");
-		LOGGER.debug("shire.urlparamkey:" + urlParamKey);
-		if (urlParamKey != null && request.getParameter(urlParamKey) != null) {
-			target = request.getParameter(urlParamKey);
-			String queryString = request.getQueryString().replaceFirst(urlParamKey + "=" + target, "");
-			target = target.replaceAll("&&", "&");
-			if (queryString != null && !queryString.equals("")) {
-				target += "?" + queryString;
-			}
-			LOGGER.debug("Found target from paramter " + urlParamKey + "=" + target);
-		}
+		SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
+		generator.setRequest(request);
 		try {
-			return new URL(target);
+			return new URL(generator.getTarget());
 		} catch (MalformedURLException e) {
-			LOGGER.warn("Target is an invalid url: " + target);
+			LOGGER.warn("Target is an invalid url", e);
 			return null;
 		}
+
 	}
 
 	private Cookie getCookie(final Cookie[] cookies, final String name) {
