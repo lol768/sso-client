@@ -14,9 +14,6 @@
 			<fileset dir="external-libs">
 				<include name="*.jar"/>
 			</fileset>
-			<fileset dir="${buildName}-jar/META-INF/lib">
-				<include name="*.jar"/>
-			</fileset>
 		</path>
 			
 		<path id="run.classpath">

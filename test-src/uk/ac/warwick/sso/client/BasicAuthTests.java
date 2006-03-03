@@ -13,8 +13,6 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.methods.GetMethod;
 
-import sun.misc.BASE64Encoder;
-
 
 public class BasicAuthTests extends TestCase {
 	

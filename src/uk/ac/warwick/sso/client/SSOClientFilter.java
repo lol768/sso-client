@@ -302,23 +302,33 @@ public final class SSOClientFilter implements Filter {
 		return false;
 	}
 
+	/**
+	 * Will always return an AnonymousUser if there is either no config or no user in the request
+	 * 
+	 * @param req
+	 * @return
+	 */
 	public static User getUserFromRequest(final HttpServletRequest req) {
 
 		SSOConfiguration config = new SSOConfiguration();
 
-		if (config.getConfig() == null) {
-			LOGGER.warn("No SSOConfiguration object created, this request probably didn't go through the SSOClientFilter");
-			throw new RuntimeException(
-					"No SSOConfiguration object created, this request probably didn't go through the SSOClientFilter");
-		}
+		String userKey = null;
 
-		String userKey = config.getConfig().getString("shire.filteruserkey");
+		if (config.getConfig() != null) {
+			userKey = config.getConfig().getString("shire.filteruserkey");
+			// throw new RuntimeException(
+			// "No SSOConfiguration object created, this request probably didn't go through the SSOClientFilter");
+		} else {
+			LOGGER.warn("No SSOConfiguration object found, this request probably didn't go through the SSOClientFilter");
+		}
 
 		if (userKey == null) {
 			userKey = USER_KEY;
 		}
+
 		User user = (User) req.getAttribute(userKey);
 		if (user == null) {
+			LOGGER.warn("No user, not even an AnonymousUser found in the request, so returning a new AnonymousUser");
 			user = new AnonymousUser();
 		}
 
