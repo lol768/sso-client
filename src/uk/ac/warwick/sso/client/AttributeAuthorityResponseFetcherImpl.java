@@ -109,7 +109,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 	}
 
 	public final String getProxyTicket(final SAMLSubject subject, final String resource) throws SSOException {
-		SAMLResponse response = getSAMLResponse(subject);
+		SAMLResponse response = getSAMLResponse(subject,resource);
 		Properties attributes = getAttributesFromResponse(response);
 		return getValueFromAttribute(SSOToken.PROXY_TICKET_TYPE, attributes);
 	}
@@ -237,7 +237,9 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		Iterator it = attributes.keySet().iterator();
 		while (it.hasNext()) {
 			String attrName = (String) it.next();
-			user.getExtraProperties().put(attrName, getValueFromAttribute(attrName, attributes));
+			String value = getValueFromAttribute(attrName, attributes);
+			LOGGER.debug("Adding " + attrName + "=" + value + " to users extra properties");
+			user.getExtraProperties().put(attrName, value);
 		}
 
 		return user;

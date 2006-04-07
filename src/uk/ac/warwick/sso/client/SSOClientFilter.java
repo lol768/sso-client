@@ -143,7 +143,6 @@ public final class SSOClientFilter implements Filter {
 			if (proxyTicketCookie != null) {
 				user = getUserFromProxyTicket(proxyTicketCookie);
 			} else if (serviceSpecificCookie != null) {
-
 				LOGGER.debug("Found SSC (" + serviceSpecificCookie.getValue() + ")");
 
 				if (loginTicketCookie == null && isClusterMode()) {
@@ -436,6 +435,7 @@ public final class SSOClientFilter implements Filter {
 			for (int i = 0; i < cookies.length; i++) {
 				Cookie cookie = cookies[i];
 				if (cookie.getName().equals(name)) {
+					LOGGER.debug("Found cookie:" + name + "=" + cookie.getValue());
 					return cookie;
 				}
 			}

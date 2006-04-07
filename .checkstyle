@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?><fileset-config file-format-version="1.1.0" simple-config="false">
-<fileset name="My java source" enabled="true" check-config-name="Blogbuilder" type="external" location="C:\apps\eclipse_workspace\blogbuilder\external-libs\checkstyle\blog_checks.xml" description=""><file-match-pattern match-pattern=".java$" include-pattern="true"/>
-<file-match-pattern match-pattern="warwick.sso.client.ssl.*" include-pattern="false"/>
-</fileset>
+<?xml version="1.0" encoding="UTF-8"?>
+<fileset-config file-format-version="1.2.0" simple-config="false">
+    <fileset name="My java source" enabled="true" check-config-name="SSO" local="false">
+        <file-match-pattern match-pattern=".java$" include-pattern="true"/>
+        <file-match-pattern match-pattern="warwick.sso.client.ssl.*" include-pattern="false"/>
+    </fileset>
 </fileset-config>
