@@ -232,6 +232,8 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 				&& Boolean.valueOf(getValueFromAttribute("logindisabled", attributes)).booleanValue()) {
 			user.setLoginDisabled(true);
 		}
+		
+		user.setFoundUser(true);
 
 		// dump all attributes as keys and strings into extraproperties map on the user
 		Iterator it = attributes.keySet().iterator();
