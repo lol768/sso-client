@@ -81,16 +81,19 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		fullRequest += "</soap:Body></soap:Envelope>";
 		method.setRequestBody(fullRequest);
 		LOGGER.debug("SAMLRequest:" + fullRequest);
+		String body;
 		try {
 			client.executeMethod(method);
+			body = method.getResponseBodyAsString();
 		} catch (IOException e) {
 			LOGGER.error("Attribute request failed at client.executeMethod", e);
 			throw new SSOException("Attribute request failed at client.executeMethod", e);
 		}
-		LOGGER.debug("Https response:" + method.getResponseBodyAsString());
 
-		if (method.getResponseBodyAsString().indexOf("<soap:Fault><faultcode>") > -1) {
-			throw new RuntimeException("Got bad response from AttributeAuthority:" + method.getResponseBodyAsString());
+		LOGGER.debug("Https response:" + body);
+
+		if (body.indexOf("<soap:Fault><faultcode>") > -1) {
+			throw new RuntimeException("Got bad response from AttributeAuthority:" + body);
 		}
 
 		// turn https response into a SAML document and get the attributes out
@@ -109,7 +112,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 	}
 
 	public final String getProxyTicket(final SAMLSubject subject, final String resource) throws SSOException {
-		SAMLResponse response = getSAMLResponse(subject,resource);
+		SAMLResponse response = getSAMLResponse(subject, resource);
 		Properties attributes = getAttributesFromResponse(response);
 		return getValueFromAttribute(SSOToken.PROXY_TICKET_TYPE, attributes);
 	}
@@ -213,14 +216,11 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		user.setDepartment(getValueFromAttribute("ou", attributes));
 		user.setEmail(getValueFromAttribute("mail", attributes));
 
-		if (getValueFromAttribute("urn:websignon:usersource", attributes) != null
-				&& getValueFromAttribute("urn:websignon:usersource", attributes).equals("WarwickNDS")) {
-			if (attributes.get("staff") != null && getValueFromAttribute("staff", attributes).equals("true")) {
-				user.setStaff(true);
-			}
-			if (attributes.get("student") != null && getValueFromAttribute("student", attributes).equals("true")) {
-				user.setStudent(true);
-			}
+		if (attributes.get("staff") != null && getValueFromAttribute("staff", attributes).equals("true")) {
+			user.setStaff(true);
+		}
+		if (attributes.get("student") != null && getValueFromAttribute("student", attributes).equals("true")) {
+			user.setStudent(true);
 		}
 
 		if (getValueFromAttribute("urn:websignon:loggedin", attributes) != null
@@ -232,7 +232,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 				&& Boolean.valueOf(getValueFromAttribute("logindisabled", attributes)).booleanValue()) {
 			user.setLoginDisabled(true);
 		}
-		
+
 		user.setFoundUser(true);
 
 		// dump all attributes as keys and strings into extraproperties map on the user

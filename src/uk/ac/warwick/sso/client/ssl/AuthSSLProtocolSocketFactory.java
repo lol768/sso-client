@@ -44,6 +44,8 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
+import org.apache.commons.httpclient.ConnectTimeoutException;
+import org.apache.commons.httpclient.params.HttpConnectionParams;
 import org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory;
 import org.apache.log4j.Logger;
 
@@ -359,5 +361,10 @@ public class AuthSSLProtocolSocketFactory implements SecureProtocolSocketFactory
 	 */
 	public Socket createSocket(Socket socket, String host, int port, boolean autoClose) throws IOException, UnknownHostException {
 		return getSSLContext().getSocketFactory().createSocket(socket, host, port, autoClose);
+	}
+
+	public Socket createSocket(String host, int port, InetAddress localAddress, int localPort, HttpConnectionParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
+		LOGGER.warn("HTTPClient using createSocket(String host, int port, InetAddress localAddress, int localPort, HttpConnectionParams params) but we've not implemented it properly in AuthSSLProtocolSocketFactory");
+		return getSSLContext().getSocketFactory().createSocket(host, port);
 	}
 }

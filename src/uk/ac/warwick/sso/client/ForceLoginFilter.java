@@ -41,6 +41,8 @@ public class ForceLoginFilter implements Filter {
 
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) res;
+		
+		
 
 		User user = SSOClientFilter.getUserFromRequest(request);
 		if (user == null || !user.isLoggedIn()) {

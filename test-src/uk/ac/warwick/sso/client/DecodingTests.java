@@ -13,7 +13,7 @@ import java.security.cert.Certificate;
 
 import junit.framework.TestCase;
 
-import org.apache.commons.httpclient.util.Base64;
+import org.apache.commons.codec.binary.Base64;
 import org.opensaml.SAMLException;
 import org.opensaml.SAMLPOSTProfile;
 import org.opensaml.SAMLResponse;
@@ -72,8 +72,8 @@ public class DecodingTests extends TestCase {
 		try {
 			
 			KeyStoreHelper helper = new KeyStoreHelper();
-			KeyStore keyStore = helper.createKeyStore(new URL("file:/j2sdk1.4.2_02/jre/lib/security/moleman.warwick.ac.uk.keystore"), "changeit");
-			Certificate originCert = keyStore.getCertificate("testsso.warwick.ac.uk");
+			KeyStore keyStore = helper.createKeyStore(new URL("file:/apps/jboss-3.2.7/server/default/conf/moleman.warwick.ac.uk.keystore"), "changeit");
+			Certificate originCert = keyStore.getCertificate("moleman.warwick.ac.uk");
 			
 			samlResponse.verify();
 			
@@ -101,8 +101,10 @@ public class DecodingTests extends TestCase {
 
 		reader.close();
 		is.close();
-
-		SAMLResponse samlResponse = SAMLPOSTProfile.accept(Base64.encode(content.getBytes()),
+		
+		Base64 base64 = new Base64();
+		
+		SAMLResponse samlResponse = SAMLPOSTProfile.accept(base64.encode(content.getBytes()),
 				"urn:moleman.warwick.ac.uk:blogbuilder:service", 5, false);
 
 		KeyStoreHelper helper = new KeyStoreHelper();
@@ -135,7 +137,9 @@ public class DecodingTests extends TestCase {
 		reader.close();
 		is.close();
 
-		SAMLResponse samlResponse = SAMLPOSTProfile.accept(Base64.encode(content.getBytes()),
+		Base64 base64 = new Base64();
+		
+		SAMLResponse samlResponse = SAMLPOSTProfile.accept(base64.encode(content.getBytes()),
 				"urn:moleman.warwick.ac.uk:blogbuilder:service", 5, false);
 
 		try {

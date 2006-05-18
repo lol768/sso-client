@@ -30,14 +30,14 @@
 		</sscookie>
 		<providerid>urn:moleman.warwick.ac.uk:sso-client:service</providerid>
 		<keystore>
-			<location>file:/j2sdk1.4.2_02/jre/lib/security/moleman.warwick.ac.uk.keystore</location>
+			<location>file:/apps/jboss-3.2.7/server/default/conf/moleman.warwick.ac.uk.keystore</location>
 			<password>changeit</password>
 			<shire-alias>moleman.warwick.ac.uk</shire-alias>
 			<origin-alias>moleman.warwick.ac.uk</origin-alias>
 		</keystore>
 	</shire>
 	<cacertskeystore>
-			<location>file:/j2sdk1.4.2_02/jre/lib/security/cacerts</location>
+			<location>file:/j2sdk1.4.2_07/jre/lib/security/cacerts</location>
 			<password>changeit</password>
 	</cacertskeystore>
 </config>

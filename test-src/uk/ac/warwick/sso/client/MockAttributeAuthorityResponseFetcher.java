@@ -4,7 +4,9 @@
  */
 package uk.ac.warwick.sso.client;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.configuration.Configuration;
@@ -38,8 +40,13 @@ public class MockAttributeAuthorityResponseFetcher implements AttributeAuthority
 	}
 
 	public final User getUserFromSubject(final SAMLSubject subject) throws SSOException {
+		User user = new User();
+		user.setUserId("Test");
+		Map props = new HashMap();
+		props.put(SSOToken.SSC_TICKET_TYPE,"Testing123");
+		user.setExtraProperties(props);
 
-		return null;
+		return user;
 	}
 
 	public final String getProxyTicket(final SAMLSubject subject, final String resource) throws SSOException {

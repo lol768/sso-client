@@ -11,7 +11,9 @@ import junit.framework.TestCase;
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.params.HttpClientParams;
 
 
 public class BasicAuthTests extends TestCase {
@@ -20,13 +22,17 @@ public class BasicAuthTests extends TestCase {
 		
 		HttpClient client = new HttpClient();
 		
-		Credentials creds = new UsernamePasswordCredentials("blogtest3","blogtest3");
+		Credentials creds = new UsernamePasswordCredentials("blogtest2","blogtest2");
 		
-		client.getState().setCredentials(null,"moleman.warwick.ac.uk",creds);
+		AuthScope authScope = new AuthScope("ext-users.warwick.ac.uk",443);
+		client.getState().setCredentials(authScope,creds);
 		
-		client.getState().setAuthenticationPreemptive(true);		
-	
-		GetMethod method = new GetMethod("http://moleman.warwick.ac.uk/blogbuilder/kieranshaw/");
+		HttpClientParams params = new HttpClientParams();
+		params.setAuthenticationPreemptive(true);
+		
+		client.getParams().setAuthenticationPreemptive(true);
+		
+		GetMethod method = new GetMethod("https://ext-users.warwick.ac.uk/");
 		
 		int status = client.executeMethod(method);
 		
