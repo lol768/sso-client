@@ -41,11 +41,13 @@ public class ForceLoginFilter implements Filter {
 
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) res;
-		
-		
 
 		User user = SSOClientFilter.getUserFromRequest(request);
 		if (user == null || !user.isLoggedIn()) {
+			if (request.getMethod().equalsIgnoreCase("post")) {
+				LOGGER.warn("User is posting but is not logged in, so is going to lose data!");
+			}
+			
 			SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
 			generator.setRequest(request);
 			String loginLink = generator.getPermissionDeniedLink();

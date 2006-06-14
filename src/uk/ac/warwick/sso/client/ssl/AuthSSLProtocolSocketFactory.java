@@ -364,7 +364,7 @@ public class AuthSSLProtocolSocketFactory implements SecureProtocolSocketFactory
 	}
 
 	public Socket createSocket(String host, int port, InetAddress localAddress, int localPort, HttpConnectionParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
-		LOGGER.warn("HTTPClient using createSocket(String host, int port, InetAddress localAddress, int localPort, HttpConnectionParams params) but we've not implemented it properly in AuthSSLProtocolSocketFactory");
+		LOGGER.debug("HTTPClient using createSocket(String host, int port, InetAddress localAddress, int localPort, HttpConnectionParams params) but we've not implemented it properly in AuthSSLProtocolSocketFactory");
 		return getSSLContext().getSocketFactory().createSocket(host, port);
 	}
 }

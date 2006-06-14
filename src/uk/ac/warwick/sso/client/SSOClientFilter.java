@@ -125,7 +125,7 @@ public final class SSOClientFilter implements Filter {
 
 		if (allowBasic && request.getHeader("Authorization") != null) {
 			user = doBasicAuth(request);
-		} else if (_config.getString("mode").equals("old")) {
+		} else if (_config.getString("mode").equals("old") || request.getAttribute(ForceOldModeFilter.ALLOW_OLD_KEY) != null) {
 			// do old style single sign on via WarwickSSO cookie
 			user = doGetUserByOldSSO(cookies);
 		} else {
