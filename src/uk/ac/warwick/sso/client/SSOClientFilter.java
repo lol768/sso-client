@@ -9,6 +9,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Iterator;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -171,26 +172,49 @@ public final class SSOClientFilter implements Filter {
 			}
 		}
 
-		if (_config.getString("shire.filteruserkey") != null) {
-			request.setAttribute(_config.getString("shire.filteruserkey"), user);
-		} else {
-			request.setAttribute(USER_KEY, user);
-		}
+		HeaderSettingHttpServletRequest wrappedRequest = new HeaderSettingHttpServletRequest(request);
+
+		putUserAndAttributesInRequest(wrappedRequest, user);
 
 		setOldWarwickSSOToken(user, cookies);
 
-		checkIpAddress(request, user);
+		checkIpAddress(wrappedRequest, user);
 
 		// redirect onto underlying page
-		chain.doFilter(arg0, arg1);
+		chain.doFilter(wrappedRequest, arg1);
 
+	}
+
+	/**
+	 * @param request
+	 * @param user
+	 */
+	private void putUserAndAttributesInRequest(final HeaderSettingHttpServletRequest request, final User user) {
+
+		String userKey = _config.getString("shire.filteruserkey");
+		if (userKey == null) {
+			userKey = USER_KEY;
+		}
+
+		request.setAttribute(userKey, user);
+
+		if (!user.getExtraProperties().isEmpty()) {
+			Iterator it = user.getExtraProperties().keySet().iterator();
+			while (it.hasNext()) {
+				String key = (String) it.next();
+				request.setAttribute(userKey + "_" + key, user.getExtraProperty(key));
+				request.addHeader(userKey + "_" + key, (String) user.getExtraProperty(key));
+			}
+		}
+
+		request.addHeader(userKey + "_groups", "");
 	}
 
 	/**
 	 * @param user
 	 * @param cookies
 	 */
-	private void setOldWarwickSSOToken(User user, Cookie[] cookies) {
+	private void setOldWarwickSSOToken(final User user, final Cookie[] cookies) {
 		// set the old WarwickSSO token for legacy reasons
 		if (user.getOldWarwickSSOToken() == null) {
 			Cookie warwickSSO = getCookie(cookies, "WarwickSSO");
@@ -311,6 +335,23 @@ public final class SSOClientFilter implements Filter {
 
 		SSOConfiguration config = new SSOConfiguration();
 
+		String userKey = getUserKey(config);
+
+		User user = (User) req.getAttribute(userKey);
+		if (user == null) {
+			LOGGER.warn("No user, not even an AnonymousUser found in the request, so returning a new AnonymousUser");
+			user = new AnonymousUser();
+		}
+
+		return user;
+
+	}
+
+	/**
+	 * @param config
+	 * @return
+	 */
+	public static String getUserKey(SSOConfiguration config) {
 		String userKey = null;
 
 		if (config.getConfig() != null) {
@@ -324,15 +365,7 @@ public final class SSOClientFilter implements Filter {
 		if (userKey == null) {
 			userKey = USER_KEY;
 		}
-
-		User user = (User) req.getAttribute(userKey);
-		if (user == null) {
-			LOGGER.warn("No user, not even an AnonymousUser found in the request, so returning a new AnonymousUser");
-			user = new AnonymousUser();
-		}
-
-		return user;
-
+		return userKey;
 	}
 
 	/**
