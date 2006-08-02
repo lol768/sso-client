@@ -185,8 +185,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	private KeyStore getKeyStore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException,
-			MalformedURLException {
+	private KeyStore getKeyStore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
 		KeyStoreHelper helper = new KeyStoreHelper();
 		KeyStore keyStore = helper.createKeyStore(new URL(_config.getString("shire.keystore.location")), _config
 				.getString("shire.keystore.password"));
@@ -215,11 +214,13 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		user.setDepartmentCode(getValueFromAttribute("warwickdeptcode", attributes));
 		user.setDepartment(getValueFromAttribute("ou", attributes));
 		user.setEmail(getValueFromAttribute("mail", attributes));
+		
+		user.setUserType(getValueFromAttribute("urn:websignon:usertype", attributes));
 
-		if (attributes.get("staff") != null && getValueFromAttribute("staff", attributes).equals("true")) {
+		if ("true".equals(getValueFromAttribute("staff", attributes))) {
 			user.setStaff(true);
 		}
-		if (attributes.get("student") != null && getValueFromAttribute("student", attributes).equals("true")) {
+		if ("true".equals(getValueFromAttribute("student", attributes))) {
 			user.setStudent(true);
 		}
 

@@ -46,6 +46,8 @@ import uk.ac.warwick.userlookup.UserLookupException;
  */
 public final class SSOClientFilter implements Filter {
 
+	private static final String WARWICK_SSO = "WarwickSSO";
+
 	public static final String USER_KEY = "SSO_USER";
 
 	public static final String GLOBAL_LOGIN_COOKIE_NAME = "SSO-LTC";
@@ -217,7 +219,7 @@ public final class SSOClientFilter implements Filter {
 	private void setOldWarwickSSOToken(final User user, final Cookie[] cookies) {
 		// set the old WarwickSSO token for legacy reasons
 		if (user.getOldWarwickSSOToken() == null) {
-			Cookie warwickSSO = getCookie(cookies, "WarwickSSO");
+			Cookie warwickSSO = getCookie(cookies, WARWICK_SSO);
 			if (warwickSSO != null) {
 				user.setOldWarwickSSOToken(warwickSSO.getValue());
 			}
@@ -396,7 +398,7 @@ public final class SSOClientFilter implements Filter {
 	 */
 	private User doGetUserByOldSSO(final Cookie[] cookies) {
 		User user = new AnonymousUser();
-		Cookie warwickSSO = getCookie(cookies, "WarwickSSO");
+		Cookie warwickSSO = getCookie(cookies, WARWICK_SSO);
 		if (warwickSSO != null) {
 			user = UserLookup.getInstance().getUserByToken(warwickSSO.getValue());
 		}
