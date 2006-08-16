@@ -16,7 +16,11 @@
 	<classpathentry kind="lib" path="external-libs/spring-dao.jar"/>
 	<classpathentry kind="lib" path="external-libs/spring-jdbc.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-configuration-1.0.jar"/>
-	<classpathentry kind="lib" path="external-libs/opensaml.jar"/>
+	<classpathentry sourcepath="C:/apps/packages/opensaml/java/src" kind="lib" path="external-libs/opensaml.jar">
+		<attributes>
+			<attribute value="file:/C:/apps/packages/opensaml/java/doc/api/" name="javadoc_location"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/j2sdk1.4.2_07"/>
 	<classpathentry kind="lib" path="external-libs/xmlsec-1.2.1.jar"/>
 	<classpathentry sourcepath="C:/apps/packages/commons-httpclient-3.0.1/src/java" kind="lib" path="external-libs/commons-httpclient-3.0.1.jar">

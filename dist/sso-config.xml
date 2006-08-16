@@ -56,8 +56,6 @@
 			<password>changeit</password>
 			<!-- keystore alias for the client service machine -->
 			<shire-alias>myapp.warwick.ac.uk</shire-alias>
-			<!-- keystore alias for the single sign on origin machine -->
-			<origin-alias>websignon.warwick.ac.uk</origin-alias>
 		</keystore>
 	</shire>
 	<logout>

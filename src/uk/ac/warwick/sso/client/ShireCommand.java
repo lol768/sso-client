@@ -4,14 +4,8 @@
  */
 package uk.ac.warwick.sso.client;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.util.Date;
 
 import javax.servlet.http.Cookie;
@@ -28,14 +22,13 @@ import org.opensaml.SAMLSubject;
 
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.cache.UserCacheItem;
-import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.userlookup.User;
 
 public class ShireCommand {
 
-	private Configuration _config;
-
 	private static final Logger LOGGER = Logger.getLogger(ShireCommand.class);
+
+	private Configuration _config;
 
 	private AttributeAuthorityResponseFetcher _aaFetcher;
 
@@ -43,14 +36,6 @@ public class ShireCommand {
 
 	private UserCache _cache;
 
-	/**
-	 * @param saml64
-	 * @param target
-	 * @return
-	 * @throws IOException
-	 * @throws MalformedURLException
-	 * @throws HttpException
-	 */
 	public final Cookie process(final String saml64, final String target) throws SSOException {
 		SAMLResponse samlResponse = null;
 		LOGGER.debug("TARGET:" + target);
@@ -70,7 +55,7 @@ public class ShireCommand {
 
 		boolean validResponse = verifySAMLResponse(samlResponse);
 		if (!validResponse) {
-			LOGGER.info("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
+			LOGGER.warn("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
 			throw new RuntimeException("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
 		}
 
@@ -125,10 +110,6 @@ public class ShireCommand {
 
 	}
 
-	/**
-	 * @param user
-	 * @return
-	 */
 	private Cookie setupSSC(final User user) {
 		SSOToken token = new SSOToken((String) user.getExtraProperty(SSOToken.SSC_TICKET_TYPE), SSOToken.SSC_TICKET_TYPE);
 		user.setIsLoggedIn(true);
@@ -141,26 +122,18 @@ public class ShireCommand {
 		return cookie;
 	}
 
-	/**
-	 * @param subject
-	 * @return
-	 * @throws MalformedURLException
-	 * @throws IOException
-	 */
 	private User getUserFromAuthSubject(final SAMLSubject subject) throws SSOException {
 		return getAaFetcher().getUserFromSubject(subject);
 	}
 
-	/**
-	 * @param samlResponse
-	 * @throws IOException
-	 * @throws MalformedURLException
-	 */
 	private boolean verifySAMLResponse(final SAMLResponse samlResponse) {
 		try {
-			Certificate originCert = getCertificate(_config.getString("shire.keystore.origin-alias"));
+			// Certificate originCert = getCertificate(_config.getString("shire.keystore.origin-alias"));
+			// samlResponse.verify(originCert);
 
-			samlResponse.verify(originCert);
+			// verification is now done from contents of XML signature within the XML rather than relying on an external
+			// certificate
+			samlResponse.verify();
 			return true;
 		} catch (SAMLException e) {
 			LOGGER.error("Could not verify SAMLResponse", e);
@@ -169,42 +142,26 @@ public class ShireCommand {
 
 	}
 
-	/**
-	 * @return
-	 * @throws KeyStoreException
-	 * @throws NoSuchAlgorithmException
-	 * @throws CertificateException
-	 * @throws IOException
-	 * @throws MalformedURLException
-	 */
-	private Certificate getCertificate(final String alias) {
+	// private Certificate getCertificate(final String alias) {
+	//
+	// try {
+	// KeyStore keyStore = getKeyStore();
+	// Certificate originCert = keyStore.getCertificate(alias);
+	// return originCert;
+	// } catch (Exception e) {
+	// LOGGER.error("Could not get certificate", e);
+	// throw new RuntimeException("Could not get certificate", e);
+	// }
+	//
+	// }
 
-		try {
-			KeyStore keyStore = getKeyStore();
-			Certificate originCert = keyStore.getCertificate(alias);
-			return originCert;
-		} catch (Exception e) {
-			LOGGER.error("Could not get certificate", e);
-			throw new RuntimeException("Could not get certificate", e);
-		}
-
-	}
-
-	/**
-	 * @return
-	 * @throws KeyStoreException
-	 * @throws NoSuchAlgorithmException
-	 * @throws CertificateException
-	 * @throws IOException
-	 * @throws MalformedURLException
-	 */
-	private KeyStore getKeyStore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException,
-			MalformedURLException {
-		KeyStoreHelper helper = new KeyStoreHelper();
-		KeyStore keyStore = helper.createKeyStore(new URL(_config.getString("shire.keystore.location")), _config
-				.getString("shire.keystore.password"));
-		return keyStore;
-	}
+	// private KeyStore getKeyStore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+	// IOException {
+	// KeyStoreHelper helper = new KeyStoreHelper();
+	// KeyStore keyStore = helper.createKeyStore(new URL(_config.getString("shire.keystore.location")), _config
+	// .getString("shire.keystore.password"));
+	// return keyStore;
+	// }
 
 	public final Configuration getConfig() {
 		return _config;
