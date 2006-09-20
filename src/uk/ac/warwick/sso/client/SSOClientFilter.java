@@ -14,6 +14,7 @@ import java.util.Iterator;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -73,7 +74,15 @@ public final class SSOClientFilter implements Filter {
 		if (ctx.getInitParameter("configsuffix") != null) {
 			suffix = ctx.getInitParameter("configsuffix");
 		}
-		_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
+		ServletContext servletContext = ctx.getServletContext();
+        _config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
+        
+        if (_config == null) {
+            // try to load the sso config for instances where the Listener cannot be used (e.g. JRun)
+            LOGGER.warn("Could not find sso config in servlet context attribute " + SSOConfigLoader.SSO_CONFIG_KEY + suffix + "; attempting to load sso config");
+            SSOConfigLoader.loadSSOConfig(servletContext);    
+            _config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
+        }
 
 		if (_config == null) {
 			LOGGER.warn("Could not find sso config in servlet context attribute " + SSOConfigLoader.SSO_CONFIG_KEY + suffix);
@@ -82,7 +91,7 @@ public final class SSOClientFilter implements Filter {
 		}
 
 		setAaFetcher(new AttributeAuthorityResponseFetcherImpl(_config));
-		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + suffix));
+		setCache((UserCache) servletContext.getAttribute(SSOConfigLoader.SSO_CACHE_KEY + suffix));
 
 		if (getCache() instanceof TwoLevelUserCache) {
 			setClusterMode(true);

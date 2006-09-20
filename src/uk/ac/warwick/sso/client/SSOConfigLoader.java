@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -40,19 +41,22 @@ public class SSOConfigLoader implements ServletContextListener {
 	}
 
 	public final void contextInitialized(final ServletContextEvent event) {
+        loadSSOConfig(event.getServletContext());
+	}
 
-		Enumeration params = event.getServletContext().getInitParameterNames();
+    static void loadSSOConfig(ServletContext servletContext) {
+        Enumeration params = servletContext.getInitParameterNames();
 		while (params.hasMoreElements()) {
 			String paramName = (String) params.nextElement();
 			if (paramName.startsWith("ssoclient.config")) {
 
-				String ssoConfigLocation = event.getServletContext().getInitParameter(paramName);
+				String ssoConfigLocation = servletContext.getInitParameter(paramName);
 				LOGGER.info("Found context param " + paramName + "=" + ssoConfigLocation);
 				if (ssoConfigLocation == null) {
 					LOGGER.warn("Could not find ssoclient.config context param");
 					throw new RuntimeException("Could not setup configuration");
 				}
-				URL configUrl = getClass().getResource(ssoConfigLocation);
+				URL configUrl = SSOConfigLoader.class.getResource(ssoConfigLocation);
 				if (configUrl == null) {
 					LOGGER.warn("Could not find config as path is null");
 					throw new RuntimeException("Could not setup configuration");
@@ -71,19 +75,19 @@ public class SSOConfigLoader implements ServletContextListener {
 				setupHttpsProtocol(config.getString("shire.keystore.location"), config.getString("shire.keystore.password"),
 						config.getString("cacertskeystore.location"), config.getString("cacertskeystore.password"));
 
-				event.getServletContext().setAttribute(SSO_CONFIG_KEY + configSuffix, config);
+				servletContext.setAttribute(SSO_CONFIG_KEY + configSuffix, config);
 
-				event.getServletContext().setAttribute(SSO_CACHE_KEY + configSuffix, getCache());
+				servletContext.setAttribute(SSO_CACHE_KEY + configSuffix, getCache());
 
 			}
 		}
-	}
+    }
 
-	protected UserCache getCache() {
+	protected static UserCache getCache() {
 		return new InMemoryUserCache();
 	}
 
-	private void setupHttpsProtocol(final String shireKeystoreLoc, final String shireKeystorePass,
+	private static void setupHttpsProtocol(final String shireKeystoreLoc, final String shireKeystorePass,
 			final String cacertsKeystoreLoc, final String cacertsKeystorePass) {
 		final int standardHttpsPort = 443;
 		try {

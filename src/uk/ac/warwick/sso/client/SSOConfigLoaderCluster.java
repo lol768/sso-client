@@ -15,7 +15,7 @@ import uk.ac.warwick.sso.client.cache.UserCache;
 
 public class SSOConfigLoaderCluster extends SSOConfigLoader {
 
-	protected UserCache getCache() {
+	protected static UserCache getCache() {
 
 		DatabaseUserCache dbCache = new DatabaseUserCache();
 		dbCache.setDataSource(getDataSource());
@@ -27,7 +27,7 @@ public class SSOConfigLoaderCluster extends SSOConfigLoader {
 		return twoLevelCache;
 	}
 
-	private DataSource getDataSource() {
+	private static DataSource getDataSource() {
 		InitialContext ctx;
 		DataSource ds = null;
 		try {
