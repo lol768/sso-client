@@ -21,7 +21,7 @@ public class SSOLogoutLinkGenerator extends SSOLinkGenerator {
 	public final String getLogoutUrl()  {
 
 		if (getConfig() == null) {
-			throw new RuntimeException("Should find no SSO config");
+			throw new RuntimeException("Should not find the SSO config");
 		}
 
 		String logoutLocation = getConfig().getString("origin.logout.location");

@@ -36,7 +36,7 @@
 		</keystore>
 	</shire>
 	<cacertskeystore>
-			<location>file:/j2sdk1.4.2_07/jre/lib/security/cacerts</location>
+			<location>file:c:/j2sdk1.4.2_07/jre/lib/security/cacerts</location>
 			<password>changeit</password>
 	</cacertskeystore>
 </config>

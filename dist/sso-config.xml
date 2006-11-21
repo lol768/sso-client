@@ -54,6 +54,7 @@
 			<location>file:/apps/jboss/server/default/conf/myapp.warwick.ac.uk.keystore</location>
 			<!-- password for that keystore -->
 			<password>changeit</password>
+			<shire-alias>myapp.warwick.ac.uk</shire-alias>
 		</keystore>
 	</shire>
 	<logout>

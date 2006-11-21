@@ -36,7 +36,6 @@ import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
 import uk.ac.warwick.userlookup.AnonymousUser;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
-import uk.ac.warwick.userlookup.UserLookupException;
 
 /**
  * SSOClientFilter gets a User object from the request (via a cookie or a proxyticket) and puts it in the request.
@@ -76,8 +75,8 @@ public final class SSOClientFilter implements Filter {
 		}
 		ServletContext servletContext = ctx.getServletContext();
         _config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
-        
-        if (_config == null) {
+
+		if (_config == null) {
             // try to load the sso config for instances where the Listener cannot be used (e.g. JRun)
             LOGGER.warn("Could not find sso config in servlet context attribute " + SSOConfigLoader.SSO_CONFIG_KEY + suffix + "; attempting to load sso config");
             SSOConfigLoader.loadSSOConfig(servletContext);    
@@ -427,12 +426,11 @@ public final class SSOClientFilter implements Filter {
 			LOGGER.debug("Returning anon user as auth was invalid: " + auth);
 			return new AnonymousUser();
 		}
-		String userName = auth.split(":")[0];
-		String password = auth.split(":")[1];
-
 		try {
+			String userName = auth.split(":")[0];
+			String password = auth.split(":")[1];
 			return UserLookup.getInstance().getUserByIdAndPassNonLoggingIn(userName, password);
-		} catch (UserLookupException e) {
+		} catch (Exception e) {
 			return new AnonymousUser();
 		}
 
