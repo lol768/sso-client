@@ -390,7 +390,7 @@ public final class SSOClientFilter implements Filter {
 
 		if (user.getExtraProperty("urn:websignon:ipaddress") != null) {
 			if (user.getExtraProperty("urn:websignon:ipaddress").equals(remoteHost)) {
-				LOGGER.info("Users SSOClientFilter request is from same host as they logged in from: SSOClientFilter&Login="
+				LOGGER.debug("Users SSOClientFilter request is from same host as they logged in from: SSOClientFilter&Login="
 						+ remoteHost);
 			} else {
 				LOGGER.warn("Users SSOClientFilter request is NOT from same host as they logged in from. Login="
