@@ -74,14 +74,16 @@ public final class SSOClientFilter implements Filter {
 			suffix = ctx.getInitParameter("configsuffix");
 		}
 		ServletContext servletContext = ctx.getServletContext();
-        _config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
+		_config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
 
 		if (_config == null) {
-            // try to load the sso config for instances where the Listener cannot be used (e.g. JRun)
-            LOGGER.warn("Could not find sso config in servlet context attribute " + SSOConfigLoader.SSO_CONFIG_KEY + suffix + "; attempting to load sso config");
-            SSOConfigLoader.loadSSOConfig(servletContext);    
-            _config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
-        }
+			// try to load the sso config for instances where the Listener cannot be used (e.g. JRun)
+			LOGGER.warn("Could not find sso config in servlet context attribute " + SSOConfigLoader.SSO_CONFIG_KEY + suffix
+					+ "; attempting to load sso config");
+			SSOConfigLoader loader = new SSOConfigLoader();
+			loader.loadSSOConfig(servletContext);
+			_config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
+		}
 
 		if (_config == null) {
 			LOGGER.warn("Could not find sso config in servlet context attribute " + SSOConfigLoader.SSO_CONFIG_KEY + suffix);

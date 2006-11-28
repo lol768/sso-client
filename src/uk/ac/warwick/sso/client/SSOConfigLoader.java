@@ -41,11 +41,11 @@ public class SSOConfigLoader implements ServletContextListener {
 	}
 
 	public final void contextInitialized(final ServletContextEvent event) {
-        loadSSOConfig(event.getServletContext());
+		loadSSOConfig(event.getServletContext());
 	}
 
-    static void loadSSOConfig(ServletContext servletContext) {
-        Enumeration params = servletContext.getInitParameterNames();
+	public void loadSSOConfig(ServletContext servletContext) {
+		Enumeration params = servletContext.getInitParameterNames();
 		while (params.hasMoreElements()) {
 			String paramName = (String) params.nextElement();
 			if (paramName.startsWith("ssoclient.config")) {
@@ -81,13 +81,14 @@ public class SSOConfigLoader implements ServletContextListener {
 
 			}
 		}
-    }
+	}
 
-	protected static UserCache getCache() {
+	protected UserCache getCache() {
+		LOGGER.info("Loading standard InMemeoryUserCache");
 		return new InMemoryUserCache();
 	}
 
-	private static void setupHttpsProtocol(final String shireKeystoreLoc, final String shireKeystorePass,
+	private void setupHttpsProtocol(final String shireKeystoreLoc, final String shireKeystorePass,
 			final String cacertsKeystoreLoc, final String cacertsKeystorePass) {
 		final int standardHttpsPort = 443;
 		try {

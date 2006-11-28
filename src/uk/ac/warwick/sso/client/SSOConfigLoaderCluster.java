@@ -8,14 +8,30 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import org.apache.log4j.Logger;
+
 import uk.ac.warwick.sso.client.cache.DatabaseUserCache;
 import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
 import uk.ac.warwick.sso.client.cache.TwoLevelUserCache;
 import uk.ac.warwick.sso.client.cache.UserCache;
 
+/**
+ * If using the clustered SSO mode you'll need a datasource called: java:/SSOUserCacheDS This must contain the following
+ * table:
+ * 
+ * CREATE TABLE "SSO_ORIGIN"."OBJECTCACHE" ( "KEY" VARCHAR2(255 BYTE), "OBJECTDATA" BLOB, "CREATEDDATE" DATE, PRIMARY
+ * KEY ("KEY") ENABLE ) ;
+ * 
+ * @author Kieran Shaw
+ * 
+ */
 public class SSOConfigLoaderCluster extends SSOConfigLoader {
 
-	protected static UserCache getCache() {
+	private static final Logger LOGGER = Logger.getLogger(SSOConfigLoaderCluster.class);
+
+	protected UserCache getCache() {
+
+		LOGGER.info("Loading clustered DatabaseUserCache and InMemeoryUserCache");
 
 		DatabaseUserCache dbCache = new DatabaseUserCache();
 		dbCache.setDataSource(getDataSource());
@@ -27,7 +43,7 @@ public class SSOConfigLoaderCluster extends SSOConfigLoader {
 		return twoLevelCache;
 	}
 
-	private static DataSource getDataSource() {
+	private DataSource getDataSource() {
 		InitialContext ctx;
 		DataSource ds = null;
 		try {
