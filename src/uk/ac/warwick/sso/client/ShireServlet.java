@@ -54,15 +54,15 @@ public class ShireServlet extends HttpServlet {
 
 		String saml64 = req.getParameter("SAMLResponse");
 		String target = req.getParameter("TARGET");
-		
+
 		String remoteHost = req.getRemoteHost();
 		if (req.getHeader("x-forwarded-for") != null) {
 			remoteHost = req.getHeader("x-forwarded-for");
 		}
 
 		ShireCommand command = new ShireCommand();
-		
-		command.setRemoteHost(remoteHost);		
+
+		command.setRemoteHost(remoteHost);
 		command.setCache(_cache);
 
 		AttributeAuthorityResponseFetcher fetcher = new AttributeAuthorityResponseFetcherImpl();
@@ -79,8 +79,9 @@ public class ShireServlet extends HttpServlet {
 		if (cookie != null) {
 			LOGGER.debug("Adding SSC (" + cookie.getValue() + " ) to response");
 			res.addCookie(cookie);
-		} else {
-			LOGGER.warn("No SSC cookie returned to client");
+			LOGGER.debug("User being redirected to target with new SSC");
+		} else if (getCookie(req.getCookies(), _config.getString("shire.sscookie.name")) == null) {
+			LOGGER.warn("No SSC cookie returned to client, nor do they have a previous SSC");
 			// if you couldn't get a service specific cookie set, then we must
 			// destory the auto login cookie because it will keep redirecting
 			// the user
@@ -89,6 +90,9 @@ public class ShireServlet extends HttpServlet {
 			ltc.setPath("/");
 			ltc.setMaxAge(0);
 			res.addCookie(ltc);
+			LOGGER.debug("User being redirected to target but they didn't get a new SSC so we are clearing the SSO-LTC");
+		} else {
+			LOGGER.debug("User being redirected to target but they didn't get a new SSC, so we are reusing the old one");
 		}
 
 		res.setHeader("Location", target);
@@ -98,7 +102,7 @@ public class ShireServlet extends HttpServlet {
 
 	public final void init(final ServletConfig ctx) throws ServletException {
 		super.init(ctx);
-		
+
 		String suffix = "";
 		if (ctx.getInitParameter("configsuffix") != null) {
 			suffix = ctx.getInitParameter("configsuffix");
@@ -108,6 +112,19 @@ public class ShireServlet extends HttpServlet {
 
 		_cache = (UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + suffix);
 
+	}
+
+	private Cookie getCookie(final Cookie[] cookies, final String name) {
+
+		if (cookies != null) {
+			for (int i = 0; i < cookies.length; i++) {
+				Cookie cookie = cookies[i];
+				if (cookie.getName().equals(name)) {
+					return cookie;
+				}
+			}
+		}
+		return null;
 	}
 
 }
