@@ -103,7 +103,10 @@ public class SSOLinkGenerator {
 	 * @return
 	 */
 	private String stripQueryStringParam(final String urlParamKey, final String queryString) {
-		String newQueryString = queryString.replaceFirst(urlParamKey + "=" + getRequest().getParameter(urlParamKey), "");
+		String newQueryString;
+		String requestedUrlValue = "" + getRequest().getParameter(urlParamKey);
+		requestedUrlValue = requestedUrlValue.replaceAll(" ", "%20");
+		newQueryString = queryString.replaceFirst(urlParamKey + "=" + requestedUrlValue, "");
 		return newQueryString;
 	}
 

@@ -5,7 +5,6 @@
 	<classpathentry kind="lib" path="external-libs/log4j.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-logging.jar"/>
 	<classpathentry kind="src" path="test-src"/>
-	<classpathentry kind="lib" path="external-libs/junit.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-collections-3.1.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-digester.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-lang-2.0.jar"/>
@@ -32,5 +31,9 @@
 	<classpathentry kind="lib" path="external-libs/httpunit.jar"/>
 	<classpathentry kind="lib" path="external-libs/Tidy.jar"/>
 	<classpathentry kind="lib" path="external-libs/userlookup-1.4.0.jar"/>
+	<classpathentry kind="lib" path="external-libs/junit/jmock-1.0.1.jar"/>
+	<classpathentry kind="lib" path="external-libs/junit/jmock-cglib-1.0.1.jar"/>
+	<classpathentry kind="lib" path="external-libs/junit/junit-3.8.2.jar"/>
+	<classpathentry kind="lib" path="external-libs/junit/spring-mock.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

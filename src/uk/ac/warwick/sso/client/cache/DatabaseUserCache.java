@@ -33,6 +33,10 @@ public class DatabaseUserCache implements UserCache {
 
 	private DataSource _dataSource;
 
+	private static final int DEFAULT_TIME_OUT = 43200;
+
+	private int _timeout = DEFAULT_TIME_OUT;
+
 	public final UserCacheItem get(final SSOToken key) {
 
 		LOGGER.debug("Getting item from database cache " + key.toString());
@@ -65,7 +69,14 @@ public class DatabaseUserCache implements UserCache {
 			return null;
 		}
 		LOGGER.debug("Found item in database cache " + key.toString());
-		return item;
+
+		final int millisInSec = 1000;
+		if ((item.getInTime() + (getTimeout() * millisInSec)) > new Date().getTime()) {
+			return item;
+		}
+		remove(key);
+
+		return null;
 
 	}
 
@@ -129,6 +140,14 @@ public class DatabaseUserCache implements UserCache {
 
 	public final void setDataSource(final DataSource dataSource) {
 		_dataSource = dataSource;
+	}
+
+	public final int getTimeout() {
+		return _timeout;
+	}
+
+	public final void setTimeout(final int timeout) {
+		_timeout = timeout;
 	}
 
 }

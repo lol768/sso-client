@@ -25,7 +25,7 @@ public class InMemoryUserCache implements UserCache {
 
 	private static final int DEFAULT_MAX_ENTRIES = 50000;
 
-	private static final int DEFAULT_TIME_OUT = 36000;
+	private static final int DEFAULT_TIME_OUT = 43200;
 
 	private int _timeout = DEFAULT_TIME_OUT;
 
