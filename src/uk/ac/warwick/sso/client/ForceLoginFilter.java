@@ -5,6 +5,8 @@
 package uk.ac.warwick.sso.client;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -42,12 +44,26 @@ public class ForceLoginFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) res;
 
+		SSOConfiguration config = new SSOConfiguration();
+
+		String shireLocation = config.getConfig().getString("shire.location");
+		String logoutLocation = config.getConfig().getString("logout.location");
+
+		URL target = getTarget(request);
+		LOGGER.debug("Target=" + target);
+
+		if (target.toExternalForm().equals(shireLocation) || target.toExternalForm().equals(logoutLocation)) {
+			LOGGER.debug("Letting request through without filtering because it is a shire or logout request");
+			chain.doFilter(req, res);
+			return;
+		}
+
 		User user = SSOClientFilter.getUserFromRequest(request);
 		if (user == null || !user.isLoggedIn()) {
 			if (request.getMethod().equalsIgnoreCase("post")) {
 				LOGGER.warn("User is posting but is not logged in, so is going to lose data!");
 			}
-			
+
 			SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
 			generator.setRequest(request);
 			String loginLink = generator.getPermissionDeniedLink();
@@ -57,6 +73,23 @@ public class ForceLoginFilter implements Filter {
 		}
 
 		chain.doFilter(req, res);
+
+	}
+
+	/**
+	 * @param request
+	 * @return
+	 */
+	private URL getTarget(final HttpServletRequest request) {
+
+		SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
+		generator.setRequest(request);
+		try {
+			return new URL(generator.getTarget());
+		} catch (MalformedURLException e) {
+			LOGGER.warn("Target is an invalid url", e);
+			return null;
+		}
 
 	}
 
