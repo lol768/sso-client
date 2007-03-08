@@ -7,6 +7,7 @@ package uk.ac.warwick.sso.client;
 import java.net.URLEncoder;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.springframework.mock.web.MockHttpServletRequest;
 
@@ -54,17 +55,39 @@ public class SSOLinkGeneratingTests extends TestCase {
 	}
 
 	public final void testRequestedUrl() throws Exception {
+		String requestedUrl = "http://www.warwick.ac.uk/test test/";
+		String requestedUrlEncoded = "http://www.warwick.ac.uk/test%20test/";
+		compareLinks(requestedUrl, requestedUrlEncoded);
+	}
 
+	public final void testRequestedUrl2() throws Exception {
+		String requestedUrl = "http://www.warwick.ac.uk/(test test/";
+		String requestedUrlEncoded = "http://www.warwick.ac.uk/(test%20test/";
+		compareLinks(requestedUrl, requestedUrlEncoded);
+	}
+
+	public final void testRequestedUrl3() throws Exception {
+		String requestedUrl = "http://www.warwick.ac.uk/[test test]/";
+		String requestedUrlEncoded = "http://www.warwick.ac.uk/[test%20test]/";
+		compareLinks(requestedUrl, requestedUrlEncoded);
+	}
+
+	/**
+	 * @param requestedUrl
+	 * @param requestedUrlEncoded
+	 * @throws ConfigurationException
+	 */
+	private void compareLinks(final String requestedUrl, final String requestedUrlEncoded) throws ConfigurationException {
+		final String paramKey = "requestedUrl";
 		SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
 		Configuration config = new XMLConfiguration(getClass().getResource("/sso-config.xml"));
 		generator.setConfig(config);
 
 		MockHttpServletRequest req = new MockHttpServletRequest();
-		String requestedUrl = "http://www.warwick.ac.uk/test test/";
-		String requestedUrlEncoded = "http://www.warwick.ac.uk/test%20test/";
-		req.setQueryString("requestedUrl=" + requestedUrlEncoded);
-		req.setRequestURI("http://www.warwick.ac.uk/?requestedUrl=" + requestedUrl);
-		req.setParameter("requestedUrl", requestedUrl);
+		req.setQueryString(paramKey + "=" + requestedUrlEncoded);
+		req.setRequestURI("http://localhost/?" + paramKey + "=" + requestedUrl);
+
+		req.setParameter(paramKey, requestedUrl);
 
 		generator.setRequest(req);
 
@@ -72,6 +95,6 @@ public class SSOLinkGeneratingTests extends TestCase {
 
 		final String expectedUrl = requestedUrl;
 		assertEquals("Should have right url", expectedUrl, loginUrl);
-
 	}
+
 }
