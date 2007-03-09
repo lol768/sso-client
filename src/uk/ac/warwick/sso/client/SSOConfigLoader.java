@@ -9,16 +9,22 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.naming.NoInitialContextException;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
+import javax.sql.DataSource;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.log4j.Logger;
 
+import uk.ac.warwick.sso.client.cache.DatabaseUserCache;
 import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
+import uk.ac.warwick.sso.client.cache.TwoLevelUserCache;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 
@@ -77,15 +83,51 @@ public class SSOConfigLoader implements ServletContextListener {
 
 				servletContext.setAttribute(SSO_CONFIG_KEY + configSuffix, config);
 
-				servletContext.setAttribute(SSO_CACHE_KEY + configSuffix, getCache());
+				UserCache cache = getCache();
+				if (config.containsKey("cluster.enabled") && config.getBoolean("cluster.enabled")) {
+					final String dsName = config.getString("cluster.datasource");
+					cache = getClusteredCache(dsName);
+				}
+
+				servletContext.setAttribute(SSO_CACHE_KEY + configSuffix, cache);
 
 			}
 		}
 	}
 
-	protected UserCache getCache() {
+	private UserCache getCache() {
+
 		LOGGER.info("Loading standard InMemeoryUserCache");
 		return new InMemoryUserCache();
+	}
+
+	private UserCache getClusteredCache(final String dsName) {
+
+		LOGGER.info("Loading clustered DatabaseUserCache and InMemeoryUserCache");
+
+		DatabaseUserCache dbCache = new DatabaseUserCache();
+
+		dbCache.setDataSource(getDataSource(dsName));
+
+		UserCache memCache = new InMemoryUserCache();
+
+		TwoLevelUserCache twoLevelCache = new TwoLevelUserCache(memCache, dbCache);
+
+		return twoLevelCache;
+	}
+
+	private DataSource getDataSource(final String dsName) {
+		InitialContext ctx;
+		DataSource ds = null;
+		try {
+			ctx = new InitialContext();
+			ds = (DataSource) ctx.lookup(dsName);
+		} catch (NoInitialContextException e) {
+			LOGGER.warn("No InitialContext found, probably not running in a container, so ignoring");
+		} catch (NamingException e) {
+			throw new RuntimeException("Could not find datasource for clustered db cache under key " + dsName, e);
+		}
+		return ds;
 	}
 
 	private void setupHttpsProtocol(final String shireKeystoreLoc, final String shireKeystorePass,

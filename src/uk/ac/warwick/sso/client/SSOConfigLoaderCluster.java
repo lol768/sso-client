@@ -19,11 +19,11 @@ import uk.ac.warwick.sso.client.cache.UserCache;
  * If using the clustered SSO mode you'll need a datasource called: java:/SSOUserCacheDS This must contain the following
  * table:
  * 
- * CREATE TABLE "SSO_ORIGIN"."OBJECTCACHE" ( "KEY" VARCHAR2(255 BYTE), "OBJECTDATA" BLOB, "CREATEDDATE" DATE, PRIMARY
- * KEY ("KEY") ENABLE ) ;
+ * CREATE TABLE "OBJECTCACHE" ( "KEY" VARCHAR2(255 BYTE), "OBJECTDATA" BLOB, "CREATEDDATE" DATE, PRIMARY KEY ("KEY")
+ * ENABLE ) ;
  * 
  * @author Kieran Shaw
- * 
+ * @deprecated
  */
 public class SSOConfigLoaderCluster extends SSOConfigLoader {
 
