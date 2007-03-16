@@ -158,14 +158,6 @@ public final class SSOClientFilter implements Filter {
 			} else if (serviceSpecificCookie != null) {
 				LOGGER.debug("Found SSC (" + serviceSpecificCookie.getValue() + ")");
 
-				if (loginTicketCookie == null && isClusterMode()) {
-					// if there is no loginTicketCookie when in cluster mode then you must have been logged out, but
-					// can't rely on the in memory usercache to be cleared, so assume you're logged out
-					destroySSC(response);
-					chain.doFilter(arg0, arg1);
-					return;
-				}
-
 				SSOToken token = new SSOToken(serviceSpecificCookie.getValue(), SSOToken.SSC_TICKET_TYPE);
 				UserCacheItem item = getCache().get(token);
 
