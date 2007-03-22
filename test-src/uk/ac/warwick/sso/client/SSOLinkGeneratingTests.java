@@ -24,7 +24,7 @@ public class SSOLinkGeneratingTests extends TestCase {
 		String target = "http://www.warwick.ac.uk/test%20test/";
 		generator.setTarget(target);
 
-		Configuration config = new XMLConfiguration(getClass().getResource("/sso-config.xml"));
+		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
 
 		generator.setConfig(config);
 
@@ -42,7 +42,7 @@ public class SSOLinkGeneratingTests extends TestCase {
 		String target = "http://www.warwick.ac.uk";
 		generator.setTarget(target);
 
-		Configuration config = new XMLConfiguration(getClass().getResource("/sso-config.xml"));
+		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
 
 		generator.setConfig(config);
 
@@ -55,20 +55,26 @@ public class SSOLinkGeneratingTests extends TestCase {
 	}
 
 	public final void testRequestedUrl() throws Exception {
-		String requestedUrl = "http://www.warwick.ac.uk/test test/";
+		String requestedUrl = "http://www.warwick.ac.uk/test%20test/";
 		String requestedUrlEncoded = "http://www.warwick.ac.uk/test%20test/";
 		compareLinks(requestedUrl, requestedUrlEncoded);
 	}
 
 	public final void testRequestedUrl2() throws Exception {
-		String requestedUrl = "http://www.warwick.ac.uk/(test test/";
+		String requestedUrl = "http://www.warwick.ac.uk/(test%20test/";
 		String requestedUrlEncoded = "http://www.warwick.ac.uk/(test%20test/";
 		compareLinks(requestedUrl, requestedUrlEncoded);
 	}
 
 	public final void testRequestedUrl3() throws Exception {
-		String requestedUrl = "http://www.warwick.ac.uk/[test test]/";
+		String requestedUrl = "http://www.warwick.ac.uk/[test%20test]/";
 		String requestedUrlEncoded = "http://www.warwick.ac.uk/[test%20test]/";
+		compareLinks(requestedUrl, requestedUrlEncoded);
+	}
+
+	public final void testUTF8() throws Exception {
+		String requestedUrl = "http://moleman.warwick.ac.uk/%E6%9A%96";
+		String requestedUrlEncoded = "http://moleman.warwick.ac.uk/%E6%9A%96";
 		compareLinks(requestedUrl, requestedUrlEncoded);
 	}
 
@@ -80,12 +86,12 @@ public class SSOLinkGeneratingTests extends TestCase {
 	private void compareLinks(final String requestedUrl, final String requestedUrlEncoded) throws ConfigurationException {
 		final String paramKey = "requestedUrl";
 		SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
-		Configuration config = new XMLConfiguration(getClass().getResource("/sso-config.xml"));
+		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
 		generator.setConfig(config);
 
 		MockHttpServletRequest req = new MockHttpServletRequest();
 		req.setQueryString(paramKey + "=" + requestedUrlEncoded);
-		req.setRequestURI("http://localhost/?" + paramKey + "=" + requestedUrl);
+		// req.setRequestURI("http://localhost/");
 
 		req.setParameter(paramKey, requestedUrl);
 

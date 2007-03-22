@@ -68,11 +68,10 @@ public class SSOLinkGenerator {
 			LOGGER.debug("shire.urlparamkey:" + urlParamKey);
 		}
 		if (urlParamKey != null && getRequest().getParameter(urlParamKey) != null) {
-			target = getRequest().getParameter(urlParamKey);
 
-			String queryString = getRequest().getQueryString();
+			target = getParamValueFromQueryString(urlParamKey, getRequest().getQueryString());
 
-			queryString = stripQueryStringParam(urlParamKey, queryString);
+			String queryString = stripQueryStringParam(urlParamKey, getRequest().getQueryString());
 
 			List keys = getConfig().getList("shire.stripparams.key");
 			if (keys != null && !keys.isEmpty()) {
@@ -97,26 +96,42 @@ public class SSOLinkGenerator {
 
 	}
 
+	private String getParamValueFromQueryString(final String paramName, final String queryString) {
+
+		String[] params = queryString.split("&");
+		for (int i = 0; i < params.length; i++) {
+			String param = params[i];
+			if (param.startsWith(paramName + "=")) {
+				return param.split("=")[1];
+			}
+		}
+
+		return null;
+
+	}
+
 	/**
 	 * @param urlParamKey
 	 * @param queryString
 	 * @return
 	 */
 	private String stripQueryStringParam(final String urlParamKey, final String queryString) {
-		String requestedUrlValue = "" + getRequest().getParameter(urlParamKey);
-		requestedUrlValue = requestedUrlValue.replaceAll(" ", "%20");
 
-		String toFind = urlParamKey + "=" + requestedUrlValue;
-
-		int index = queryString.indexOf(toFind);
-
-		String newQueryString = queryString;
-		if (index > -1) {
-			newQueryString = queryString.substring(toFind.length() + index, queryString.length());
+		String newQS = "";
+		String sep = "";
+		String[] params = queryString.split("&");
+		for (int i = 0; i < params.length; i++) {
+			String param = params[i];
+			if (param.startsWith(urlParamKey + "=")) {
+				// drop it
+			} else {
+				// keep it and build back into querystring
+				newQS = sep + param;
+				sep = "&";
+			}
 		}
+		return newQS;
 
-		//newQueryString = queryString.replaceFirst(toFind, "");
-		return newQueryString;
 	}
 
 	public final Configuration getConfig() {

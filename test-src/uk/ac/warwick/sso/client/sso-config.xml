@@ -4,6 +4,10 @@
 	<httpbasic>
 		<allow>true</allow>
 	</httpbasic>
+	<cluster>
+		<enabled>false</enabled>
+		<datasource></datasource>
+	</cluster>
 	<!-- mode can be 'old' or 'new' this defines if the SSOClientFilter should use 
 		the old WarwickSSO cookie or the newer SSO-SSC-* cookies -->
 	<mode>new</mode>
