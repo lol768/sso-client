@@ -15,6 +15,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
@@ -35,6 +36,8 @@ public class UserInWebGroupFilter implements Filter {
 
 	private String _group;
 
+	private GroupService _groupService;
+
 	public void destroy() {
 		// nothing
 	}
@@ -44,9 +47,7 @@ public class UserInWebGroupFilter implements Filter {
 
 		User user = SSOClientFilter.getUserFromRequest((HttpServletRequest) req);
 
-		UserLookup userLookup = UserLookup.getInstance();
-		GroupService groupService = userLookup.getGroupService();
-		if (user.isLoggedIn() && groupService.isUserInGroup(user.getUserId(), _group)) {
+		if (user.isLoggedIn() && getGroupService().isUserInGroup(user.getUserId(), _group)) {
 			LOGGER.debug("User " + user.getUserId() + " is in group " + _group + " so allowing through filter");
 			chain.doFilter(req, res);
 			return;
@@ -63,7 +64,28 @@ public class UserInWebGroupFilter implements Filter {
 	}
 
 	public final void init(final FilterConfig config) throws ServletException {
-		_group = config.getInitParameter("group");
+		if (StringUtils.isEmpty(_group)) {
+			_group = config.getInitParameter("group");
+		}
+	}
+
+	public final GroupService getGroupService() {
+		if (_groupService == null) {
+			return UserLookup.getInstance().getGroupService();
+		}
+		return _groupService;
+	}
+
+	public final void setGroupService(final GroupService groupService) {
+		_groupService = groupService;
+	}
+
+	public final String getGroup() {
+		return _group;
+	}
+
+	public final void setGroup(final String group) {
+		_group = group;
 	}
 
 }

@@ -4,13 +4,11 @@
  */
 package uk.ac.warwick.sso.client;
 
-import javax.naming.InitialContext;
-
 import org.jmock.cglib.MockObjectTestCase;
 import org.springframework.mock.web.MockServletContext;
 
+import uk.ac.warwick.sso.client.cache.DatabaseUserCache;
 import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
-import uk.ac.warwick.sso.client.cache.TwoLevelUserCache;
 
 public final class SSOConfigLoaderTests extends MockObjectTestCase {
 
@@ -45,7 +43,7 @@ public final class SSOConfigLoaderTests extends MockObjectTestCase {
 		
 		assertNotNull(cache);
 		
-		assertTrue(cache instanceof TwoLevelUserCache);
+		assertTrue(cache instanceof DatabaseUserCache);
 
 		Object config = context.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
 		assertNotNull(config);

@@ -29,7 +29,7 @@ import org.opensaml.SAMLNameIdentifier;
 import org.opensaml.SAMLSubject;
 
 import sun.misc.BASE64Decoder;
-import uk.ac.warwick.sso.client.cache.TwoLevelUserCache;
+import uk.ac.warwick.sso.client.cache.DatabaseUserCache;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.cache.UserCacheItem;
 import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
@@ -94,7 +94,7 @@ public final class SSOClientFilter implements Filter {
 		setAaFetcher(new AttributeAuthorityResponseFetcherImpl(_config));
 		setCache((UserCache) servletContext.getAttribute(SSOConfigLoader.SSO_CACHE_KEY + suffix));
 
-		if (getCache() instanceof TwoLevelUserCache) {
+		if (getCache() instanceof DatabaseUserCache) {
 			setClusterMode(true);
 		}
 	}

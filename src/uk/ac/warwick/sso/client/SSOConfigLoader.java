@@ -24,7 +24,6 @@ import org.apache.log4j.Logger;
 
 import uk.ac.warwick.sso.client.cache.DatabaseUserCache;
 import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
-import uk.ac.warwick.sso.client.cache.TwoLevelUserCache;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 
@@ -103,17 +102,17 @@ public class SSOConfigLoader implements ServletContextListener {
 
 	private UserCache getClusteredCache(final String dsName) {
 
-		LOGGER.info("Loading clustered DatabaseUserCache and InMemeoryUserCache");
+		LOGGER.info("Loading clustered DatabaseUserCache");
 
 		DatabaseUserCache dbCache = new DatabaseUserCache();
 
 		dbCache.setDataSource(getDataSource(dsName));
 
-		UserCache memCache = new InMemoryUserCache();
+//		UserCache memCache = new InMemoryUserCache();
+//
+//		TwoLevelUserCache twoLevelCache = new TwoLevelUserCache(memCache, dbCache);
 
-		TwoLevelUserCache twoLevelCache = new TwoLevelUserCache(memCache, dbCache);
-
-		return twoLevelCache;
+		return dbCache;
 	}
 
 	private DataSource getDataSource(final String dsName) {
