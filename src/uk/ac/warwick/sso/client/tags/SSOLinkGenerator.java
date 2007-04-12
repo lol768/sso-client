@@ -126,7 +126,7 @@ public class SSOLinkGenerator {
 				// drop it
 			} else {
 				// keep it and build back into querystring
-				newQS = sep + param;
+				newQS += sep + param;
 				sep = "&";
 			}
 		}

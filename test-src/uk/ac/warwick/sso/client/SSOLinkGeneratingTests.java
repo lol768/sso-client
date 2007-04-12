@@ -55,27 +55,36 @@ public class SSOLinkGeneratingTests extends TestCase {
 	}
 
 	public final void testRequestedUrl() throws Exception {
-		String requestedUrl = "http://www.warwick.ac.uk/test test/";
+		String requestedUrl = "http://www.warwick.ac.uk/test%20test/";
 		String requestedUrlEncoded = "http://www.warwick.ac.uk/test%20test/";
 		compareLinks(requestedUrl, requestedUrlEncoded);
 	}
 
 	public final void testRequestedUrl2() throws Exception {
-		String requestedUrl = "http://www.warwick.ac.uk/(test test/";
+		String requestedUrl = "http://www.warwick.ac.uk/(test%20test/";
 		String requestedUrlEncoded = "http://www.warwick.ac.uk/(test%20test/";
 		compareLinks(requestedUrl, requestedUrlEncoded);
 	}
 
 	public final void testRequestedUrl3() throws Exception {
-		String requestedUrl = "http://www.warwick.ac.uk/[test test]/";
+		String requestedUrl = "http://www.warwick.ac.uk/[test%20test]/";
 		String requestedUrlEncoded = "http://www.warwick.ac.uk/[test%20test]/";
 		compareLinks(requestedUrl, requestedUrlEncoded);
 	}
 
 	public final void testUTF8() throws Exception {
-		String requestedUrl = "http://moleman.warwick.ac.uk/" + new String(new byte[] { -26, -102, -106}, "UTF-8");
+		String requestedUrl = "http://moleman.warwick.ac.uk/%E6%9A%96";
 		String requestedUrlEncoded = "http://moleman.warwick.ac.uk/%E6%9A%96";
 		compareLinks(requestedUrl, requestedUrlEncoded);
+	}
+
+	public final void testSBLink() throws Exception {
+
+		String requestedUrl = "http://localhost/?test=test&test2=test2";
+		String requestedUrlEncoded = "http://localhost/?test=test&test2=test2";
+
+		compareLinks(requestedUrl, requestedUrlEncoded);
+
 	}
 
 	/**
