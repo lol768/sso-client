@@ -23,9 +23,10 @@ import uk.ac.warwick.userlookup.UserLookup;
 
 public class PutGroupsInHeadersFilter implements Filter {
 
+	private GroupService _groupService;
+
 	public final void destroy() {
 		// nothing
-
 	}
 
 	public final void doFilter(final ServletRequest req, final ServletResponse res, final FilterChain chain) throws IOException,
@@ -43,8 +44,7 @@ public class PutGroupsInHeadersFilter implements Filter {
 
 		String groupList = "";
 
-		GroupService groupService = UserLookup.getInstance().getGroupService();
-		List groups = groupService.getGroupsForUser(user.getUserId());
+		List groups = getGroupService().getGroupsForUser(user.getUserId());
 		Iterator it = groups.iterator();
 		String sep = "";
 		while (it.hasNext()) {
@@ -62,6 +62,19 @@ public class PutGroupsInHeadersFilter implements Filter {
 
 	public final void init(final FilterConfig arg0) throws ServletException {
 		// nothing
+	}
+
+	public final GroupService getGroupService() {
+
+		if (_groupService == null) {
+			return UserLookup.getInstance().getGroupService();
+		}
+
+		return _groupService;
+	}
+
+	public final void setGroupService(final GroupService groupService) {
+		_groupService = groupService;
 	}
 
 }

@@ -49,6 +49,32 @@ public class SSOConfigLoader implements ServletContextListener {
 		loadSSOConfig(event.getServletContext());
 	}
 
+	public XMLConfiguration loadSSOConfig(final String ssoConfigLocation) {
+
+		if (ssoConfigLocation == null) {
+			LOGGER.warn("No ssoConfigLocation given");
+			throw new RuntimeException("Could not setup configuration");
+		}
+		URL configUrl = SSOConfigLoader.class.getResource(ssoConfigLocation);
+		if (configUrl == null) {
+			LOGGER.warn("Could not find config as path is null");
+			throw new RuntimeException("Could not setup configuration");
+		}
+
+		XMLConfiguration config;
+		try {
+			config = new XMLConfiguration(new File(configUrl.getFile()));
+		} catch (ConfigurationException e) {
+			throw new RuntimeException("Could not setup configuration", e);
+		}
+
+		setupHttpsProtocol(config.getString("shire.keystore.location"), config.getString("shire.keystore.password"), config
+				.getString("cacertskeystore.location"), config.getString("cacertskeystore.password"));
+
+		return config;
+
+	}
+
 	public void loadSSOConfig(ServletContext servletContext) {
 		Enumeration params = servletContext.getInitParameterNames();
 		while (params.hasMoreElements()) {
@@ -56,48 +82,30 @@ public class SSOConfigLoader implements ServletContextListener {
 			if (paramName.startsWith("ssoclient.config")) {
 
 				String ssoConfigLocation = servletContext.getInitParameter(paramName);
-				LOGGER.info("Found context param " + paramName + "=" + ssoConfigLocation);
-				if (ssoConfigLocation == null) {
-					LOGGER.warn("Could not find ssoclient.config context param");
-					throw new RuntimeException("Could not setup configuration");
-				}
-				URL configUrl = SSOConfigLoader.class.getResource(ssoConfigLocation);
-				if (configUrl == null) {
-					LOGGER.warn("Could not find config as path is null");
-					throw new RuntimeException("Could not setup configuration");
-				}
 
-				XMLConfiguration config;
-				try {
-					config = new XMLConfiguration(new File(configUrl.getFile()));
-				} catch (ConfigurationException e) {
-					throw new RuntimeException("Could not setup configuration", e);
-				}
+				XMLConfiguration config = loadSSOConfig(ssoConfigLocation);
 
 				String configSuffix = paramName.replaceFirst("ssoclient.config", "");
 				LOGGER.info("Using suffix for config:" + configSuffix);
 
-				setupHttpsProtocol(config.getString("shire.keystore.location"), config.getString("shire.keystore.password"),
-						config.getString("cacertskeystore.location"), config.getString("cacertskeystore.password"));
-
 				servletContext.setAttribute(SSO_CONFIG_KEY + configSuffix, config);
 
-				UserCache cache = getCache();
-				if (config.containsKey("cluster.enabled") && config.getBoolean("cluster.enabled")) {
-					final String dsName = config.getString("cluster.datasource");
-					cache = getClusteredCache(dsName);
-				}
-
+				UserCache cache = getCache(config);
 				servletContext.setAttribute(SSO_CACHE_KEY + configSuffix, cache);
 
 			}
 		}
 	}
 
-	private UserCache getCache() {
+	private UserCache getCache(XMLConfiguration config) {
 
+		if (config.containsKey("cluster.enabled") && config.getBoolean("cluster.enabled")) {
+			final String dsName = config.getString("cluster.datasource");
+			return getClusteredCache(dsName);
+		}
 		LOGGER.info("Loading standard InMemeoryUserCache");
 		return new InMemoryUserCache();
+
 	}
 
 	private UserCache getClusteredCache(final String dsName) {
@@ -107,10 +115,6 @@ public class SSOConfigLoader implements ServletContextListener {
 		DatabaseUserCache dbCache = new DatabaseUserCache();
 
 		dbCache.setDataSource(getDataSource(dsName));
-
-//		UserCache memCache = new InMemoryUserCache();
-//
-//		TwoLevelUserCache twoLevelCache = new TwoLevelUserCache(memCache, dbCache);
 
 		return dbCache;
 	}

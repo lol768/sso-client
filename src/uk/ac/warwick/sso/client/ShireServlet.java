@@ -30,6 +30,8 @@ public class ShireServlet extends HttpServlet {
 
 	private UserCache _cache;
 
+	private String _configSuffix;
+
 	public ShireServlet() {
 		super();
 	}
@@ -103,14 +105,17 @@ public class ShireServlet extends HttpServlet {
 	public final void init(final ServletConfig ctx) throws ServletException {
 		super.init(ctx);
 
-		String suffix = "";
-		if (ctx.getInitParameter("configsuffix") != null) {
-			suffix = ctx.getInitParameter("configsuffix");
+		if (getConfigSuffix() == null && ctx.getInitParameter("configsuffix") != null) {
+			_configSuffix = ctx.getInitParameter("configsuffix");
 		}
 
-		_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
+		if (getConfig() != null) {
+			_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
+		}
 
-		_cache = (UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + suffix);
+		if (getCache() != null) {
+			_cache = (UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + _configSuffix);
+		}
 
 	}
 
@@ -125,6 +130,30 @@ public class ShireServlet extends HttpServlet {
 			}
 		}
 		return null;
+	}
+
+	public final UserCache getCache() {
+		return _cache;
+	}
+
+	public final void setCache(final UserCache cache) {
+		_cache = cache;
+	}
+
+	public final Configuration getConfig() {
+		return _config;
+	}
+
+	public final void setConfig(final Configuration config) {
+		_config = config;
+	}
+
+	public final String getConfigSuffix() {
+		return _configSuffix;
+	}
+
+	public final void setConfigSuffix(final String configSuffix) {
+		_configSuffix = configSuffix;
 	}
 
 }

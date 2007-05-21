@@ -29,7 +29,6 @@ import org.opensaml.SAMLNameIdentifier;
 import org.opensaml.SAMLSubject;
 
 import sun.misc.BASE64Decoder;
-import uk.ac.warwick.sso.client.cache.DatabaseUserCache;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.cache.UserCacheItem;
 import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
@@ -62,41 +61,51 @@ public final class SSOClientFilter implements Filter {
 
 	private UserCache _cache;
 
-	private boolean _clusterMode;
+	private UserLookup _userLookup;
+
+	private String _configSuffix;
 
 	public SSOClientFilter() {
 		super();
 	}
 
 	public void init(final FilterConfig ctx) throws ServletException {
-		String suffix = "";
 		if (ctx.getInitParameter("configsuffix") != null) {
-			suffix = ctx.getInitParameter("configsuffix");
-		}
-		ServletContext servletContext = ctx.getServletContext();
-		_config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
-
-		if (_config == null) {
-			// try to load the sso config for instances where the Listener cannot be used (e.g. JRun)
-			LOGGER.warn("Could not find sso config in servlet context attribute " + SSOConfigLoader.SSO_CONFIG_KEY + suffix
-					+ "; attempting to load sso config");
-			SSOConfigLoader loader = new SSOConfigLoader();
-			loader.loadSSOConfig(servletContext);
-			_config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + suffix);
+			_configSuffix = ctx.getInitParameter("configsuffix");
 		}
 
-		if (_config == null) {
-			LOGGER.warn("Could not find sso config in servlet context attribute " + SSOConfigLoader.SSO_CONFIG_KEY + suffix);
-		} else {
-			LOGGER.info("Found sso config");
+		// config is already loaded, probably through spring injection
+		if (_config != null) {
+			ServletContext servletContext = ctx.getServletContext();
+			_config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
+
+			if (_config == null) {
+				// try to load the sso config for instances where the Listener cannot be used (e.g. JRun)
+				LOGGER.warn("Could not find sso config in servlet context attribute " + SSOConfigLoader.SSO_CONFIG_KEY
+						+ _configSuffix + "; attempting to load sso config");
+				SSOConfigLoader loader = new SSOConfigLoader();
+				loader.loadSSOConfig(servletContext);
+				_config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
+			}
+
+			if (_config == null) {
+				LOGGER.warn("Could not find sso config in servlet context attribute " + SSOConfigLoader.SSO_CONFIG_KEY
+						+ _configSuffix);
+			} else {
+				LOGGER.info("Found sso config");
+			}
 		}
 
-		setAaFetcher(new AttributeAuthorityResponseFetcherImpl(_config));
-		setCache((UserCache) servletContext.getAttribute(SSOConfigLoader.SSO_CACHE_KEY + suffix));
-
-		if (getCache() instanceof DatabaseUserCache) {
-			setClusterMode(true);
+		// AttributeAuthorityResponseFetcher already loaded, probably through spring injection
+		if (getAaFetcher() != null) {
+			setAaFetcher(new AttributeAuthorityResponseFetcherImpl(_config));
 		}
+
+		// Cache already loaded, probably through spring injection
+		if (getCache() != null) {
+			setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + _configSuffix));
+		}
+
 	}
 
 	public void doFilter(final ServletRequest arg0, final ServletResponse arg1, final FilterChain chain) throws IOException,
@@ -402,7 +411,7 @@ public final class SSOClientFilter implements Filter {
 		User user = new AnonymousUser();
 		Cookie warwickSSO = getCookie(cookies, WARWICK_SSO);
 		if (warwickSSO != null) {
-			user = UserLookup.getInstance().getUserByToken(warwickSSO.getValue());
+			user = getUserLookup().getUserByToken(warwickSSO.getValue());
 		}
 		return user;
 	}
@@ -423,7 +432,7 @@ public final class SSOClientFilter implements Filter {
 		try {
 			String userName = auth.split(":")[0];
 			String password = auth.split(":")[1];
-			return UserLookup.getInstance().getUserByIdAndPassNonLoggingIn(userName, password);
+			return getUserLookup().getUserByIdAndPassNonLoggingIn(userName, password);
 		} catch (Exception e) {
 			return new AnonymousUser();
 		}
@@ -461,7 +470,7 @@ public final class SSOClientFilter implements Filter {
 			return new URL(generator.getTarget());
 		} catch (MalformedURLException e) {
 			LOGGER.warn("Target is an invalid url", e);
-			return null;
+			throw new RuntimeException("Target is an invalid url", e);
 		}
 
 	}
@@ -499,12 +508,33 @@ public final class SSOClientFilter implements Filter {
 		_cache = cache;
 	}
 
-	public boolean isClusterMode() {
-		return _clusterMode;
+	public UserLookup getUserLookup() {
+
+		if (_userLookup == null) {
+			return UserLookup.getInstance();
+		}
+
+		return _userLookup;
 	}
 
-	public void setClusterMode(final boolean clusterMode) {
-		_clusterMode = clusterMode;
+	public void setUserLookup(final UserLookup userLookup) {
+		_userLookup = userLookup;
+	}
+
+	public Configuration getConfig() {
+		return _config;
+	}
+
+	public void setConfig(final Configuration config) {
+		_config = config;
+	}
+
+	public String getConfigSuffix() {
+		return _configSuffix;
+	}
+
+	public void setConfigSuffix(final String configSuffix) {
+		_configSuffix = configSuffix;
 	}
 
 }

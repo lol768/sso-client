@@ -81,7 +81,7 @@ public class SSOLinkGeneratingTests extends TestCase {
 	public final void testSBLink() throws Exception {
 
 		String requestedUrl = "http://localhost/?test=test&test2=test2";
-		String requestedUrlEncoded = "http://localhost/?test=test&test2=test2";
+		String requestedUrlEncoded = "http://localhost/";
 
 		compareLinks(requestedUrl, requestedUrlEncoded);
 

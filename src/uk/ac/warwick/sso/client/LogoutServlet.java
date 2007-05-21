@@ -22,6 +22,8 @@ public class LogoutServlet extends HttpServlet {
 
 	private UserCache _cache;
 
+	private String _configSuffix;
+
 	protected final void doPost(final HttpServletRequest arg0, final HttpServletResponse arg1) throws ServletException,
 			IOException {
 		processRequest(arg0, arg1);
@@ -38,8 +40,8 @@ public class LogoutServlet extends HttpServlet {
 			return;
 		}
 
-		SSOToken token = new SSOToken(serviceSpecificCookie,SSOToken.SSC_TICKET_TYPE);
-		
+		SSOToken token = new SSOToken(serviceSpecificCookie, SSOToken.SSC_TICKET_TYPE);
+
 		if (getCache().get(token) != null) {
 			getCache().remove(token);
 			out.println("true");
@@ -62,13 +64,20 @@ public class LogoutServlet extends HttpServlet {
 	}
 
 	public final void init(final ServletConfig ctx) throws ServletException {
-		
-		String suffix = "";
+
 		if (ctx.getInitParameter("configsuffix") != null) {
-			suffix = ctx.getInitParameter("configsuffix");
+			_configSuffix = ctx.getInitParameter("configsuffix");
 		}
-		
-		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + suffix));
+
+		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + _configSuffix));
+	}
+
+	public final String getConfigSuffix() {
+		return _configSuffix;
+	}
+
+	public final void setConfigSuffix(final String configSuffix) {
+		_configSuffix = configSuffix;
 	}
 
 }
