@@ -75,7 +75,7 @@ public final class SSOClientFilter implements Filter {
 		}
 
 		// config is already loaded, probably through spring injection
-		if (_config != null) {
+		if (_config == null) {
 			ServletContext servletContext = ctx.getServletContext();
 			_config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
 
@@ -97,12 +97,12 @@ public final class SSOClientFilter implements Filter {
 		}
 
 		// AttributeAuthorityResponseFetcher already loaded, probably through spring injection
-		if (getAaFetcher() != null) {
+		if (getAaFetcher() == null) {
 			setAaFetcher(new AttributeAuthorityResponseFetcherImpl(_config));
 		}
 
 		// Cache already loaded, probably through spring injection
-		if (getCache() != null) {
+		if (getCache() == null) {
 			setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + _configSuffix));
 		}
 

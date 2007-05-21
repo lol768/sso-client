@@ -109,11 +109,11 @@ public class ShireServlet extends HttpServlet {
 			_configSuffix = ctx.getInitParameter("configsuffix");
 		}
 
-		if (getConfig() != null) {
+		if (getConfig() == null) {
 			_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
 		}
 
-		if (getCache() != null) {
+		if (getCache() == null) {
 			_cache = (UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + _configSuffix);
 		}
 

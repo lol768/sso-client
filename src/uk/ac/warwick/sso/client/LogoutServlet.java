@@ -65,11 +65,13 @@ public class LogoutServlet extends HttpServlet {
 
 	public final void init(final ServletConfig ctx) throws ServletException {
 
-		if (ctx.getInitParameter("configsuffix") != null) {
+		if (_configSuffix == null && ctx.getInitParameter("configsuffix") != null) {
 			_configSuffix = ctx.getInitParameter("configsuffix");
 		}
 
-		setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + _configSuffix));
+		if (getCache() == null) {
+			setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + _configSuffix));
+		}
 	}
 
 	public final String getConfigSuffix() {
