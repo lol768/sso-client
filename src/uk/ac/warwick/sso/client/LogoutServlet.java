@@ -22,7 +22,7 @@ public class LogoutServlet extends HttpServlet {
 
 	private UserCache _cache;
 
-	private String _configSuffix;
+	private String _configSuffix = "";
 
 	protected final void doPost(final HttpServletRequest arg0, final HttpServletResponse arg1) throws ServletException,
 			IOException {
@@ -65,7 +65,7 @@ public class LogoutServlet extends HttpServlet {
 
 	public final void init(final ServletConfig ctx) throws ServletException {
 
-		if (_configSuffix == null && ctx.getInitParameter("configsuffix") != null) {
+		if (ctx.getInitParameter("configsuffix") != null) {
 			_configSuffix = ctx.getInitParameter("configsuffix");
 		}
 

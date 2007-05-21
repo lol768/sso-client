@@ -30,7 +30,7 @@ public class ShireServlet extends HttpServlet {
 
 	private UserCache _cache;
 
-	private String _configSuffix;
+	private String _configSuffix = "";
 
 	public ShireServlet() {
 		super();
@@ -105,7 +105,7 @@ public class ShireServlet extends HttpServlet {
 	public final void init(final ServletConfig ctx) throws ServletException {
 		super.init(ctx);
 
-		if (getConfigSuffix() == null && ctx.getInitParameter("configsuffix") != null) {
+		if (ctx.getInitParameter("configsuffix") != null) {
 			_configSuffix = ctx.getInitParameter("configsuffix");
 		}
 

@@ -63,7 +63,7 @@ public final class SSOClientFilter implements Filter {
 
 	private UserLookup _userLookup;
 
-	private String _configSuffix;
+	private String _configSuffix = "";
 
 	public SSOClientFilter() {
 		super();
