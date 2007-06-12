@@ -67,8 +67,7 @@ public class ShireServlet extends HttpServlet {
 		command.setRemoteHost(remoteHost);
 		command.setCache(_cache);
 
-		AttributeAuthorityResponseFetcher fetcher = new AttributeAuthorityResponseFetcherImpl();
-		fetcher.setConfig(_config);
+		AttributeAuthorityResponseFetcher fetcher = new AttributeAuthorityResponseFetcherImpl(_config);
 		command.setAaFetcher(fetcher);
 		command.setConfig(_config);
 		Cookie cookie = null;

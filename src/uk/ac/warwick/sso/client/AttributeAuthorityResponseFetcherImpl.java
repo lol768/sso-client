@@ -45,12 +45,17 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 
 	private Configuration _config;
 
+	private String _version;
+
 	public AttributeAuthorityResponseFetcherImpl() {
 		// default empty constructor
 	}
 
 	public AttributeAuthorityResponseFetcherImpl(final Configuration config) {
 		_config = config;
+
+		_version = SSOClientVersionLoader.getVersion();
+
 	}
 
 	public SAMLResponse getSAMLResponse(final SAMLSubject subject) throws SSOException {
@@ -62,6 +67,13 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		LOGGER.info("Shire connecting to AttributeAuthority at " + aaLocation);
 		HttpClient client = new HttpClient();
 		PostMethod method = new PostMethod(aaLocation);
+
+		if (_version == null) {
+			method.addRequestHeader("User-Agent", "SSOClient");
+		} else {
+			method.addRequestHeader("User-Agent", "SSOClient " + _version);
+		}
+
 		method.addRequestHeader("Content-Type", "text/xml");
 		SAMLRequest samlRequest = new SAMLRequest();
 		SAMLAttributeQuery query = new SAMLAttributeQuery();
@@ -102,8 +114,8 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 			Document document = XML.parserPool.parse(method.getResponseBodyAsStream());
 			samlResp = new SAMLResponse((Element) document.getDocumentElement().getFirstChild().getFirstChild());
 		} catch (SAMLException e) {
-			throw new SSOException("Could not create SAMLResponse from stream",e);
-			//throw new RuntimeException("Could not create SAMLResponse from stream", e);
+			throw new SSOException("Could not create SAMLResponse from stream", e);
+			// throw new RuntimeException("Could not create SAMLResponse from stream", e);
 		} catch (SAXException e) {
 			throw new RuntimeException("Could not create SAMLResponse from stream", e);
 		} catch (IOException e) {
@@ -215,7 +227,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		user.setDepartmentCode(getValueFromAttribute("warwickdeptcode", attributes));
 		user.setDepartment(getValueFromAttribute("ou", attributes));
 		user.setEmail(getValueFromAttribute("mail", attributes));
-		
+
 		user.setUserType(getValueFromAttribute("urn:websignon:usertype", attributes));
 
 		if ("true".equals(getValueFromAttribute("staff", attributes))) {

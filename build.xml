@@ -51,6 +51,9 @@
 
 	
 	<target name="buildjar" depends="compile">
+		
+		<replace file="${buildDir}/${buildName}-jar/ssoclient.version" token="[version]" value="${version}" />
+		
 		<jar destfile="${jarFile}" manifest="${buildName}-jar/META-INF/manifest.mf">
 			<fileset dir="${buildDir}/${buildName}-jar/" />
 		</jar>
