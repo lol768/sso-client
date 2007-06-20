@@ -209,6 +209,8 @@ public final class SSOClientFilter implements Filter {
 			userKey = USER_KEY;
 		}
 
+		request.setRemoteUser(user.getUserId());
+
 		request.setAttribute(userKey, user);
 
 		if (!user.getExtraProperties().isEmpty()) {

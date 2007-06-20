@@ -18,6 +18,8 @@ public class HeaderSettingHttpServletRequest extends HttpServletRequestWrapper {
 
 	private Map _headers = new HashMap();
 
+	private String _remoteUser;
+
 	public HeaderSettingHttpServletRequest(final HttpServletRequest arg0) {
 		super(arg0);
 	}
@@ -44,6 +46,17 @@ public class HeaderSettingHttpServletRequest extends HttpServletRequestWrapper {
 
 	public final void addHeader(final String name, final String value) {
 		_headers.put(name, value);
+	}
+
+	public final String getRemoteUser() {
+		if ("".equals(_remoteUser) || _remoteUser == null) {
+			return super.getRemoteUser();
+		}
+		return _remoteUser;
+	}
+
+	public final void setRemoteUser(final String remoteUser) {
+		_remoteUser = remoteUser;
 	}
 
 }
