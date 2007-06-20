@@ -80,6 +80,17 @@
            status="release"
 		   overwrite="true"
     	/>
+		
+	  <!-- Install dependencies to repository -->
+	  <ivy:install
+			from="dist"
+		  	to="dist"
+		  	organisation="warwick"
+		  	module="sso-client"
+		  	revision="${version}"
+		  	overwrite="true"
+		  	transitive="true"  
+		/>
   </target>
 
 </project>
