@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project basedir="." default="deployjar" name="sso-client">
+<project xmlns:ivy="antlib:org.apache.ivy.ant" basedir="." default="deployjar" name="sso-client">
 
 	<target name="init">
 
@@ -64,6 +64,22 @@
 		<copy file="${jarFile}" todir="/apps/jboss-3.2.7/server/default/deploy/" />
 	</target>
 
-
+	<target name="publish">
+	  <!-- setup ivy default configuration with some custom info -->
+	  <property file="build.properties"/>
+      <ivy:configure file="ivysettings.xml" />  
+	  
+	  <ivy:retrieve pattern="dist/dependencies/[artifact].[ext]" />
+	  
+	  <antcall target="buildjar" />
+	  
+	  <ivy:publish 
+		   artifactspattern="dist/[artifact]-[revision].[ext]" 
+           resolver="dist"
+           pubrevision="${version}" 
+           status="release"
+		   overwrite="true"
+    	/>
+  </target>
 
 </project>
