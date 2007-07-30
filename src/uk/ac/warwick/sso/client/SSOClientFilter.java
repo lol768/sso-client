@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.Iterator;
 
 import javax.servlet.Filter;
@@ -158,7 +157,7 @@ public final class SSOClientFilter implements Filter {
 			Cookie proxyTicketCookie = getCookie(cookies, PROXY_TICKET_COOKIE_NAME);
 
 			if (loginTicketCookie != null && serviceSpecificCookie == null) {
-				redirectToLogin(response, target, loginTicketCookie);
+				redirectToLogin(response, request, loginTicketCookie);
 				return;
 			}
 
@@ -171,7 +170,7 @@ public final class SSOClientFilter implements Filter {
 				UserCacheItem item = getCache().get(token);
 
 				if ((item == null || !item.getUser().isLoggedIn()) && loginTicketCookie != null) {
-					redirectToLogin(response, target, loginTicketCookie);
+					redirectToLogin(response, request, loginTicketCookie);
 					// didn't find user, so cookie is invalid, destroy it!
 					destroySSC(response);
 					return;
@@ -447,14 +446,13 @@ public final class SSOClientFilter implements Filter {
 	 * @param loginTicketCookie
 	 * @throws UnsupportedEncodingException
 	 */
-	private void redirectToLogin(final HttpServletResponse response, final URL target, final Cookie loginTicketCookie)
-			throws UnsupportedEncodingException {
-		response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
+	private void redirectToLogin(final HttpServletResponse response, final HttpServletRequest request,
+			final Cookie loginTicketCookie) throws UnsupportedEncodingException, IOException {
 
-		response.setHeader("Location", _config.getString("origin.login.location") + "?shire="
-				+ URLEncoder.encode(_config.getString("shire.location"), "UTF-8") + "&providerId="
-				+ URLEncoder.encode(_config.getString("shire.providerid"), "UTF-8") + "&target="
-				+ URLEncoder.encode(target.toExternalForm(), "UTF-8"));
+		SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
+		generator.setRequest(request);
+		String loginLink = generator.getLoginUrl();
+		response.sendRedirect(loginLink);
 
 		LOGGER.debug("Found global login cookie (" + loginTicketCookie.getValue()
 				+ "), but not a valid SSC, redirecting to Handle Service " + _config.getString("origin.login.location"));

@@ -7,6 +7,8 @@ package uk.ac.warwick.sso.client.tags;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
+import uk.ac.warwick.sso.client.ForceLoginScreenTypeFilter;
+
 public class SSOLoginLinkGenerator extends SSOLinkGenerator {
 
 	public SSOLoginLinkGenerator() {
@@ -36,10 +38,14 @@ public class SSOLoginLinkGenerator extends SSOLinkGenerator {
 			throw new RuntimeException(e.getMessage());
 		}
 
+		if (getRequest().getAttribute(ForceLoginScreenTypeFilter.SSO_SCREEN_TYPE_KEY) != null) {
+			linkUrl += "&screenType=" + getRequest().getAttribute(ForceLoginScreenTypeFilter.SSO_SCREEN_TYPE_KEY);
+		}
+
 		return linkUrl;
 
 	}
-	
+
 	public final String getPermissionDeniedLink() {
 		return getLoginUrl() + "&error=permdenied";
 	}

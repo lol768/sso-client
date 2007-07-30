@@ -96,6 +96,9 @@ public class ShireServlet extends HttpServlet {
 			LOGGER.debug("User being redirected to target but they didn't get a new SSC, so we are reusing the old one");
 		}
 
+		// Cookie policy header so that IE can accept cookies from within iframes
+		res.setHeader("P3P", "CP=\"CAO PSA OUR\"");
+
 		res.setHeader("Location", target);
 		res.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
 
