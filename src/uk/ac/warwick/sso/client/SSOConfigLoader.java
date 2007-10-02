@@ -20,6 +20,7 @@ import javax.sql.DataSource;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.httpclient.protocol.Protocol;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import uk.ac.warwick.sso.client.cache.DatabaseUserCache;
@@ -101,18 +102,24 @@ public class SSOConfigLoader implements ServletContextListener {
 
 		if (config.containsKey("cluster.enabled") && config.getBoolean("cluster.enabled")) {
 			final String dsName = config.getString("cluster.datasource");
-			return getClusteredCache(dsName);
+			// key name is an override for the 'key' field in the objectcache database. This is for compatibility
+			// reasons so that MySql can work
+			final String keyName = config.getString("cluster.keyname");
+			return getClusteredCache(dsName, keyName);
 		}
 		LOGGER.info("Loading standard InMemeoryUserCache");
 		return new InMemoryUserCache();
 
 	}
 
-	private UserCache getClusteredCache(final String dsName) {
+	private UserCache getClusteredCache(final String dsName, final String keyName) {
 
 		LOGGER.info("Loading clustered DatabaseUserCache");
 
 		DatabaseUserCache dbCache = new DatabaseUserCache();
+		if (StringUtils.isNotEmpty(keyName)) {
+			dbCache.setKeyName(keyName);
+		}
 
 		dbCache.setDataSource(getDataSource(dsName));
 

@@ -37,6 +37,8 @@ public class DatabaseUserCache implements UserCache {
 
 	private int _timeout = DEFAULT_TIME_OUT;
 
+	private String _keyName = "key";
+
 	public final UserCacheItem get(final SSOToken key) {
 
 		LOGGER.debug("Getting item from database cache " + key.toString());
@@ -45,8 +47,8 @@ public class DatabaseUserCache implements UserCache {
 		UserCacheItem item = null;
 
 		try {
-			item = (UserCacheItem) template.queryForObject("select objectdata from objectcache where key = '" + key.toString()
-					+ "'", new RowMapper() {
+			item = (UserCacheItem) template.queryForObject("select objectdata from objectcache where " + _keyName + " = '"
+					+ key.toString() + "'", new RowMapper() {
 
 				public Object mapRow(final ResultSet rs, final int rowNum) throws SQLException {
 					ObjectInputStream ois;
@@ -95,9 +97,9 @@ public class DatabaseUserCache implements UserCache {
 			throw new RuntimeException("Could not write object to stream", e);
 		}
 
-		SqlUpdate su = new SqlUpdate(getDataSource(), "INSERT INTO objectcache " + "(key, objectdata,createddate) "
+		SqlUpdate su = new SqlUpdate(getDataSource(), "INSERT INTO objectcache " + "(" + _keyName + ", objectdata,createddate) "
 				+ "VALUES (?, ?,?)");
-		su.declareParameter(new SqlParameter("key", Types.VARCHAR));
+		su.declareParameter(new SqlParameter(_keyName, Types.VARCHAR));
 		su.declareParameter(new SqlParameter("objectdata", Types.BLOB));
 		su.declareParameter(new SqlParameter("createddate", Types.DATE));
 		su.compile();
@@ -119,7 +121,7 @@ public class DatabaseUserCache implements UserCache {
 
 		LOGGER.debug("Removing item from database cache " + key.toString());
 
-		SqlUpdate su = new SqlUpdate(getDataSource(), "DELETE FROM objectcache WHERE key = '" + key.toString() + "'");
+		SqlUpdate su = new SqlUpdate(getDataSource(), "DELETE FROM objectcache WHERE " + _keyName + " = '" + key.toString() + "'");
 		su.compile();
 		int results = su.update();
 
@@ -148,6 +150,14 @@ public class DatabaseUserCache implements UserCache {
 
 	public final void setTimeout(final int timeout) {
 		_timeout = timeout;
+	}
+
+	public final String getKeyName() {
+		return _keyName;
+	}
+
+	public final void setKeyName(String keyName) {
+		_keyName = keyName;
 	}
 
 }

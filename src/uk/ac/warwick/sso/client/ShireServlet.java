@@ -74,7 +74,7 @@ public class ShireServlet extends HttpServlet {
 		try {
 			cookie = command.process(saml64, target);
 		} catch (SSOException e) {
-			LOGGER.warn("Could not generate cookie");
+			LOGGER.warn("Could not generate cookie",e);
 		}
 
 		if (cookie != null) {

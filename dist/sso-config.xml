@@ -35,13 +35,13 @@
 			and you don't want them showing up after a redirect, add in the parameter names here and they will be stripped -->
 		<stripparams>
 			<key>test</key>
-			<key>page</key>
+			<key>test2</key>
 		</stripparams>
 		<!-- location of this services SHIRE, should be HTTPS...as mapped in the web.xml -->
 		<location>https://myapp.warwick.ac.uk/myapp/shire</location>
 		<sscookie>
 			<!-- Name of the service specific cookie (SSC) that will be used for keeping a session -->
-			<name>SSO-SSC-BlogBuilder</name>
+			<name>SSO-SSC-MyApp</name>
 			<!-- path scope of this cookie -->
 			<path>/myapp</path>
 			<!-- domain scope of this cookie...should be as restrictive as possible -->
