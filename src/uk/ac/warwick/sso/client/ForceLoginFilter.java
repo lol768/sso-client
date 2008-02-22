@@ -66,7 +66,7 @@ public class ForceLoginFilter implements Filter {
 
 			SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
 			generator.setRequest(request);
-			String loginLink = generator.getPermissionDeniedLink();
+			String loginLink = generator.getNotLoggedInLink();
 			response.sendRedirect(loginLink);
 			LOGGER.info("Forcing redirect to login screen:" + loginLink);
 			return;
