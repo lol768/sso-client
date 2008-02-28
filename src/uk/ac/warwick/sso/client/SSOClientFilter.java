@@ -136,6 +136,12 @@ public final class SSOClientFilter implements Filter {
 		User user = new AnonymousUser();
 
 		boolean allowBasic = allowHttpBasic(target, request);
+		
+		/* [SSO-550] These variables are for handling sending WarwickSSO as a parameter,
+		 * useful in limited cases like Flash apps who can't send cookies 
+		 */
+		String requestToken = request.getParameter(WARWICK_SSO);
+		boolean postCookies = ("POST".equalsIgnoreCase(request.getMethod()) && requestToken != null);
 
 		if (allowBasic && "true".equals(request.getParameter("forcebasic")) && request.getHeader("Authorization") == null) {
 			sendBasicAuthHeaders(response);
@@ -149,6 +155,8 @@ public final class SSOClientFilter implements Filter {
 		} else if (_config.getString("mode").equals("old") || request.getAttribute(ForceOldModeFilter.ALLOW_OLD_KEY) != null) {
 			// do old style single sign on via WarwickSSO cookie
 			user = doGetUserByOldSSO(cookies);
+		} else if (postCookies) {
+			user = getUserLookup().getUserByToken(requestToken);
 		} else {
 			// do new style single sign on with shibboleth
 			Cookie loginTicketCookie = getCookie(cookies, GLOBAL_LOGIN_COOKIE_NAME);
@@ -416,6 +424,7 @@ public final class SSOClientFilter implements Filter {
 		}
 		return user;
 	}
+
 
 	private User doBasicAuth(final HttpServletRequest request) throws IOException {
 
