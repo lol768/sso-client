@@ -13,6 +13,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 
 import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
 import uk.ac.warwick.sso.client.tags.SSOLogoutLinkGenerator;
+import uk.ac.warwick.userlookup.User;
 import junit.framework.TestCase;
 
 public class SSOLinkGeneratingTests extends TestCase {
@@ -30,14 +31,34 @@ public class SSOLinkGeneratingTests extends TestCase {
 
 		String logoutUrl = generator.getLogoutUrl();
 
-		assertEquals("Should have right url", "http://moleman.warwick.ac.uk/origin/logout?target="
+		assertEquals("Should have right url", "https://websignon.warwick.ac.uk/origin/logout?target="
 				+ URLEncoder.encode(target, "UTF-8"), logoutUrl);
 
+	}
+	
+	public final void testPermDenied()  throws Exception  {
+		SSOLoginLinkGenerator g = new SSOLoginLinkGenerator();
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		g.setRequest(request);
+		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
+		g.setConfig(config);
+		
+		assertTrue(g.getPermissionDeniedLink().contains("notloggedin"));
+		
+		User user = new User();
+		user.setFoundUser(true);
+		request.setAttribute(SSOClientFilter.USER_KEY, user);
+		
+		assertTrue(g.getPermissionDeniedLink().contains("permdenied"));
 	}
 
 	public final void testSSOLoginLinkGenerator() throws Exception {
 
 		SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
+		
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		
+		generator.setRequest(request);
 
 		String target = "http://www.warwick.ac.uk";
 		generator.setTarget(target);
@@ -48,7 +69,7 @@ public class SSOLinkGeneratingTests extends TestCase {
 
 		String loginUrl = generator.getLoginUrl();
 
-		String expectedUrl = "http://moleman.warwick.ac.uk/origin/hs?shire=http%3A%2F%2Fmoleman.warwick.ac.uk%2Fsso-client%2Fshire&providerId=urn%3Amoleman.warwick.ac.uk%3Asso-client%3Aservice&target="
+		String expectedUrl = "https://websignon.warwick.ac.uk/origin/hs?shire=https%3A%2F%2Fmyapp.warwick.ac.uk%2Fmyapp%2Fshire&providerId=urn%3Amyapp.warwick.ac.uk%3Amyapp%3Aservice&target="
 				+ URLEncoder.encode(target, "UTF-8");
 		assertEquals("Should have right url", expectedUrl, loginUrl);
 

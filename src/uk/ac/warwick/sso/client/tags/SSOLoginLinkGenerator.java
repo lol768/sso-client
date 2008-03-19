@@ -8,6 +8,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import uk.ac.warwick.sso.client.ForceLoginScreenTypeFilter;
+import uk.ac.warwick.sso.client.SSOClientFilter;
+import uk.ac.warwick.userlookup.User;
 
 public class SSOLoginLinkGenerator extends SSOLinkGenerator {
 
@@ -45,8 +47,26 @@ public class SSOLoginLinkGenerator extends SSOLinkGenerator {
 		return linkUrl;
 
 	}
+	
 
+	/**
+	 * Will use the notloggedin link if the user isn't logged in.
+	 * This is safe to do, because if the user is not logged in then
+	 * the two attributes have the exact same behaviour. If they
+	 * are signed in but they aren't allowed to access a resource, then
+	 * they genuinely do need error=permdenied so they get the
+	 * page to login again.
+	 */
 	public final String getPermissionDeniedLink() {
+		User user = SSOClientFilter.getUserFromRequest(getRequest());
+		if (user.isFoundUser()) {
+			return getRealPermissionDeniedLink();
+		} else {
+			return getNotLoggedInLink();
+		}
+	}
+	
+	public final String getRealPermissionDeniedLink() {
 		return getLoginUrl() + "&error=permdenied";
 	}
 	

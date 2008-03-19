@@ -18,7 +18,7 @@ public class ConfigurationTests extends TestCase {
 
 	public final void testLoadConfiguration() throws Exception {
 		
-		Configuration config = new XMLConfiguration(getClass().getResource("/sso-config.xml"));
+		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
 		assertNotNull(config);
 		
 	}
