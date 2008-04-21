@@ -31,6 +31,7 @@ import sun.misc.BASE64Decoder;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.cache.UserCacheItem;
 import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
+import uk.ac.warwick.userlookup.AnonymousOnCampusUser;
 import uk.ac.warwick.userlookup.AnonymousUser;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
@@ -38,9 +39,7 @@ import uk.ac.warwick.userlookup.UserLookup;
 /**
  * SSOClientFilter gets a User object from the request (via a cookie or a proxyticket) and puts it in the request.
  * 
- * 
  * @author Kieran Shaw
- * 
  */
 public final class SSOClientFilter implements Filter {
 
@@ -63,6 +62,8 @@ public final class SSOClientFilter implements Filter {
 	private UserLookup _userLookup;
 
 	private String _configSuffix = "";
+
+	private boolean detectAnonymousOnCampusUsers;
 
 	public SSOClientFilter() {
 		super();
@@ -191,6 +192,8 @@ public final class SSOClientFilter implements Filter {
 
 			}
 		}
+		
+		user = handleOnCampusUsers(user, request);
 
 		HeaderSettingHttpServletRequest wrappedRequest = new HeaderSettingHttpServletRequest(request);
 
@@ -203,6 +206,20 @@ public final class SSOClientFilter implements Filter {
 		// redirect onto underlying page
 		chain.doFilter(wrappedRequest, arg1);
 
+	}
+
+	/**
+	 * If user is anonymous and they are on campus, replace the instance of User
+	 * with an AnonymousOnCampusUser. It extends AnonymousUser so it won't affect
+	 * current code, but you can use instanceof to check if they're on campus.
+	 */
+	private User handleOnCampusUsers(User user, HttpServletRequest request) {
+		if (detectAnonymousOnCampusUsers && user instanceof AnonymousUser) {
+			if (_userLookup.getOnCampusService().isOnCampus(request)) {
+				return new AnonymousOnCampusUser();
+			}
+		}
+		return user;
 	}
 
 	/**
@@ -544,6 +561,14 @@ public final class SSOClientFilter implements Filter {
 
 	public void setConfigSuffix(final String configSuffix) {
 		_configSuffix = configSuffix;
+	}
+
+	public boolean isDetectAnonymousOnCampusUsers() {
+		return detectAnonymousOnCampusUsers;
+	}
+
+	public void setDetectAnonymousOnCampusUsers(boolean detectAnonymousOnCampusUsers) {
+		this.detectAnonymousOnCampusUsers = detectAnonymousOnCampusUsers;
 	}
 
 }
