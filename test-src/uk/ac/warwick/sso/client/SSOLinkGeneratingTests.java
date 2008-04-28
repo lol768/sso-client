@@ -6,6 +6,8 @@ package uk.ac.warwick.sso.client;
 
 import java.net.URLEncoder;
 
+import junit.framework.TestCase;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -14,7 +16,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
 import uk.ac.warwick.sso.client.tags.SSOLogoutLinkGenerator;
 import uk.ac.warwick.userlookup.User;
-import junit.framework.TestCase;
 
 public class SSOLinkGeneratingTests extends TestCase {
 

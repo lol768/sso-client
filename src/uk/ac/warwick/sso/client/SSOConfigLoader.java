@@ -69,11 +69,22 @@ public class SSOConfigLoader implements ServletContextListener {
 			throw new RuntimeException("Could not setup configuration", e);
 		}
 
-		setupHttpsProtocol(config.getString("shire.keystore.location"), config.getString("shire.keystore.password"), config
-				.getString("cacertskeystore.location"), config.getString("cacertskeystore.password"));
-
+		if (shouldUseKeystore(config)) {
+			setupHttpsProtocol(config.getString("shire.keystore.location"), config.getString("shire.keystore.password"), config
+					.getString("cacertskeystore.location"), config.getString("cacertskeystore.password"));
+		}
+		
 		return config;
 
+	}
+
+	/**
+	 * Use client keystore for HTTPS connections, unless we're in old
+	 * mode. In old mode, just use the default HTTPS setup. 
+	 * SSO-591
+	 */
+	private boolean shouldUseKeystore(XMLConfiguration config) {
+		return (! "old".equals(config.getString("mode")));
 	}
 
 	public void loadSSOConfig(ServletContext servletContext) {

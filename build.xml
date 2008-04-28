@@ -35,7 +35,7 @@
 
 	<target name="compile" depends="init">
 		
-		<javac destdir="${buildDir}/${buildName}-jar" excludes="" includes="" srcdir="${srcDir}" source="1.4" target="1.4" debug="true">
+		<javac destdir="${buildDir}/${buildName}-jar" excludes="" includes="" srcdir="${srcDir}" source="1.5" target="1.5" debug="true">
 				<classpath refid="project.classpath" />
 		</javac>
 		<copy todir="${buildDir}/${buildName}-jar">

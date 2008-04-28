@@ -6,6 +6,11 @@ package uk.ac.warwick.sso.client;
 
 import org.apache.commons.configuration.Configuration;
 
+/**
+ * Holder for a Thread-local SSOConfiguration.
+ * 
+ * These methods could be static.
+ */
 public class SSOConfiguration {
 
 	private static final ThreadLocal THREAD_LOCAL = new ThreadLocal();
