@@ -215,7 +215,7 @@ public final class SSOClientFilter implements Filter {
 	 */
 	private User handleOnCampusUsers(User user, HttpServletRequest request) {
 		if (detectAnonymousOnCampusUsers && user instanceof AnonymousUser) {
-			if (_userLookup.getOnCampusService().isOnCampus(request)) {
+			if (getUserLookup().getOnCampusService().isOnCampus(request)) {
 				return new AnonymousOnCampusUser();
 			}
 		}
@@ -535,11 +535,9 @@ public final class SSOClientFilter implements Filter {
 	}
 
 	public UserLookup getUserLookup() {
-
 		if (_userLookup == null) {
-			return UserLookup.getInstance();
+			_userLookup = UserLookup.getInstance();
 		}
-
 		return _userLookup;
 	}
 
