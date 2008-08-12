@@ -20,6 +20,7 @@ import uk.ac.warwick.userlookup.Group;
 import uk.ac.warwick.userlookup.GroupService;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
+import uk.ac.warwick.userlookup.UserLookupFactory;
 
 public class PutGroupsInHeadersFilter implements Filter {
 
@@ -67,7 +68,7 @@ public class PutGroupsInHeadersFilter implements Filter {
 	public final GroupService getGroupService() {
 
 		if (_groupService == null) {
-			return UserLookup.getInstance().getGroupService();
+			return UserLookupFactory.getInstance().getGroupService();
 		}
 
 		return _groupService;

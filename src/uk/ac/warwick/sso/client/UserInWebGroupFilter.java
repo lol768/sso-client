@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
 import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
 import uk.ac.warwick.userlookup.GroupService;
 import uk.ac.warwick.userlookup.User;
-import uk.ac.warwick.userlookup.UserLookup;
+import uk.ac.warwick.userlookup.UserLookupFactory;
 
 /**
  * Configure with an init-param called "group" which is a group name from WebGroups. Only people in that group will be
@@ -89,7 +89,7 @@ public class UserInWebGroupFilter implements Filter {
 
 	public final GroupService getGroupService() {
 		if (_groupService == null) {
-			return UserLookup.getInstance().getGroupService();
+			return UserLookupFactory.getInstance().getGroupService();
 		}
 		return _groupService;
 	}

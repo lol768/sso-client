@@ -18,10 +18,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.signature.XMLSignature;
 import org.opensaml.SAMLAssertion;
 import org.opensaml.SAMLAttribute;
@@ -31,9 +36,9 @@ import org.opensaml.SAMLException;
 import org.opensaml.SAMLRequest;
 import org.opensaml.SAMLResponse;
 import org.opensaml.SAMLSubject;
-import org.opensaml.XML;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
@@ -41,7 +46,7 @@ import uk.ac.warwick.userlookup.User;
 
 public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthorityResponseFetcher {
 
-	private static final Logger LOGGER = Logger.getLogger(AttributeAuthorityResponseFetcherImpl.class);
+	private static final Log LOGGER = LogFactory.getLog(AttributeAuthorityResponseFetcherImpl.class);
 
 	private Configuration _config;
 
@@ -111,16 +116,44 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		// turn https response into a SAML document and get the attributes out
 		SAMLResponse samlResp = null;
 		try {
-			Document document = XML.parserPool.parse(method.getResponseBodyAsStream());
-			samlResp = new SAMLResponse((Element) document.getDocumentElement().getFirstChild().getFirstChild());
+			/**
+			 * Replaced the XML.parserPool implementation with this because
+			 * otherwise it breaks using a recent Xalan XML parser, as the
+			 * SOAP response from SSO has a hack (not mine!!) which the parser
+			 * doesn't like. So we turn off validation here, and it can ignore it.
+			 * All we really care about is the block of SAML in the middle. 
+			 */
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setValidating(false);
+			factory.setExpandEntityReferences(false);
+			factory.setNamespaceAware(true);
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document document = builder.parse(new InputSource(method.getResponseBodyAsStream()));
+			
+			//Document document = XML.parserPool.parse(method.getResponseBodyAsStream());
+			Element firstChild = (Element) document.getDocumentElement().getFirstChild().getFirstChild();
+			
+			LOGGER.debug("SAML Element: " + firstChild.getNodeName());
+			
+			samlResp = new SAMLResponse(firstChild);
 		} catch (SAMLException e) {
 			throw new SSOException("Could not create SAMLResponse from stream", e);
 		} catch (SAXException e) {
 			throw new RuntimeException("Could not create SAMLResponse from stream", e);
 		} catch (IOException e) {
 			throw new RuntimeException("Could not create SAMLResponse from stream", e);
-		}
+		} catch (ParserConfigurationException e) {
+			throw new RuntimeException("Could not create SAMLResponse from stream", e);
+		} 
 		return samlResp;
+	}
+	
+	private final void disableFeature(DocumentBuilderFactory factory, String feature) {
+		try {
+			factory.setFeature(feature, false);
+		} catch (ParserConfigurationException e) {
+			LOGGER.warn("Couldn't set feature", e);
+		}
 	}
 
 	public final String getProxyTicket(final SAMLSubject subject, final String resource) throws SSOException {
@@ -268,6 +301,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		Properties attributes = new Properties();
 
 		if (samlResp.getAssertions() == null || !samlResp.getAssertions().hasNext()) {
+			LOGGER.debug("Response has no assertions.");
 			return attributes;
 		}
 
