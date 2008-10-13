@@ -17,6 +17,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 
 import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
@@ -44,10 +45,10 @@ public class ForceLoginFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) res;
 
-		SSOConfiguration config = new SSOConfiguration();
-
-		String shireLocation = config.getConfig().getString("shire.location");
-		String logoutLocation = config.getConfig().getString("logout.location");
+		Configuration config = SSOConfiguration.getConfig();
+		
+		String shireLocation = config.getString("shire.location");
+		String logoutLocation = config.getString("logout.location");
 
 		URL target = getTarget(request);
 		LOGGER.debug("Target=" + target);

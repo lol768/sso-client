@@ -537,7 +537,7 @@ public final class SSOClientFilter implements Filter {
 
 	public UserLookup getUserLookup() {
 		if (_userLookup == null) {
-			_userLookup = UserLookupFactory.getInstance();
+			_userLookup = UserLookup.getInstance();
 		}
 		return _userLookup;
 	}

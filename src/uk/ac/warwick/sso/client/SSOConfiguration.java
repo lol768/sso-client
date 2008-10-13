@@ -15,11 +15,11 @@ public class SSOConfiguration {
 
 	private static final ThreadLocal THREAD_LOCAL = new ThreadLocal();
 
-	public final Configuration getConfig() {
+	public static final Configuration getConfig() {
 		return (Configuration) THREAD_LOCAL.get();
 	}
 
-	public final void setConfig(final Configuration config) {
+	public static final void setConfig(final Configuration config) {
 		THREAD_LOCAL.set(config);
 	}
 
