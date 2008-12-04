@@ -54,7 +54,7 @@ public class PutGroupsInHeadersFilter implements Filter {
 			sep = ",";
 		}
 
-		String userKey = SSOClientFilter.getUserKey(new SSOConfiguration());
+		String userKey = SSOClientFilter.getUserKey();
 		request.addHeader(userKey + "_groups", groupList);
 
 		chain.doFilter(req, res);

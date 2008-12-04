@@ -20,6 +20,7 @@
 		<attribute>
 			<name>target</name>
 			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
 	<tag>
@@ -29,6 +30,7 @@
 		<attribute>
 			<name>target</name>
 			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
 

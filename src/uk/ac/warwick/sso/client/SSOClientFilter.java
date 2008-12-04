@@ -114,8 +114,7 @@ public final class SSOClientFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) arg0;
 		HttpServletResponse response = (HttpServletResponse) arg1;
 
-		SSOConfiguration config = new SSOConfiguration();
-		config.setConfig(_config);
+		SSOConfiguration.setConfig(_config);
 
 		URL target = getTarget(request);
 		LOGGER.debug("Target=" + target);
@@ -373,9 +372,7 @@ public final class SSOClientFilter implements Filter {
 	 */
 	public static User getUserFromRequest(final HttpServletRequest req) {
 
-		SSOConfiguration config = new SSOConfiguration();
-
-		String userKey = getUserKey(config);
+		String userKey = getUserKey();
 
 		User user = (User) req.getAttribute(userKey);
 		if (user == null) {
@@ -391,11 +388,11 @@ public final class SSOClientFilter implements Filter {
 	 * @param config
 	 * @return
 	 */
-	public static String getUserKey(SSOConfiguration config) {
+	public static String getUserKey() {
 		String userKey = null;
 
-		if (config.getConfig() != null) {
-			userKey = config.getConfig().getString("shire.filteruserkey");
+		if (SSOConfiguration.getConfig() != null) {
+			userKey = SSOConfiguration.getConfig().getString("shire.filteruserkey");
 			// throw new RuntimeException(
 			// "No SSOConfiguration object created, this request probably didn't go through the SSOClientFilter");
 		} else {
