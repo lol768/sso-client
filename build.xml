@@ -57,6 +57,8 @@
 		<jar destfile="${jarFile}" manifest="${buildName}-jar/META-INF/manifest.mf">
 			<fileset dir="${buildDir}/${buildName}-jar/" />
 		</jar>
+		
+		<zip destfile="dist/${buildName}-${version}-src.zip" basedir="${srcDir}" />
 	</target>
 		
 
