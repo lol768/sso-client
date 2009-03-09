@@ -5,6 +5,7 @@
 package uk.ac.warwick.sso.client;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.Key;
@@ -128,9 +129,8 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 			factory.setExpandEntityReferences(false);
 			factory.setNamespaceAware(true);
 			DocumentBuilder builder = factory.newDocumentBuilder();
-			Document document = builder.parse(new InputSource(method.getResponseBodyAsStream()));
+			Document document = builder.parse(new InputSource(new StringReader(body)));
 			
-			//Document document = XML.parserPool.parse(method.getResponseBodyAsStream());
 			Element firstChild = (Element) document.getDocumentElement().getFirstChild().getFirstChild();
 			
 			LOGGER.debug("SAML Element: " + firstChild.getNodeName());
