@@ -50,7 +50,7 @@ public class AttributeAuthorityFetcherTests extends TestCase {
 
 	public final void testSelfSignedSSL() throws Exception {
 
-		Configuration config = new XMLConfiguration(getClass().getResource("/sso-config.xml"));
+		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
 		String url = "https://test-ext-users.warwick.ac.uk/extusers/authenticate.spr?username=&password=";
 
 		testSSL(config, url,HttpServletResponse.SC_FORBIDDEN);
@@ -61,7 +61,7 @@ public class AttributeAuthorityFetcherTests extends TestCase {
 
 	public final void testRealSSL() throws Exception {
 		
-		Configuration config = new XMLConfiguration(getClass().getResource("/sso-config.xml"));
+		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
 		String url = "https://secure.wbs.ac.uk/itsauth/authenticate.cfm";
 
 		testSSL(config, url,HttpServletResponse.SC_FORBIDDEN);
@@ -70,7 +70,7 @@ public class AttributeAuthorityFetcherTests extends TestCase {
 	
 	public final void testClientAuthSSL() throws Exception {
 		
-		Configuration config = new XMLConfiguration(getClass().getResource("/sso-config.xml"));
+		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
 		String url = "https://moleman.warwick.ac.uk/origin/aa";
 
 		testSSL(config, url,500);

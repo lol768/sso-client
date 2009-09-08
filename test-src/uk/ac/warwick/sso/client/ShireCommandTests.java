@@ -28,7 +28,7 @@ public class ShireCommandTests extends TestCase {
 
 		ShireCommand command = new ShireCommand();
 
-		Configuration config = new XMLConfiguration(getClass().getResource("/sso-config.xml"));
+		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
 
 		MockAttributeAuthorityResponseFetcher fetcher = new MockAttributeAuthorityResponseFetcher();
 		fetcher.setConfig(config);

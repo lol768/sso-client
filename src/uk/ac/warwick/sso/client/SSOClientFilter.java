@@ -35,7 +35,6 @@ import uk.ac.warwick.userlookup.AnonymousOnCampusUser;
 import uk.ac.warwick.userlookup.AnonymousUser;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
-import uk.ac.warwick.userlookup.UserLookupFactory;
 
 /**
  * SSOClientFilter gets a User object from the request (via a cookie or a proxyticket) and puts it in the request.

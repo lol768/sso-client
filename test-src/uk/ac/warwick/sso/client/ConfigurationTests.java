@@ -17,15 +17,13 @@ public class ConfigurationTests extends TestCase {
 	}
 
 	public final void testLoadConfiguration() throws Exception {
-		
 		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
 		assertNotNull(config);
-		
 	}
 	
 	public final void testLoadFullConfig() throws Exception {
 		
-		Configuration config = new XMLConfiguration(getClass().getResource("/sso-config.xml"));
+		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
 		String loginLocation = config.getString("origin.login.location");
 		assertNotNull(loginLocation);
 		String aaLocation = config.getString("origin.attributeauthority.location");

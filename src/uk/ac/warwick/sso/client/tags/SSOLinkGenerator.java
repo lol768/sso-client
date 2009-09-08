@@ -63,11 +63,22 @@ public class SSOLinkGenerator {
 			LOGGER.debug("Target from request.getRequestURL()=" + target);
 		}
 
+		String uriHeader = _config.getString("shire.uri-header");
 		String urlParamKey = _config.getString("shire.urlparamkey");
 		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("shire.uriHeader:" + uriHeader);
 			LOGGER.debug("shire.urlparamkey:" + urlParamKey);
 		}
-		if (urlParamKey != null && getRequest().getParameter(urlParamKey) != null) {
+		
+		// SSO-770 accept the requested URI as a header
+		if (uriHeader != null && getRequest().getHeader(uriHeader) != null) {
+			
+			target = getRequest().getHeader(uriHeader);
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Found target from header - " + uriHeader + ": " + target);
+			}
+			
+		} else if (urlParamKey != null && getRequest().getParameter(urlParamKey) != null) {
 
 			target = getParamValueFromQueryString(urlParamKey, getRequest().getQueryString());
 
@@ -89,7 +100,7 @@ public class SSOLinkGenerator {
 				target += "?" + queryString;
 			}
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Found target from paramter " + urlParamKey + "=" + target);
+				LOGGER.debug("Found target from parameter " + urlParamKey + "=" + target);
 			}
 		}
 		return target;

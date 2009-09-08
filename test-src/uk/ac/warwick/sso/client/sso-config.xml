@@ -35,6 +35,7 @@
 			This is the request parameter key that contains the real url of the webpage, it is used to generate
 			correct redirects. -->
 		<urlparamkey>requestedUrl</urlparamkey>
+		<uri-header>x-requested-uri</uri-header>
 		<!-- if there are some rewrites which are done internally to apache where querystring parameters are added 
 			and you don't want them showing up after a redirect, add in the parameter names here and they will be stripped -->
 		<stripparams>

@@ -75,6 +75,29 @@ public class SSOLinkGeneratingTests extends TestCase {
 		assertEquals("Should have right url", expectedUrl, loginUrl);
 
 	}
+	
+	public final void testRequestedURIHeader() throws Exception {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
+		SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
+		generator.setRequest(request);
+		generator.setConfig(config);
+		
+		String target = "http://sitebuilder.warwick.ac.uk/sitebuilder2/edit/control.htm?greeting=hello";
+		String encodedTarget = URLEncoder.encode(target, "UTF-8");
+		//double check that these have been converted
+		assertFalse(encodedTarget.contains("&"));
+		assertFalse(encodedTarget.contains("?"));
+		assertTrue(encodedTarget.contains("greeting%3Dhello"));
+		
+		request.addHeader("X-Requested-Uri", target);
+		
+		String loginUrl = generator.getLoginUrl();
+		String expectedUrl = "https://websignon.warwick.ac.uk/origin/hs?shire=https%3A%2F%2Fmyapp.warwick.ac.uk%2Fmyapp%2Fshire&providerId=urn%3Amyapp.warwick.ac.uk%3Amyapp%3Aservice&target="
+			+ encodedTarget;
+		assertEquals("Should have right url", expectedUrl, loginUrl);
+	}
+	
 
 	public final void testRequestedUrl() throws Exception {
 		String requestedUrl = "http://www.warwick.ac.uk/test%20test/";
@@ -100,14 +123,6 @@ public class SSOLinkGeneratingTests extends TestCase {
 		compareLinks(requestedUrl, requestedUrlEncoded);
 	}
 
-	public final void testSBLink() throws Exception {
-
-		String requestedUrl = "http://localhost/?test=test&test2=test2";
-		String requestedUrlEncoded = "http://localhost/";
-
-		compareLinks(requestedUrl, requestedUrlEncoded);
-
-	}
 
 	/**
 	 * @param requestedUrl
