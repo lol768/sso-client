@@ -118,7 +118,7 @@ public class SSOConfigLoader implements ServletContextListener {
 			final String keyName = config.getString("cluster.keyname");
 			return getClusteredCache(dsName, keyName);
 		}
-		LOGGER.info("Loading standard InMemeoryUserCache");
+		LOGGER.info("Loading standard InMemoryUserCache");
 		return new InMemoryUserCache();
 
 	}
