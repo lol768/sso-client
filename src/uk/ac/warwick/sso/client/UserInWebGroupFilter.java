@@ -49,10 +49,8 @@ public class UserInWebGroupFilter implements Filter {
 
 		HttpServletRequest request = (HttpServletRequest) req;
 
-		SSOConfiguration config = new SSOConfiguration();
-
-		String shireLocation = config.getConfig().getString("shire.location");
-		String logoutLocation = config.getConfig().getString("logout.location");
+		String shireLocation = SSOConfiguration.getConfig().getString("shire.location");
+		String logoutLocation = SSOConfiguration.getConfig().getString("logout.location");
 
 		URL target = getTarget(request);
 		LOGGER.debug("Target=" + target);

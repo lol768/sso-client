@@ -30,7 +30,7 @@ public class SSOLinkGenerator {
 	 * 
 	 */
 	public SSOLinkGenerator() {
-		setConfig((new SSOConfiguration()).getConfig());
+		setConfig(SSOConfiguration.getConfig());
 	}
 
 	public final void setTarget(final String target) {

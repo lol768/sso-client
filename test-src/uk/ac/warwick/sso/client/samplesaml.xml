@@ -1,0 +1,45 @@
+<Response xmlns="urn:oasis:names:tc:SAML:1.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion" xmlns:samlp="urn:oasis:names:tc:SAML:1.0:protocol" IssueInstant="2009-10-01T15:12:58.843Z" MajorVersion="1" MinorVersion="1" Recipient="https://files.warwick.ac.uk/files/shire" ResponseID="ad4ffa89036586eca3285f9d539f2f5a"><ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"></ds:CanonicalizationMethod>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"></ds:SignatureMethod>
+<ds:Reference URI="#ad4ffa89036586eca3285f9d539f2f5a">
+<ds:Transforms>
+<ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"></ds:Transform>
+<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><ec:InclusiveNamespaces xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="code ds kind rw saml samlp typens #default"></ec:InclusiveNamespaces></ds:Transform>
+</ds:Transforms>
+<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"></ds:DigestMethod>
+<ds:DigestValue>z6fcjdd4RTIp7DhyA6QoAQlXZLk=</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>
+SXJSD/CMVOxj51oH6u4CDeXmiWXEwy7cHYcFotans9+Sk4J48qQH5p48LxCaSW19pO0mMu2bEqor
+/MZoWZrrjCzEyOZHPBWMlIrhpCc77egZ8iIaczMnZOY4ZtxQhAtUg1oX888G3mLdLn+BtD0yBNuv
+A4ygjlMW+WT9n1suqZY=
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIIEgTCCA2mgAwIBAgILAQAAAAABG1SyifYwDQYJKoZIhvcNAQEFBQAwXzELMAkGA1UEBhMCQkUx
+EzARBgNVBAoTCkN5YmVydHJ1c3QxFzAVBgNVBAsTDkVkdWNhdGlvbmFsIENBMSIwIAYDVQQDExlD
+eWJlcnRydXN0IEVkdWNhdGlvbmFsIENBMB4XDTA4MDcyNDEwNTIwM1oXDTExMDcyNDEwNTIwM1ow
+gagxCzAJBgNVBAYTAkdCMRYwFAYDVQQIEw1XZXN0IE1pZGxhbmRzMREwDwYDVQQHEwhDb3ZlbnRy
+eTEiMCAGA1UEChMZVGhlIFVuaXZlcnNpdHkgb2YgV2Fyd2ljazEoMCYGA1UECxMfSW5mb3JtYXRp
+b24gVGVjaG5vbG9neSBTZXJ2aWNlczEgMB4GA1UEAxMXd2Vic2lnbm9uLndhcndpY2suYWMudWsw
+gZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAKU7RBJ9F0ChzF/CLgTavvjTAM2fsRAhzagS71ni
+dBSHXbgfAMWtqF3QaiRGWhaVXIHpyG+XuKDG0hIlyTDjdIwuFOaTj7Fz81t9wLMW2uHg6QzCSXGk
+qSvg+T6YY6UO7h83UqqWZ5+AJJnzHhPt4nbOiejOT2dnsC1PGq9DkBRpAgMBAAGjggF2MIIBcjBQ
+BgNVHSAESTBHMEUGByqGSLE+AQAwOjA4BggrBgEFBQcCARYsaHR0cDovL3d3dy5nbG9iYWxzaWdu
+Lm5ldC9yZXBvc2l0b3J5L2Nwcy5jZm0wDgYDVR0PAQH/BAQDAgWgMB8GA1UdIwQYMBaAFGVloz3X
+OxGjCgclN8lCSlt2d1DhMB0GA1UdDgQWBBTo6k2YNlwDT2ZiNR+ZBaycXpOaojA6BgNVHR8EMzAx
+MC+gLaArhilodHRwOi8vY3JsLmdsb2JhbHNpZ24ubmV0L2VkdWNhdGlvbmFsLmNybDBPBggrBgEF
+BQcBAQRDMEEwPwYIKwYBBQUHMAKGM2h0dHA6Ly9zZWN1cmUuZ2xvYmFsc2lnbi5uZXQvY2FjZXJ0
+L2VkdWNhdGlvbmFsLmNydDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwIgYDVR0RBBsw
+GYIXd2Vic2lnbm9uLndhcndpY2suYWMudWswDQYJKoZIhvcNAQEFBQADggEBADmITugwmdRVVu9Z
+1imWFI0kZYSKvBnjC1ZiefvESUSxSn1dfGymkx7PNH4Nhj7n6y/026xexjlAvjvgVcDrS2gNiKmL
+XzshoD8348NwrOA8lQIfU8xhBFwZb19BRpTgzzfyJmMQGtM2N0qmJko689e7ABjHNopppBJ5H/O5
+6bIIMQs6+p+5fF2XZQA7ce3pv07IaikqhUDqUaEfRfmZ0IjVUQqEIaQCy70mP6xpzKHMf6/iCUSQ
+sINhs1HXc9OW95/gNuR/5v3Cuz9L/QfmO2mupH8+yUB/ab6ZeRoV21JVoD3DdZBSs+Pv8vF1O50p
+iUjJMlDb5G8E0NYoEGu9x1c=
+</ds:X509Certificate>
+</ds:X509Data>
+</ds:KeyInfo></ds:Signature><Status><StatusCode Value="samlp:Success"></StatusCode></Status><Assertion xmlns="urn:oasis:names:tc:SAML:1.0:assertion" AssertionID="f734ffb7f1fe91236827487c18872a44" IssueInstant="2009-10-01T15:12:58.843Z" Issuer="urn:mace:eduserv.org.uk:athens:provider:warwick.ac.uk" MajorVersion="1" MinorVersion="1"><Conditions NotBefore="2009-10-01T15:12:58.843Z" NotOnOrAfter="2009-10-01T15:17:58.843Z"><AudienceRestrictionCondition><Audience>urn:files.warwick.ac.uk:files:service</Audience></AudienceRestrictionCondition></Conditions><AuthenticationStatement AuthenticationInstant="2009-10-01T15:12:58.843Z" AuthenticationMethod="urn:oasis:names:tc:SAML:1.0:am:unspecified"><Subject><NameIdentifier Format="urn:websignon:uuid" NameQualifier="urn:mace:eduserv.org.uk:athens:provider:warwick.ac.uk">cpiemxluogaerghqqejkhwjaxowqdueyqfhxqfchiaereysaxp</NameIdentifier><SubjectConfirmation><ConfirmationMethod>urn:oasis:names:tc:SAML:1.0:cm:bearer</ConfirmationMethod></SubjectConfirmation></Subject><SubjectLocality IPAddress="137.205.194.140"></SubjectLocality></AuthenticationStatement></Assertion></Response>

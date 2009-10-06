@@ -112,7 +112,7 @@ public class SSOProxyCookieHelper {
 
 	public final Configuration getConfig() {
 		if (_config == null) {
-			return (new SSOConfiguration()).getConfig();
+			return SSOConfiguration.getConfig();
 		}
 		return _config;
 	}

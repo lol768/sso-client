@@ -29,7 +29,7 @@ public class SSOLogoutLinkTag extends BodyTagSupport {
 		// Configuration config = (Configuration)
 		// pageContext.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
 
-		Configuration config = (new SSOConfiguration()).getConfig();
+		Configuration config = SSOConfiguration.getConfig();
 
 		SSOLogoutLinkGenerator generator = new SSOLogoutLinkGenerator();
 		generator.setConfig(config);

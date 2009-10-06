@@ -37,77 +37,87 @@ public class ShireCommand {
 	private UserCache _cache;
 
 	public final Cookie process(final String saml64, final String target) throws SSOException {
-		SAMLResponse samlResponse = null;
-		LOGGER.debug("TARGET:" + target);
-		LOGGER.debug("SAML64:" + saml64);
-		if (target == null || saml64 == null) {
-			LOGGER.error("Must have a SAMLResponse and a TARGET");
-			throw new RuntimeException("Must have a SAMLResponse and a TARGET");
-		}
-		// check we've got a valid SAML request
 		try {
-			final int timeout = 5;
-			samlResponse = SAMLPOSTProfile.accept(saml64.getBytes(), _config.getString("shire.providerid"), timeout, false);
-		} catch (SAMLException e) {
-			LOGGER.error("SAMLException accepting SAMLPOSTProfile", e);
-			throw new RuntimeException("SAMLException thrown accepting POST profile", e);
-		}
-
-		boolean validResponse = verifySAMLResponse(samlResponse);
-		if (!validResponse) {
-			LOGGER.warn("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
-			throw new RuntimeException("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
-		}
-
-		try {
-			String targetHost = new URL(target).getHost();
-			String cookieHost = _config.getString("shire.sscookie.domain");
-			if (!targetHost.endsWith(cookieHost)) {
-				throw new RuntimeException("Target is on a different host from the host that the cookie is being set on: "
-						+ targetHost + " != " + cookieHost);
+			SAMLResponse samlResponse = null;
+			LOGGER.debug("TARGET:" + target);
+			LOGGER.debug("SAML64:" + saml64);
+			if (target == null) {
+				LOGGER.error("Must have a TARGET");
+				throw new IllegalArgumentException("Must have a TARGET");
 			}
-		} catch (MalformedURLException e) {
-			throw new RuntimeException("Target is not a valid URL: " + target);
-		}
-
-		LOGGER.info("Accepted Shire request for target:" + target);
-
-		LOGGER.debug("SAML:" + samlResponse.toString());
-		SAMLAssertion assertion = (SAMLAssertion) samlResponse.getAssertions().next();
-		LOGGER.debug("Assertion:" + assertion.toString());
-
-		String issuer = assertion.getIssuer();
-		if (!issuer.equals(getConfig().getString("origin.originid"))) {
-			LOGGER.warn("Someone trying to authenticate from wrong origin:" + issuer);
-			throw new RuntimeException("Someone trying to authenticate from wrong origin:" + issuer);
-		}
-
-		SAMLStatement statement = (SAMLStatement) assertion.getStatements().next();
-		LOGGER.debug("Statement:" + statement.toString());
-		SAMLAuthenticationStatement authStatement = (SAMLAuthenticationStatement) statement;
-		LOGGER.debug("Auth Statement:" + authStatement.toString());
-		SAMLSubject subject = authStatement.getSubject();
-		LOGGER.debug("Subject name:" + subject.getName().toString());
-		LOGGER.debug("Subject name:" + subject.getName().getName());
-
-		User user = getUserFromAuthSubject(subject);
-
-		if (user.getExtraProperty("urn:websignon:ipaddress") != null) {
-			if (user.getExtraProperty("urn:websignon:ipaddress").equals(getRemoteHost())) {
-				LOGGER.info("Users shire submission is from same host as they logged in from: Shire&Login=" + getRemoteHost());
-			} else {
-				LOGGER.warn("Users shire submission is NOT from same host as they logged in from. Login="
-						+ user.getExtraProperty("urn:websignon:ipaddress") + ", Shire=" + getRemoteHost());
+			if (saml64 == null) {
+				LOGGER.error("Must have a SAMLResponse");
+				throw new IllegalArgumentException("Must have a SAMLResponse");
 			}
+			// check we've got a valid SAML request
+			try {
+				final int timeout = 5;
+				samlResponse = SAMLPOSTProfile.accept(saml64.getBytes(), _config.getString("shire.providerid"), timeout, false);
+			} catch (SAMLException e) {
+				LOGGER.error("SAMLException accepting SAMLPOSTProfile", e);
+				throw new RuntimeException("SAMLException thrown accepting POST profile", e);
+			}
+	
+			boolean validResponse = verifySAMLResponse(samlResponse);
+			if (!validResponse) {
+				LOGGER.warn("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
+				throw new RuntimeException("Signed SAMLResponse was not verified against origin certificate, so rejecting!");
+			}
+	
+			try {
+				String targetHost = new URL(target).getHost();
+				String cookieHost = _config.getString("shire.sscookie.domain");
+				if (!targetHost.endsWith(cookieHost)) {
+					throw new RuntimeException("Target is on a different host from the host that the cookie is being set on: "
+							+ targetHost + " != " + cookieHost);
+				}
+			} catch (MalformedURLException e) {
+				throw new RuntimeException("Target is not a valid URL: " + target);
+			}
+	
+			LOGGER.info("Accepted Shire request for target:" + target);
+	
+			LOGGER.debug("SAML:" + samlResponse.toString());
+			SAMLAssertion assertion = (SAMLAssertion) samlResponse.getAssertions().next();
+			LOGGER.debug("Assertion:" + assertion.toString());
+	
+			String issuer = assertion.getIssuer();
+			if (!issuer.equals(getConfig().getString("origin.originid"))) {
+				LOGGER.warn("Someone trying to authenticate from wrong origin:" + issuer);
+				throw new RuntimeException("Someone trying to authenticate from wrong origin:" + issuer);
+			}
+	
+			SAMLStatement statement = (SAMLStatement) assertion.getStatements().next();
+			LOGGER.debug("Statement:" + statement.toString());
+			SAMLAuthenticationStatement authStatement = (SAMLAuthenticationStatement) statement;
+			LOGGER.debug("Auth Statement:" + authStatement.toString());
+			SAMLSubject subject = authStatement.getSubject();
+			LOGGER.debug("Subject name:" + subject.getName().toString());
+			LOGGER.debug("Subject name:" + subject.getName().getName());
+	
+			User user = getUserFromAuthSubject(subject);
+	
+			if (user.getExtraProperty("urn:websignon:ipaddress") != null) {
+				if (user.getExtraProperty("urn:websignon:ipaddress").equals(getRemoteHost())) {
+					LOGGER.info("Users shire submission is from same host as they logged in from: Shire&Login=" + getRemoteHost());
+				} else {
+					LOGGER.warn("Users shire submission is NOT from same host as they logged in from. Login="
+							+ user.getExtraProperty("urn:websignon:ipaddress") + ", Shire=" + getRemoteHost());
+				}
+			}
+	
+			if (user.getExtraProperty(SSOToken.SSC_TICKET_TYPE) != null) {
+				return setupSSC(user);
+			}
+	
+			// no SSC found, so can't create cookie
+			return null;
+			
+		} catch (RuntimeException e) {
+			LOGGER.warn("target:"+target);
+			LOGGER.warn("saml64:"+saml64);
+			throw e;
 		}
-
-		if (user.getExtraProperty(SSOToken.SSC_TICKET_TYPE) != null) {
-			return setupSSC(user);
-		}
-
-		// no SSC found, so can't create cookie
-		return null;
-
 	}
 
 	private Cookie setupSSC(final User user) {
@@ -128,11 +138,6 @@ public class ShireCommand {
 
 	private boolean verifySAMLResponse(final SAMLResponse samlResponse) {
 		try {
-			// Certificate originCert = getCertificate(_config.getString("shire.keystore.origin-alias"));
-			// samlResponse.verify(originCert);
-
-			// verification is now done from contents of XML signature within the XML rather than relying on an external
-			// certificate
 			samlResponse.verify();
 			return true;
 		} catch (SAMLException e) {
@@ -141,27 +146,6 @@ public class ShireCommand {
 		}
 
 	}
-
-	// private Certificate getCertificate(final String alias) {
-	//
-	// try {
-	// KeyStore keyStore = getKeyStore();
-	// Certificate originCert = keyStore.getCertificate(alias);
-	// return originCert;
-	// } catch (Exception e) {
-	// LOGGER.error("Could not get certificate", e);
-	// throw new RuntimeException("Could not get certificate", e);
-	// }
-	//
-	// }
-
-	// private KeyStore getKeyStore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
-	// IOException {
-	// KeyStoreHelper helper = new KeyStoreHelper();
-	// KeyStore keyStore = helper.createKeyStore(new URL(_config.getString("shire.keystore.location")), _config
-	// .getString("shire.keystore.password"));
-	// return keyStore;
-	// }
 
 	public final Configuration getConfig() {
 		return _config;

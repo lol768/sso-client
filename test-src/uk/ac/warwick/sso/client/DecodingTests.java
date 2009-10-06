@@ -50,41 +50,6 @@ public class DecodingTests extends TestCase {
 
 	}
 
-	public final void testDecode64b() throws Exception {
-
-		InputStream is = getClass().getResourceAsStream("64encodedauthstatement2.txt");
-
-		assertNotNull(is);
-
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		String content = "";
-
-		while (reader.ready()) {
-			content += reader.readLine();
-		}
-
-		reader.close();
-		is.close();
-
-		SAMLResponse samlResponse = SAMLPOSTProfile.accept(content.getBytes(), "urn:moleman.warwick.ac.uk:blogbuilder:service",
-				5, false);
-
-		try {
-			
-			KeyStoreHelper helper = new KeyStoreHelper();
-			KeyStore keyStore = helper.createKeyStore(new URL("file:/apps/jboss-3.2.7/server/default/conf/moleman.warwick.ac.uk.keystore"), "changeit");
-			Certificate originCert = keyStore.getCertificate("moleman.warwick.ac.uk");
-			
-			samlResponse.verify();
-			
-			samlResponse.verify(originCert);
-			
-			assertTrue("Verified signature!", true);
-		} catch (SAMLException e) {
-			fail("Did not verify signature:" + e.getMessage());
-		}
-
-	}
 
 	public final void testCheckSignatureOfValidAuthStatement() throws Exception {
 
@@ -108,7 +73,7 @@ public class DecodingTests extends TestCase {
 				"urn:moleman.warwick.ac.uk:blogbuilder:service", 5, false);
 
 		KeyStoreHelper helper = new KeyStoreHelper();
-		InputStream keyStream = getClass().getResourceAsStream("/moleman.warwick.ac.uk.keystore");
+		InputStream keyStream = getClass().getResourceAsStream("/myapp.warwick.ac.uk.keystore");
 		KeyStore store = helper.createKeyStore(keyStream, "changeit");
 		Certificate cert = store.getCertificate("moleman.warwick.ac.uk");
 

@@ -151,13 +151,16 @@ public class SSOConfigLoader implements ServletContextListener {
 		return ds;
 	}
 
+	/**
+	 * Configures a new protocol, https+sso, which sends the client certificate out with the request.
+	 */
 	private void setupHttpsProtocol(final String shireKeystoreLoc, final String shireKeystorePass,
 			final String cacertsKeystoreLoc, final String cacertsKeystorePass) {
 		final int standardHttpsPort = 443;
 		try {
 			Protocol authhttps = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(shireKeystoreLoc),
 					shireKeystorePass, new URL(cacertsKeystoreLoc), cacertsKeystorePass), standardHttpsPort);
-			Protocol.registerProtocol("https", authhttps);
+			Protocol.registerProtocol("https+sso", authhttps);
 		} catch (MalformedURLException e) {
 			throw new RuntimeException("Could not setup SSL protocols", e);
 		}

@@ -5,6 +5,8 @@
 package uk.ac.warwick.sso.client;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -15,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
+import org.springframework.util.FileCopyUtils;
 
 import uk.ac.warwick.sso.client.cache.UserCache;
 
@@ -31,20 +34,24 @@ public class ShireServlet extends HttpServlet {
 	private UserCache _cache;
 
 	private String _configSuffix = "";
+	
+	private String getMessage = null;
 
 	public ShireServlet() {
 		super();
 	}
 
 	protected final void doGet(final HttpServletRequest req, final HttpServletResponse res) throws ServletException, IOException {
-
-		process(req, res);
+		res.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+		if (getMessage == null) {
+			InputStream page = getClass().getResourceAsStream("shireget.html");
+			getMessage = FileCopyUtils.copyToString(new InputStreamReader(page));
+		}
+		FileCopyUtils.copy(getMessage, res.getWriter());
 	}
 
 	protected final void doPost(final HttpServletRequest req, final HttpServletResponse res) throws ServletException, IOException {
-
 		process(req, res);
-
 	}
 
 	/**

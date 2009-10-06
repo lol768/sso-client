@@ -12,6 +12,8 @@ import org.apache.commons.configuration.Configuration;
 public class SSOConfiguration {
 
 	private static final ThreadLocal THREAD_LOCAL = new ThreadLocal();
+	
+	private SSOConfiguration(){}
 
 	public static final Configuration getConfig() {
 		return (Configuration) THREAD_LOCAL.get();

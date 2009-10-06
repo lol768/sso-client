@@ -6,6 +6,9 @@
 	<classpathentry kind="lib" path="external-libs/log4j.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-logging.jar"/>
 	<classpathentry kind="lib" path="external-libs/userlookup-1.54.jar"/>
+	<classpathentry kind="lib" path="external-libs/spring-core.jar"/>
+	<classpathentry kind="lib" path="external-libs/test/xercesImpl.jar"/>
+	<classpathentry kind="lib" path="external-libs/test/xalan.jar"/>
 	<classpathentry kind="src" path="test-src"/>
 	<classpathentry kind="lib" path="external-libs/commons-collections-3.1.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-digester.jar"/>
@@ -13,7 +16,6 @@
 	<classpathentry kind="lib" path="dist/dependencies/standard.jar"/>
 	<classpathentry kind="lib" path="external-libs/classes12.jar"/>
 	<classpathentry kind="lib" path="external-libs/spring-beans.jar"/>
-	<classpathentry kind="lib" path="external-libs/spring-core.jar"/>
 	<classpathentry kind="lib" path="external-libs/spring-dao.jar"/>
 	<classpathentry kind="lib" path="external-libs/spring-jdbc.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-configuration-1.0.jar"/>

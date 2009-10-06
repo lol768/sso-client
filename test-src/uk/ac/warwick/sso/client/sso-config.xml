@@ -56,7 +56,7 @@
 		<providerid>urn:myapp.warwick.ac.uk:myapp:service</providerid>
 		<keystore>
 			<!-- location of the java keystore -->
-			<location>file:/apps/jboss/server/default/conf/myapp.warwick.ac.uk.keystore</location>
+			<location>file:myapp.warwick.ac.uk.keystore</location>
 			<!-- password for that keystore -->
 			<password>changeit</password>
 			<shire-alias>myapp.warwick.ac.uk</shire-alias>

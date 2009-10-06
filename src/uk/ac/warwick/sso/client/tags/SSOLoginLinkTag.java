@@ -29,7 +29,7 @@ public class SSOLoginLinkTag extends BodyTagSupport {
 		// Configuration config = (Configuration)
 		// pageContext.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
 
-		Configuration config = (new SSOConfiguration()).getConfig();
+		Configuration config = SSOConfiguration.getConfig();
 
 		SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
 		generator.setConfig(config);

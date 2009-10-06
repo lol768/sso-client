@@ -70,10 +70,14 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 
 	private SAMLResponse getSAMLResponse(final SAMLSubject subject, final String resource) throws SSOException {
 		String aaLocation = _config.getString("origin.attributeauthority.location");
+		
+		// Use extended https+sso protocol, which presents the client certificate.
+		aaLocation = aaLocation.replaceFirst("^https:", "https+sso:");
+		
 		LOGGER.info("Shire connecting to AttributeAuthority at " + aaLocation);
 		HttpClient client = new HttpClient();
 		PostMethod method = new PostMethod(aaLocation);
-
+		
 		if (_version == null) {
 			method.addRequestHeader("User-Agent", "SSOClient");
 		} else {
