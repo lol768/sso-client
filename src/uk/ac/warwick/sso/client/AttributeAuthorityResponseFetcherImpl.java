@@ -26,6 +26,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.signature.XMLSignature;
@@ -42,6 +43,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.userlookup.User;
 
@@ -53,13 +55,23 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 
 	private String _version;
 
-	public AttributeAuthorityResponseFetcherImpl() {
+	private String keystoreLocation;
+	private String keystorePassword;
+	private String cacertsLocation;
+	private String cacertsPassword;
+	
+	private Protocol protocol;
+
+	protected AttributeAuthorityResponseFetcherImpl() {
 		// default empty constructor
 	}
 
 	public AttributeAuthorityResponseFetcherImpl(final Configuration config) {
 		_config = config;
-
+		keystoreLocation = _config.getString("shire.keystore.location");
+		keystorePassword = _config.getString("shire.keystore.password");
+		cacertsLocation = _config.getString("cacertskeystore.location");
+		cacertsPassword = _config.getString("cacertskeystore.password");
 		_version = SSOClientVersionLoader.getVersion();
 
 	}
@@ -70,13 +82,25 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 
 	private SAMLResponse getSAMLResponse(final SAMLSubject subject, final String resource) throws SSOException {
 		String aaLocation = _config.getString("origin.attributeauthority.location");
-		
-		// Use extended https+sso protocol, which presents the client certificate.
-		aaLocation = aaLocation.replaceFirst("^https:", "https+sso:");
+
+		final int standardHttpsPort = 443;
+
+		URL aaUrl;
+		try {
+			aaUrl = new URL(aaLocation);
+			if (protocol == null) {
+				protocol = new Protocol("https", new AuthSSLProtocolSocketFactory(
+						new URL(keystoreLocation),
+						keystorePassword, new URL(cacertsLocation), cacertsPassword), 443);
+			}
+		} catch (MalformedURLException e) {
+			throw new SSOException(e);
+		}
 		
 		LOGGER.info("Shire connecting to AttributeAuthority at " + aaLocation);
 		HttpClient client = new HttpClient();
-		PostMethod method = new PostMethod(aaLocation);
+		client.getHostConfiguration().setHost(aaUrl.getHost(), aaUrl.getPort(), protocol);
+		PostMethod method = new PostMethod(aaUrl.getPath());
 		
 		if (_version == null) {
 			method.addRequestHeader("User-Agent", "SSOClient");

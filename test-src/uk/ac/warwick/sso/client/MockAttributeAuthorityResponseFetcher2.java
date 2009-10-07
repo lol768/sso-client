@@ -4,10 +4,20 @@
  */
 package uk.ac.warwick.sso.client;
 
+import org.apache.commons.configuration.Configuration;
 import org.opensaml.SAMLResponse;
 import org.opensaml.SAMLSubject;
 
 public class MockAttributeAuthorityResponseFetcher2 extends AttributeAuthorityResponseFetcherImpl {
+
+	public MockAttributeAuthorityResponseFetcher2(Configuration config) {
+		super(config);
+		// TODO Auto-generated constructor stub
+	}
+
+	public MockAttributeAuthorityResponseFetcher2() {
+		super();
+	}
 
 	private SAMLResponse _resp;
 

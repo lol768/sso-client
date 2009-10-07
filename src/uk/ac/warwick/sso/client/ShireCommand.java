@@ -114,11 +114,22 @@ public class ShireCommand {
 			return null;
 			
 		} catch (RuntimeException e) {
-			LOGGER.warn("target:"+target);
-			LOGGER.warn("saml64:"+saml64);
+			logParameters(saml64, target);
+			throw e;
+		} catch (SSOException e) {
+			logParameters(saml64, target);
 			throw e;
 		}
 	}
+
+
+
+	private void logParameters(final String saml64, final String target) {
+		LOGGER.warn("target:"+target);
+		LOGGER.warn("saml64:"+saml64);
+	}
+	
+	
 
 	private Cookie setupSSC(final User user) {
 		SSOToken token = new SSOToken((String) user.getExtraProperty(SSOToken.SSC_TICKET_TYPE), SSOToken.SSC_TICKET_TYPE);

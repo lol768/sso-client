@@ -19,6 +19,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -70,7 +71,8 @@ public class SSOConfigLoader implements ServletContextListener {
 		}
 
 		if (shouldUseKeystore(config)) {
-			setupHttpsProtocol(config.getString("shire.keystore.location"), config.getString("shire.keystore.password"), config
+			String websignonLoginUrl = config.getString("origin.login.location");
+			setupHttpsProtocol(websignonLoginUrl, config.getString("shire.keystore.location"), config.getString("shire.keystore.password"), config
 					.getString("cacertskeystore.location"), config.getString("cacertskeystore.password"));
 		}
 		
@@ -152,15 +154,18 @@ public class SSOConfigLoader implements ServletContextListener {
 	}
 
 	/**
-	 * Configures a new protocol, https+sso, which sends the client certificate out with the request.
+	 * Configures a new protocol, httpssso, which sends the client certificate out with the request.
 	 */
-	private void setupHttpsProtocol(final String shireKeystoreLoc, final String shireKeystorePass,
+	@SuppressWarnings("deprecation")
+	private void setupHttpsProtocol(final String websignonLoginUrl, final String shireKeystoreLoc, final String shireKeystorePass,
 			final String cacertsKeystoreLoc, final String cacertsKeystorePass) {
-		final int standardHttpsPort = 443;
 		try {
-			Protocol authhttps = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(shireKeystoreLoc),
+			//URL websignonUrl = new URL(websignonLoginUrl);
+			final int standardHttpsPort = 443;
+		
+			Protocol authhttps = new Protocol(AttributeAuthorityResponseFetcher.ALTERNATE_PROTOCOL, new AuthSSLProtocolSocketFactory(new URL(shireKeystoreLoc),
 					shireKeystorePass, new URL(cacertsKeystoreLoc), cacertsKeystorePass), standardHttpsPort);
-			Protocol.registerProtocol("https+sso", authhttps);
+			Protocol.registerProtocol(AttributeAuthorityResponseFetcher.ALTERNATE_PROTOCOL, authhttps);
 		} catch (MalformedURLException e) {
 			throw new RuntimeException("Could not setup SSL protocols", e);
 		}

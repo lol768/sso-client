@@ -11,6 +11,8 @@ import org.opensaml.SAMLSubject;
 import uk.ac.warwick.userlookup.User;
 
 public interface AttributeAuthorityResponseFetcher {
+	
+	String ALTERNATE_PROTOCOL = "httpssso";
 
 	SAMLResponse getSAMLResponse(SAMLSubject subject) throws SSOException;
 
