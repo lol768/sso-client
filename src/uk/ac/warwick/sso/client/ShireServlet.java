@@ -47,6 +47,7 @@ public class ShireServlet extends HttpServlet {
 			InputStream page = getClass().getResourceAsStream("shireget.html");
 			getMessage = FileCopyUtils.copyToString(new InputStreamReader(page));
 		}
+		res.setContentType("text/html");
 		FileCopyUtils.copy(getMessage, res.getWriter());
 	}
 
@@ -81,7 +82,7 @@ public class ShireServlet extends HttpServlet {
 		try {
 			cookie = command.process(saml64, target);
 		} catch (SSOException e) {
-			LOGGER.warn("Could not generate cookie",e);
+			LOGGER.warn("Could not generate cookie", e);
 		}
 
 		if (cookie != null) {

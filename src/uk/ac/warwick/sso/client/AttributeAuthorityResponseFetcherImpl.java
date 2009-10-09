@@ -165,7 +165,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 			
 			samlResp = new SAMLResponse(firstChild);
 		} catch (SAMLException e) {
-			throw new SSOException("Could not create SAMLResponse from stream", e);
+			throw new SSOException("Could not create SAMLResponse from stream: " + e.getMessage());
 		} catch (SAXException e) {
 			throw new RuntimeException("Could not create SAMLResponse from stream", e);
 		} catch (IOException e) {
