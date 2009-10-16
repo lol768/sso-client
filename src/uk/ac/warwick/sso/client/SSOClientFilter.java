@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Iterator;
+import java.util.Map.Entry;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -34,7 +34,8 @@ import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
 import uk.ac.warwick.userlookup.AnonymousOnCampusUser;
 import uk.ac.warwick.userlookup.AnonymousUser;
 import uk.ac.warwick.userlookup.User;
-import uk.ac.warwick.userlookup.UserLookup;
+import uk.ac.warwick.userlookup.UserLookupFactory;
+import uk.ac.warwick.userlookup.UserLookupInterface;
 
 /**
  * SSOClientFilter gets a User object from the request (via a cookie or a proxyticket) and puts it in the request.
@@ -59,7 +60,7 @@ public final class SSOClientFilter implements Filter {
 
 	private UserCache _cache;
 
-	private UserLookup _userLookup;
+	private UserLookupInterface _userLookup;
 
 	private String _configSuffix = "";
 
@@ -237,11 +238,11 @@ public final class SSOClientFilter implements Filter {
 		request.setAttribute(userKey, user);
 
 		if (!user.getExtraProperties().isEmpty()) {
-			Iterator it = user.getExtraProperties().keySet().iterator();
-			while (it.hasNext()) {
-				String key = (String) it.next();
-				request.setAttribute(userKey + "_" + key, user.getExtraProperty(key));
-				request.addHeader(userKey + "_" + key, (String) user.getExtraProperty(key));
+			for (Entry<String,String> entry : user.getExtraProperties().entrySet()) {
+				String key = entry.getKey();
+				String value = entry.getValue();
+				request.setAttribute(userKey + "_" + key, value);
+				request.addHeader(userKey + "_" + key, value);
 			}
 		}
 
@@ -531,14 +532,14 @@ public final class SSOClientFilter implements Filter {
 		_cache = cache;
 	}
 
-	public UserLookup getUserLookup() {
+	public UserLookupInterface getUserLookup() {
 		if (_userLookup == null) {
-			_userLookup = UserLookup.getInstance();
+			_userLookup = UserLookupFactory.getInstance();
 		}
 		return _userLookup;
 	}
 
-	public void setUserLookup(final UserLookup userLookup) {
+	public void setUserLookup(final UserLookupInterface userLookup) {
 		_userLookup = userLookup;
 	}
 

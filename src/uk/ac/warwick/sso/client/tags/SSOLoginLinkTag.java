@@ -17,7 +17,8 @@ import org.apache.taglibs.standard.lang.support.ExpressionEvaluatorManager;
 import uk.ac.warwick.sso.client.SSOConfiguration;
 
 public class SSOLoginLinkTag extends BodyTagSupport {
-
+	private static final long serialVersionUID = 2915403672845211571L;
+	
 	private String _target;
 
 	public SSOLoginLinkTag() {

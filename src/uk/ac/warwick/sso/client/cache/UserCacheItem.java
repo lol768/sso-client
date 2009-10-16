@@ -5,7 +5,6 @@
 package uk.ac.warwick.sso.client.cache;
 
 import java.io.Serializable;
-import java.util.Date;
 
 import uk.ac.warwick.sso.client.SSOToken;
 import uk.ac.warwick.userlookup.User;
@@ -15,6 +14,7 @@ import uk.ac.warwick.userlookup.User;
  * 
  */
 public class UserCacheItem implements Serializable {
+	private static final long serialVersionUID = -5004755423949612875L;
 
 	private User _user;
 

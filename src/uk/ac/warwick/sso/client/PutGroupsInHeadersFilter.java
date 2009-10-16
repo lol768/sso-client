@@ -5,8 +5,6 @@
 package uk.ac.warwick.sso.client;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -19,7 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 import uk.ac.warwick.userlookup.Group;
 import uk.ac.warwick.userlookup.GroupService;
 import uk.ac.warwick.userlookup.User;
-import uk.ac.warwick.userlookup.UserLookup;
 import uk.ac.warwick.userlookup.UserLookupFactory;
 
 public class PutGroupsInHeadersFilter implements Filter {
@@ -33,31 +30,26 @@ public class PutGroupsInHeadersFilter implements Filter {
 	public final void doFilter(final ServletRequest req, final ServletResponse res, final FilterChain chain) throws IOException,
 			ServletException {
 
-		HeaderSettingHttpServletRequest request;
-
 		User user = SSOClientFilter.getUserFromRequest((HttpServletRequest) req);
 
+		HeaderSettingHttpServletRequest request;
 		if (req instanceof HeaderSettingHttpServletRequest) {
 			request = (HeaderSettingHttpServletRequest) req;
 		} else {
 			request = new HeaderSettingHttpServletRequest((HttpServletRequest) req);
 		}
 
-		String groupList = "";
-
-		List groups = getGroupService().getGroupsForUser(user.getUserId());
-		Iterator it = groups.iterator();
 		String sep = "";
-		while (it.hasNext()) {
-			Group group = (Group) it.next();
-			groupList += sep + group.getName();
+		StringBuilder groupList = new StringBuilder();
+		for (Group group : getGroupService().getGroupsForUser(user.getUserId())) {
+			groupList.append(sep).append(group.getName());
 			sep = ",";
 		}
 
 		String userKey = SSOClientFilter.getUserKey();
-		request.addHeader(userKey + "_groups", groupList);
+		request.addHeader(userKey + "_groups", groupList.toString());
 
-		chain.doFilter(req, res);
+		chain.doFilter(request, res);
 
 	}
 

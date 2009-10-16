@@ -5,6 +5,7 @@
 package uk.ac.warwick.sso.client;
 
 public class SSOException extends Exception {
+	private static final long serialVersionUID = 6514257682248567187L;
 
 	/**
 	 * 

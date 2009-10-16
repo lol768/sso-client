@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 
 import uk.ac.warwick.sso.client.cache.UserCache;
 
+@SuppressWarnings("serial")
 public class LogoutServlet extends HttpServlet {
 
 	private static final Logger LOGGER = Logger.getLogger(LogoutServlet.class);

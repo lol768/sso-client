@@ -46,8 +46,9 @@ package uk.ac.warwick.sso.client.ssl;
  */
 
 public class AuthSSLInitializationError extends Error {
+	private static final long serialVersionUID = 7174082461804042128L;
 
-    /**
+	/**
      * Creates a new AuthSSLInitializationError.
      */
     public AuthSSLInitializationError() {

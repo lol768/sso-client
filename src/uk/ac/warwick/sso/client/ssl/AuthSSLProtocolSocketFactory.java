@@ -261,7 +261,7 @@ public class AuthSSLProtocolSocketFactory implements SecureProtocolSocketFactory
 				KeyStoreHelper helper = new KeyStoreHelper();
 				KeyStore keystore = helper.createKeyStore(this.keystoreUrl, this.keystorePassword);
 				if (LOGGER.isDebugEnabled()) {
-					Enumeration aliases = keystore.aliases();
+					Enumeration<?> aliases = keystore.aliases();
 					while (aliases.hasMoreElements()) {
 						String alias = (String) aliases.nextElement();
 						Certificate[] certs = keystore.getCertificateChain(alias);
@@ -287,7 +287,7 @@ public class AuthSSLProtocolSocketFactory implements SecureProtocolSocketFactory
 				KeyStoreHelper helper = new KeyStoreHelper();
 				KeyStore keystore = helper.createKeyStore(this.truststoreUrl, this.truststorePassword);
 				if (LOGGER.isDebugEnabled()) {
-					Enumeration aliases = keystore.aliases();
+					Enumeration<?> aliases = keystore.aliases();
 					while (aliases.hasMoreElements()) {
 						String alias = (String) aliases.nextElement();
 						LOGGER.debug("Trusted certificate '" + alias + "':");
@@ -304,9 +304,9 @@ public class AuthSSLProtocolSocketFactory implements SecureProtocolSocketFactory
 				}
 				trustmanagers = createTrustManagers(keystore);
 			}
-			SSLContext sslcontext = SSLContext.getInstance("SSL");
-			sslcontext.init(keymanagers, trustmanagers, null);
-			return sslcontext;
+			SSLContext ctx = SSLContext.getInstance("SSL");
+			ctx.init(keymanagers, trustmanagers, null);
+			return ctx;
 		} catch (NoSuchAlgorithmException e) {
 			LOGGER.error(e.getMessage(), e);
 			throw new AuthSSLInitializationError("Unsupported algorithm exception: " + e.getMessage());

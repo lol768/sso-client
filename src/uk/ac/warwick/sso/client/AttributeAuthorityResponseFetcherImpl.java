@@ -80,6 +80,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		return getSAMLResponse(subject, _config.getString("shire.providerid"));
 	}
 
+	@SuppressWarnings("deprecation")
 	private SAMLResponse getSAMLResponse(final SAMLSubject subject, final String resource) throws SSOException {
 		String aaLocation = _config.getString("origin.attributeauthority.location");
 
@@ -91,7 +92,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 			if (protocol == null) {
 				protocol = new Protocol("https", new AuthSSLProtocolSocketFactory(
 						new URL(keystoreLocation),
-						keystorePassword, new URL(cacertsLocation), cacertsPassword), 443);
+						keystorePassword, new URL(cacertsLocation), cacertsPassword), standardHttpsPort);
 			}
 		} catch (MalformedURLException e) {
 			throw new SSOException(e);
@@ -175,14 +176,6 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		} 
 		return samlResp;
 	}
-	
-	private final void disableFeature(DocumentBuilderFactory factory, String feature) {
-		try {
-			factory.setFeature(feature, false);
-		} catch (ParserConfigurationException e) {
-			LOGGER.warn("Couldn't set feature", e);
-		}
-	}
 
 	public final String getProxyTicket(final SAMLSubject subject, final String resource) throws SSOException {
 		SAMLResponse response = getSAMLResponse(subject, resource);
@@ -206,7 +199,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 
 	private void signRequest(final SAMLRequest samlRequest) {
 		String alias = _config.getString("shire.keystore.shire-alias");
-		List certChain = new ArrayList();
+		List<Certificate> certChain = new ArrayList<Certificate>();
 		certChain.add(getCertificate(alias));
 		try {
 			samlRequest.sign(XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1, getKey(alias), certChain);
@@ -310,7 +303,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		user.setFoundUser(true);
 
 		// dump all attributes as keys and strings into extraproperties map on the user
-		Iterator it = attributes.keySet().iterator();
+		Iterator<?> it = attributes.keySet().iterator();
 		while (it.hasNext()) {
 			String attrName = (String) it.next();
 			String value = getValueFromAttribute(attrName, attributes);
@@ -335,7 +328,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 
 		SAMLAssertion attributeAssertion = (SAMLAssertion) samlResp.getAssertions().next();
 		SAMLAttributeStatement attributeStatement = (SAMLAttributeStatement) attributeAssertion.getStatements().next();
-		Iterator it = attributeStatement.getAttributes();
+		Iterator<?> it = attributeStatement.getAttributes();
 		while (it.hasNext()) {
 			SAMLAttribute attribute = (SAMLAttribute) it.next();
 			String name = attribute.getName();

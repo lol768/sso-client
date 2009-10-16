@@ -7,6 +7,7 @@ package uk.ac.warwick.sso.client;
 import java.io.Serializable;
 
 public class SSOToken implements Serializable{
+	private static final long serialVersionUID = -685964997789148138L;
 
 	public static final String SSC_TICKET_TYPE = "urn:websignon:ssc";
 

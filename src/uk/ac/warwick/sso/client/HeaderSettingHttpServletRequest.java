@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 
 public class HeaderSettingHttpServletRequest extends HttpServletRequestWrapper {
 
-	private Map _headers = new HashMap();
+	private Map<String,String> _headers = new HashMap<String,String>();
 
 	private String _remoteUser;
 
@@ -31,15 +31,14 @@ public class HeaderSettingHttpServletRequest extends HttpServletRequestWrapper {
 		return super.getHeader(name);
 	}
 
-	public final Enumeration getHeaderNames() {
-		List headerNames = new ArrayList();
-		Enumeration enumeration = super.getHeaderNames();
+	public final Enumeration<?> getHeaderNames() {
+		List<String> headerNames = new ArrayList<String>();
+		Enumeration<?> enumeration = super.getHeaderNames();
 		while (enumeration.hasMoreElements()) {
 			String name = (String) enumeration.nextElement();
 			headerNames.add(name);
 		}
 		headerNames.addAll(_headers.keySet());
-
 		return Collections.enumeration(headerNames);
 
 	}

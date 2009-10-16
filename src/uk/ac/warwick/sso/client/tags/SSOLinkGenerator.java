@@ -84,9 +84,9 @@ public class SSOLinkGenerator {
 
 			String queryString = stripQueryStringParam(urlParamKey, getRequest().getQueryString());
 
-			List keys = getConfig().getList("shire.stripparams.key");
+			List<?> keys = getConfig().getList("shire.stripparams.key");
 			if (keys != null && !keys.isEmpty()) {
-				Iterator it = keys.iterator();
+				Iterator<?> it = keys.iterator();
 				while (it.hasNext()) {
 					String key = (String) it.next();
 					queryString = stripQueryStringParam(key, queryString);

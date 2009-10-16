@@ -33,14 +33,14 @@ public class InMemoryUserCache implements UserCache {
 
 	private static final Logger LOGGER = Logger.getLogger(InMemoryUserCache.class);
 
-	private Map _cache;
+	private Map<SSOToken, UserCacheItem> _cache;
 
 	public InMemoryUserCache() {
 		// create a new LinkedHashMap with 36000 initial capacity, 0.75 load and
 		// insertion ordering
-		this._cache = Collections.synchronizedMap(new LinkedHashMap(DEFAULT_MAX_ENTRIES, DEFAULT_LOAD_FACTOR, false) {
-
-			protected boolean removeEldestEntry(final Entry eldest) {
+		this._cache = Collections.synchronizedMap(new LinkedHashMap<SSOToken, UserCacheItem>(DEFAULT_MAX_ENTRIES, DEFAULT_LOAD_FACTOR, false) {
+			private static final long serialVersionUID = 4257842076090008574L;
+			protected boolean removeEldestEntry(final Entry<SSOToken, UserCacheItem> eldest) {
 				boolean doRemove = size() > getMaxEntries();
 				if (doRemove && LOGGER.isDebugEnabled()) {
 					LOGGER.debug("removeEldestEntry returning true: size = " + size());
@@ -56,7 +56,7 @@ public class InMemoryUserCache implements UserCache {
 	 */
 	public final UserCacheItem get(final SSOToken key) {
 		long start = System.currentTimeMillis();
-		UserCacheItem item = (UserCacheItem) _cache.get(key);
+		UserCacheItem item = _cache.get(key);
 		if (item != null) {
 			final int millisInSec = 1000;
 			if ((item.getInTime() + (getTimeout() * millisInSec)) > new Date().getTime()) {

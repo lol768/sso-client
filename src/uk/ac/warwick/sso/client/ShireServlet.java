@@ -23,9 +23,9 @@ import uk.ac.warwick.sso.client.cache.UserCache;
 
 /**
  * @author Kieran Shaw
- * 
  */
 public class ShireServlet extends HttpServlet {
+	private static final long serialVersionUID = 3043814958673574588L;
 
 	private static final Logger LOGGER = Logger.getLogger(ShireServlet.class);
 

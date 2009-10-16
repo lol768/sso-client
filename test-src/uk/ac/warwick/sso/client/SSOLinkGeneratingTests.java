@@ -19,15 +19,17 @@ import uk.ac.warwick.userlookup.User;
 
 public class SSOLinkGeneratingTests extends TestCase {
 
+	Configuration config;
+	
+	public void setUp() throws Exception {
+		config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
+	}
+	
 	public final void testSSOLogoutLinkGenerator() throws Exception {
-
 		SSOLogoutLinkGenerator generator = new SSOLogoutLinkGenerator();
 
 		String target = "http://www.warwick.ac.uk/test%20test/";
 		generator.setTarget(target);
-
-		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
-
 		generator.setConfig(config);
 
 		String logoutUrl = generator.getLogoutUrl();
@@ -35,6 +37,16 @@ public class SSOLinkGeneratingTests extends TestCase {
 		assertEquals("Should have right url", "https://websignon.warwick.ac.uk/origin/logout?target="
 				+ URLEncoder.encode(target, "UTF-8"), logoutUrl);
 
+	}
+	
+	public final void testSlashes() throws Exception {
+		SSOLogoutLinkGenerator generator = new SSOLogoutLinkGenerator();
+		generator.setConfig(config);
+		
+		String target = "http://www.warwick.ac.uk/test%20test/\\l/";
+		generator.setTarget(target);
+
+		String logoutUrl = generator.getLogoutUrl();
 	}
 	
 	public final void testPermDenied()  throws Exception  {

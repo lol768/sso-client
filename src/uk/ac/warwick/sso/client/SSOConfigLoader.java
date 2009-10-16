@@ -19,7 +19,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -90,7 +89,7 @@ public class SSOConfigLoader implements ServletContextListener {
 	}
 
 	public void loadSSOConfig(ServletContext servletContext) {
-		Enumeration params = servletContext.getInitParameterNames();
+		Enumeration<?> params = servletContext.getInitParameterNames();
 		while (params.hasMoreElements()) {
 			String paramName = (String) params.nextElement();
 			if (paramName.startsWith("ssoclient.config")) {

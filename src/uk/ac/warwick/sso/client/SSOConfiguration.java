@@ -11,12 +11,12 @@ import org.apache.commons.configuration.Configuration;
  */
 public class SSOConfiguration {
 
-	private static final ThreadLocal THREAD_LOCAL = new ThreadLocal();
+	private static final ThreadLocal<Configuration> THREAD_LOCAL = new ThreadLocal<Configuration>();
 	
 	private SSOConfiguration(){}
 
 	public static final Configuration getConfig() {
-		return (Configuration) THREAD_LOCAL.get();
+		return THREAD_LOCAL.get();
 	}
 
 	public static final void setConfig(final Configuration config) {
