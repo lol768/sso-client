@@ -45,6 +45,7 @@ import org.xml.sax.SAXException;
 
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
+import uk.ac.warwick.userlookup.HttpPool;
 import uk.ac.warwick.userlookup.User;
 
 public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthorityResponseFetcher {
@@ -99,7 +100,7 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		}
 		
 		LOGGER.info("Shire connecting to AttributeAuthority at " + aaLocation);
-		HttpClient client = new HttpClient();
+		HttpClient client = HttpPool.getHttpClient();
 		client.getHostConfiguration().setHost(aaUrl.getHost(), aaUrl.getPort(), protocol);
 		PostMethod method = new PostMethod(aaUrl.getPath());
 		
@@ -135,6 +136,8 @@ public class AttributeAuthorityResponseFetcherImpl implements AttributeAuthority
 		} catch (IOException e) {
 			LOGGER.error("Attribute request failed at client.executeMethod", e);
 			throw new SSOException("Attribute request failed at client.executeMethod", e);
+		} finally {
+			method.releaseConnection();
 		}
 
 		LOGGER.debug("Https response:" + body);

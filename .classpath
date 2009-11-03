@@ -5,10 +5,10 @@
 	<classpathentry kind="lib" path="external-libs/javax.servlet.jar"/>
 	<classpathentry kind="lib" path="external-libs/log4j.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-logging.jar"/>
-	<classpathentry kind="lib" path="external-libs/userlookup-1.54.jar"/>
 	<classpathentry kind="lib" path="external-libs/spring-core.jar"/>
 	<classpathentry kind="lib" path="external-libs/test/xercesImpl.jar"/>
 	<classpathentry kind="lib" path="external-libs/test/xalan.jar"/>
+	<classpathentry kind="lib" path="external-libs/userlookup-1.59.jar"/>
 	<classpathentry kind="src" path="test-src"/>
 	<classpathentry kind="lib" path="external-libs/commons-collections-3.1.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-digester.jar"/>
