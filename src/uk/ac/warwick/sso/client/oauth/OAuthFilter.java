@@ -59,7 +59,7 @@ public final class OAuthFilter implements Filter {
         
         OAuthMessage message = OAuthServlet.getMessage(request, requestedUrl);
         
-        if (message != null) {
+        if (message != null && message.getToken() != null) {
             try {
                 OAuthToken token = getOAuthService().getToken(message.getToken()).get();
                 
