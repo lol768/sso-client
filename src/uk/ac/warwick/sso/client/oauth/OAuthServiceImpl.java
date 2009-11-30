@@ -15,8 +15,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
+import net.oauth.OAuth;
 import net.oauth.OAuthConsumer;
 import net.oauth.OAuthServiceProvider;
+import net.oauth.signature.RSA_SHA1;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.httpclient.HttpClient;
@@ -214,17 +216,31 @@ public final class OAuthServiceImpl implements OAuthService {
 
             Map<String, String> attributes = getResponse(request);
             
+            OAuthConsumer consumer = null;
             if (attributes.containsKey("consumer_key") && attributes.containsKey("consumer_secret")) {
-                OAuthConsumer consumer = new OAuthConsumer(attributes.get("callback_url"), attributes.get("consumer_key"), attributes
-                        .get("consumer_secret"), generateServiceProvider());
+                if (attributes.get("key_type").equals("RSA_PRIVATE")) {
+                    consumer = new OAuthConsumer(attributes.get("callback_url"), attributes.get("consumer_key"), null, generateServiceProvider());
+                    
+                    // The oauth.net java code has lots of magic. By setting this
+                    // property here, code thousands of lines away knows that the
+                    // consumerSecret value in the consumer should be treated as an RSA
+                    // private key and not an HMAC key.
+                    consumer.setProperty(OAuth.OAUTH_SIGNATURE_METHOD, OAuth.RSA_SHA1);
+                    consumer.setProperty(RSA_SHA1.PUBLIC_KEY, attributes.get("consumer_secret"));
+                } else {
+                    consumer = new OAuthConsumer(attributes.get("callback_url"), attributes.get("consumer_key"), attributes.get("consumer_secret"), generateServiceProvider());
+                    consumer.setProperty(OAuth.OAUTH_SIGNATURE_METHOD, OAuth.HMAC_SHA1);
+                }
                 
                 consumer.setProperty("title", attributes.get("title"));
                 consumer.setProperty("trusted", Boolean.valueOf(attributes.get("trusted")));
+                consumer.setProperty("description", attributes.get("description"));
+                consumer.setProperty("technical_contact", attributes.get("technical_contact"));
                 
                 return ImmediateFuture.of(consumer);
             }
         } catch (SSOException e) {
-            LOGGER.error("Could not get consumer from key", e);
+            LOGGER.debug("Could not get consumer from key", e);
         }
 
         return ImmediateFuture.of(null);
