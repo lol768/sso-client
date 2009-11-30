@@ -93,11 +93,7 @@ SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
 generator.setRequest(request);
 String loginUrl = generator.getLoginUrl();
 
-7) Tell Kieran what domain you want a certificate for.  
-
-# keytool -import -keystore cacerts -alias testsso-ca -file testsso-ca.crt.der -trustcacerts -storepass changeit
-
-# keytool -import -keystore cacerts -alias verisign-intermediate -file verisign-intermediate-ca.crt -trustcacerts -storepass changeit
+7) Email elab with a request for an SSL certificate if you don't have one.  
 
 8)  Send following settings to SSO Administrator:
 
