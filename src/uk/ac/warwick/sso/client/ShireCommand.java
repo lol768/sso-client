@@ -23,6 +23,10 @@ import org.opensaml.SAMLSubject;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.cache.UserCacheItem;
 import uk.ac.warwick.userlookup.User;
+import uk.ac.warwick.userlookup.UserLookup;
+import uk.ac.warwick.userlookup.cache.BasicCache;
+import uk.ac.warwick.userlookup.cache.Caches;
+import uk.ac.warwick.userlookup.cache.Entry;
 
 public class ShireCommand {
 
@@ -35,6 +39,8 @@ public class ShireCommand {
 	private String _remoteHost;
 
 	private UserCache _cache;
+	
+	private final BasicCache<String, User> userIdCache = Caches.newCache(UserLookup.USER_CACHE_NAME, null, 0);
 
 	public final Cookie process(final String saml64, final String target) throws SSOException {
 		try {
@@ -136,6 +142,13 @@ public class ShireCommand {
 		user.setIsLoggedIn(true);
 		UserCacheItem item = new UserCacheItem(user, new Date().getTime(), token);
 		getCache().put(token, item);
+		
+		// also place the new user in the UserLookup user-by-id cache
+		final String userId = user.getUserId();
+		if (user.isFoundUser() && userId != null && !"".equals(userId.trim())) {
+			userIdCache.put(new Entry<String,User>(userId, user));
+		}		
+		
 		Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), token.getValue());
 		cookie.setPath(_config.getString("shire.sscookie.path"));
 		cookie.setDomain(_config.getString("shire.sscookie.domain"));

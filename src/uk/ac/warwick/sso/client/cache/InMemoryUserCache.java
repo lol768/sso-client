@@ -33,7 +33,6 @@ public class InMemoryUserCache extends BasicCacheAdapter {
 	private static BasicCache<SSOToken, UserCacheItem> newCache() {
 		// used only for putting new values in. This should access the same map
 		// that UserLookup uses for storing users.
-		final BasicCache<String, User> userIdCache = Caches.newCache(UserLookup.USER_CACHE_NAME, null, 0);
 		
 		// Create a new BasicCache. The EntryFactory always returns null, because SSOClient doesn't expect
 		// asyncronous updates or self-population. It will receive the null and generate a new value.		
@@ -45,16 +44,7 @@ public class InMemoryUserCache extends BasicCacheAdapter {
 				return item != null;
 			}
 		}, DEFAULT_TIME_OUT);
-		newCache.addCacheListener(new CacheListener<SSOToken, UserCacheItem>() {
-			public void cacheHit(SSOToken arg0,	Entry<SSOToken, UserCacheItem> arg1) {}
-			public void cacheMiss(SSOToken token, Entry<SSOToken, UserCacheItem> newEntry) {
-				final User user = newEntry.getValue().getUser();
-				final String userId = user.getUserId();
-				if (user.isFoundUser() && userId != null && !"".equals(userId.trim())) {
-					userIdCache.put(new Entry<String,User>(userId, user));
-				}
-			}
-		});
+
 		newCache.setMaxSize(DEFAULT_MAX_ENTRIES); //ignored if we are using Ehcache.
 		return newCache;
 	}
