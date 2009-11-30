@@ -65,7 +65,7 @@ public class AuthorisationServlet extends AbstractOAuthServlet {
             }
         }
         
-        if (!valid) {
+        if (!valid || token == null || consumer == null) {
             return;
         }
         

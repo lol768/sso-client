@@ -90,14 +90,14 @@ public final class OAuthServiceResponse {
         }
     }
     
-    protected void addAttribute(Element attributes, String key, String value) {
+    protected final void addAttribute(final Element attrs, final String key, final String value) {
         if (value == null) {
             return;
         }
         
-        Element argument = attributes.getOwnerDocument().createElement(key);
-        argument.appendChild(attributes.getOwnerDocument().createTextNode(value));
-        attributes.appendChild(argument);
+        Element argument = attrs.getOwnerDocument().createElement(key);
+        argument.appendChild(attrs.getOwnerDocument().createTextNode(value));
+        attrs.appendChild(argument);
     }
     
     public static OAuthServiceResponse fromXML(InputStream is) {        

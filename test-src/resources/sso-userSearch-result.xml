@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<users>
+<user>
+<attribute name="logindisabled" value="TRUE" />
+<attribute name="sn" value="fewfecsfds" />
+<attribute name="ou" value="Chemistry" />
+<attribute name="warwickitsclass" value="PG(R)" />
+<attribute name="warwickdeptcode" value="CH" />
+<attribute name="warwickyearofstudy" value="4" />
+<attribute name="urn:mace:dir:attribute-def:eduPersonAffiliation" value="member" />
+<attribute name="warwickfinalyear" value="Y" />
+<attribute name="warwickcategory" value="R" />
+<attribute name="givenName" value="Craig" />
+<attribute name="staff" value="true" />
+<attribute name="urn:websignon:usertype" value="Staff" />
+<attribute name="urn:mace:dir:attribute-def:eduPersonScopedAffiliation" value="member@warwick.ac.uk" />
+<attribute name="student" value="false" />
+
+<attribute name="warwickuniid" value="9813830" />
+<attribute name="cn" value="msrxak" />
+<attribute name="warwickstatuscode" value="C" />
+<attribute name="dn" value="cn=msrxak,ou=MS,o=Warwick" />
+<attribute name="warwickattendancemode" value="F" />
+<attribute name="warwickenrolementstatus" value="L" />
+<attribute name="warwickcoursecode" value="F1P0" />
+
+</user>
+<user>
+<attribute name="mail" value="C.fsdfewerew@warwick.ac.uk" />
+<attribute name="sn" value="XKOEWOFwe" />
+<attribute name="ou" value="Chemistry" />
+<attribute name="warwickdeptcode" value="CH" />
+<attribute name="warwickyearofstudy" value="1" />
+<attribute name="urn:mace:dir:attribute-def:eduPersonAffiliation" value="member" />
+<attribute name="warwickfinalyear" value="N" />
+
+<attribute name="warwickcategory" value="U" />
+<attribute name="givenName" value="Craig" />
+<attribute name="staff" value="false" />
+<attribute name="urn:websignon:usertype" value="Student" />
+<attribute name="urn:mace:dir:attribute-def:eduPersonScopedAffiliation" value="member@warwick.ac.uk" />
+<attribute name="student" value="true" />
+<attribute name="warwickuniid" value="0708601" />
+<attribute name="cn" value="xyzhbc" />
+<attribute name="warwickstatuscode" value="C" />
+<attribute name="dn" value="cn=xyzhbc,ou=Student,ou=MS,o=Warwick" />
+<attribute name="warwickattendancemode" value="F" />
+<attribute name="warwickenrolementstatus" value="F" />
+<attribute name="warwickcoursecode" value="F100" />
+
+</user>
+<user>
+<attribute name="mail" value="C.I.fewfewfew@warwick.ac.uk" />
+
+<attribute name="sn" value="fewfewfew" />
+<attribute name="ou" value="Chemistry" />
+<attribute name="warwickitsclass" value="UG" />
+<attribute name="warwickdeptcode" value="CH" />
+<attribute name="warwickyearofstudy" value="2" />
+<attribute name="urn:mace:dir:attribute-def:eduPersonAffiliation" value="member" />
+<attribute name="warwickfinalyear" value="N" />
+<attribute name="warwickcategory" value="U" />
+<attribute name="givenName" value="Craig" />
+<attribute name="staff" value="false" />
+<attribute name="urn:websignon:usertype" value="Student" />
+<attribute name="urn:mace:dir:attribute-def:eduPersonScopedAffiliation" value="member@warwick.ac.uk" />
+<attribute name="student" value="true" />
+<attribute name="warwickuniid" value="0606244" />
+<attribute name="cn" value="xyzgau" />
+<attribute name="warwickstatuscode" value="C" />
+<attribute name="dn" value="cn=xyzgau,ou=Student,ou=MS,o=Warwick" />
+
+<attribute name="warwickattendancemode" value="F" />
+<attribute name="warwickenrolementstatus" value="F" />
+<attribute name="warwickcoursecode" value="F105" />
+
+</user>
+
+</users>

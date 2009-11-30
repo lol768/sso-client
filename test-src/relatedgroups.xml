@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<groups>
+  <group name="nodep-groupA"></group><group name="nodep-groupB"></group><group name="nodep-groupD">this is groupB</group><group name="null-groupA">this is a new group</group>
+</groups>

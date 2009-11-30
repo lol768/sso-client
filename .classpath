@@ -8,10 +8,10 @@
 	<classpathentry kind="lib" path="external-libs/spring-core.jar"/>
 	<classpathentry kind="lib" path="external-libs/test/xercesImpl.jar"/>
 	<classpathentry kind="lib" path="external-libs/test/xalan.jar"/>
-	<classpathentry kind="lib" path="external-libs/userlookup-1.60.jar"/>
 	<classpathentry kind="lib" path="external-libs/oauth-20090825.jar" sourcepath="/me/lib/src/oauth-20090825-sources.jar"/>
 	<classpathentry kind="lib" path="external-libs/oauth-httpclient3-20090617.jar" sourcepath="/me/lib/src/oauth-httpclient3-20090617-sources.jar"/>
 	<classpathentry kind="lib" path="external-libs/oauth-provider-20090531.jar" sourcepath="/me/lib/src/oauth-provider-20090531-sources.jar"/>
+	<classpathentry kind="lib" path="external-libs/ehcache-core-1.7.0.jar"/>
 	<classpathentry kind="src" path="test-src"/>
 	<classpathentry kind="lib" path="external-libs/commons-collections-3.1.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-digester.jar"/>

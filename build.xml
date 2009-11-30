@@ -43,7 +43,7 @@
 				<include name="**/*.*" />
 			</fileset>
 			<fileset dir="${srcDir}">
-				<exclude name="**/*.xml"/>
+				
 			</fileset>
 		</copy>
 		
