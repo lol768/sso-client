@@ -155,7 +155,10 @@ public class AuthorisationServlet extends AbstractOAuthServlet {
             url.append("&");
             
             url.append("callback=");
-            url.append(URLEncoder.encode(callback, "UTF-8"));
+            
+            if (callback != null) {
+                url.append(URLEncoder.encode(callback, "UTF-8"));
+            }
     
             response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
             response.setHeader("Location", url.toString());
