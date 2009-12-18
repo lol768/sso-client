@@ -176,6 +176,11 @@ public class WebUserLookup implements UserLookupBackend {
 		return user;
 	}
 	
+	/**
+	 * Gets users by ID, and returns them in a map of ID->User.
+	 * 
+	 * Any users not found are not in the map, even as anonymous users.
+	 */
 	public Map<String, User> getUsersById(List<String> userIds) throws UserLookupException {
 		Map<String,User> users = new HashMap<String,User>();
 		LOGGER.debug("getUsersById, " + userIds.size() + " users");

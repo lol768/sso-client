@@ -147,7 +147,13 @@ public class UserLookup implements UserLookupInterface {
 			}
 			public Map<String, User> create(List<String> keys) throws EntryUpdateException {
 				try {
-					return getSpecificUserLookupType().getUsersById(keys);
+					Map<String, User> usersById = getSpecificUserLookupType().getUsersById(keys);
+					for (String key : keys) {
+						if (!usersById.containsKey(key)) {
+							usersById.put(key, new AnonymousUser());
+						}
+					}
+					return usersById;
 				} catch (UserLookupException e) {
 					throw new EntryUpdateException(e);
 				}

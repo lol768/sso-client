@@ -143,7 +143,10 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 		
 		if (!missing.isEmpty()) {
 			missing.addAll(expired);
-			updateEntries(missing);
+			Map<K, Entry<K, V>> updated = updateEntries(missing);
+			for (Map.Entry<K,Entry<K,V>> entry : updated.entrySet()) {
+				results.put(entry.getKey(), entry.getValue().getValue());
+			}
 		} else if (!expired.isEmpty()) {
 			threadPool.assign(UpdateEntryTask.task(this, expired));
 		}
