@@ -657,6 +657,7 @@ public class UserLookup implements UserLookupInterface {
 			result = System.getProperty(propertyName);
 		}
 		if (result == null) {
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Property " + propertyName + " missing, using default of " + def);
 			result = def;
 		}
 		return result;

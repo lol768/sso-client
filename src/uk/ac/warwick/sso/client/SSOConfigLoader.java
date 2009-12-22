@@ -51,15 +51,16 @@ public class SSOConfigLoader implements ServletContextListener {
 	}
 
 	public XMLConfiguration loadSSOConfig(final String ssoConfigLocation) {
-
 		if (ssoConfigLocation == null) {
-			LOGGER.warn("No ssoConfigLocation given");
-			throw new RuntimeException("Could not setup configuration");
+			String message = "Path to SSO config was null";
+			LOGGER.error(message);
+			throw new RuntimeException(message);
 		}
 		URL configUrl = SSOConfigLoader.class.getResource(ssoConfigLocation);
 		if (configUrl == null) {
-			LOGGER.warn("Could not find config as path is null");
-			throw new RuntimeException("Could not setup configuration");
+			String message = "Could not find SSO config at location " + ssoConfigLocation + " - check your classpath";
+			LOGGER.error(message);
+			throw new RuntimeException(message);
 		}
 
 		XMLConfiguration config;
@@ -90,9 +91,11 @@ public class SSOConfigLoader implements ServletContextListener {
 
 	public void loadSSOConfig(ServletContext servletContext) {
 		Enumeration<?> params = servletContext.getInitParameterNames();
+		boolean foundConfigs = false;
 		while (params.hasMoreElements()) {
 			String paramName = (String) params.nextElement();
 			if (paramName.startsWith("ssoclient.config")) {
+				foundConfigs = true;
 
 				String ssoConfigLocation = servletContext.getInitParameter(paramName);
 
@@ -107,6 +110,10 @@ public class SSOConfigLoader implements ServletContextListener {
 				servletContext.setAttribute(SSO_CACHE_KEY + configSuffix, cache);
 
 			}
+		}
+		
+		if (!foundConfigs) {
+			throw new IllegalStateException("SSOConfigLoader found no ssoclient.config* element in the web.xml");
 		}
 	}
 

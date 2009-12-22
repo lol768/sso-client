@@ -70,7 +70,7 @@ public class WebUserLookup implements UserLookupBackend {
 	private String getSsosUrl(String providedUrl) {
 		String s;
 		if (providedUrl == null) {
-			s = UserLookup.getConfigProperty("userlookup.ssosUrl");
+			s = UserLookup.getConfigProperty("userlookup.ssosUrl", "https://websignon.warwick.ac.uk/sentry");
 		} else {
 			s = providedUrl;
 		}
