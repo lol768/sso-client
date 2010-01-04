@@ -50,7 +50,7 @@ public final class Caches {
 				String storeDir = System.getProperty("ehcache.disk.store.dir");
 				String userLookupDir = System.getProperty("userlookup.disk.store.dir");
 				if (storeDir == null && userLookupDir == null) {
-					LOGGER.warn("Ehcache found but no disk cache location specified with ehcache.disk.store.dir or userlookup.disk.store.dir, so not using Ehcache");
+					LOGGER.info("Ehcache found but no disk cache location specified with ehcache.disk.store.dir or userlookup.disk.store.dir, so not using Ehcache");
 					ehAvailable = false;
 				} else {
 					ehAvailable = true;
