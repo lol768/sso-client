@@ -18,15 +18,15 @@ public class UserSearchResponseHandlerTest extends TestCase {
 		InputStream stream = getClass().getResourceAsStream("/resources/sso-userSearch-result.xml");
 		
 		handler.processResults(stream);
-		List users = handler.getUsers();
+		List<User> users = handler.getResult();
 		assertEquals(3, users.size());
 		
 		//do return logindisabled users. we filter them out
 		//later if we need to
 		
-		User firstUser = (User) users.get(0);
+		User firstUser = users.get(0);
 		assertEquals("Craig", firstUser.getFirstName());
-		User secondUser = (User) users.get(1);
+		User secondUser = users.get(1);
 		assertEquals("Craig", secondUser.getFirstName());
 	}
 

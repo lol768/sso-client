@@ -83,7 +83,7 @@ public final class GroupsXMLParser extends DefaultHandler {
 		_lastElement = "";
 	}
 
-	public Collection getGroups() {
+	public Collection<Group> getGroups() {
 		return _groups;
 	}
 

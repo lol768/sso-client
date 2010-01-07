@@ -150,6 +150,7 @@ public class WarwickGroupsService implements GroupService {
 		try {
 			engine.execute(urlPath, handler);
 		} catch (WebServiceException e) {
+			LOGGER.warn("Error fetching info about group "+groupName+", returning empty group", e);
 			GroupImpl group = new GroupImpl();
 			group.setName(groupName);
 			return group;

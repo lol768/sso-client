@@ -14,7 +14,7 @@ import uk.ac.warwick.userlookup.XMLResponseHandler;
  * 
  * @author xusqac
  */
-public final class GroupsInfoXMLResponseHandler extends XMLResponseHandler {
+public final class GroupsInfoXMLResponseHandler extends XMLResponseHandler<GroupInfo> {
 
 	private static final Logger LOGGER = Logger.getLogger(GroupsXMLParser.class);
 	
@@ -24,7 +24,7 @@ public final class GroupsInfoXMLResponseHandler extends XMLResponseHandler {
 
 	private GroupInfo info;
 
-	public Object getResult() {
+	public GroupInfo getResult() {
 		return info;
 	}
 

@@ -6,6 +6,6 @@ import uk.ac.warwick.userlookup.HttpMethodWebService.WebServiceResponseHandler;
 /**
  * @author xusqac
  */
-public interface ResultAwareWebServiceResponseHandler extends WebServiceResponseHandler {
-	Object getResult();
+public interface ResultAwareWebServiceResponseHandler<T> extends WebServiceResponseHandler {
+	T getResult();
 }

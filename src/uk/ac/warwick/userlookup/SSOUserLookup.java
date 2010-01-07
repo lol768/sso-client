@@ -62,7 +62,7 @@ final class SSOUserLookup implements UserFilter {
 			
 			UserSearchResponseHandler handler = new UserSearchResponseHandler();
 			service.doRequest(parameters, handler);
-			List<User> allUsers = handler.getUsers();
+			List<User> allUsers = handler.getResult();
 			List<User> users;
 			
 			if (returnDisabledUsers) {
@@ -108,20 +108,15 @@ final class SSOUserLookup implements UserFilter {
 	
 	
 
-	static class UserSearchResponseHandler extends XMLResponseHandler {
+	static class UserSearchResponseHandler extends XMLResponseHandler<List<User>> {
 		private List<User> _users;
 		
 		public UserSearchResponseHandler() {
 			super(new UserSearchResponseParser());
 		}
 
-		/** List of User */
-		public List<User> getUsers() {
+		public List<User> getResult() {
 			return _users;
-		}
-		
-		public Object getResult() {
-			return getUsers();
 		}
 
 		protected void collectResult(ContentHandler parser) {

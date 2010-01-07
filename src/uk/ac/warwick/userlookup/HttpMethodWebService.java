@@ -121,7 +121,7 @@ public final class HttpMethodWebService {
 		void processResults(InputStream fromServer) throws HandlerException;
 	}
 
-	public class WebServiceException extends Exception {
+	public static class WebServiceException extends Exception {
 		private static final long serialVersionUID = -6340006166324965152L;
 
 		WebServiceException(final String error, final Throwable cause) {

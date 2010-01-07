@@ -5,6 +5,7 @@ import java.util.Collection;
 
 import org.xml.sax.ContentHandler;
 
+import uk.ac.warwick.userlookup.Group;
 import uk.ac.warwick.userlookup.XMLResponseHandler;
 
 /**
@@ -14,15 +15,15 @@ import uk.ac.warwick.userlookup.XMLResponseHandler;
  * 
  * @author xusqac
  */
-public final class GroupsXMLResponseHandler extends XMLResponseHandler {
+public final class GroupsXMLResponseHandler extends XMLResponseHandler<Collection<Group>> {
 
 	public GroupsXMLResponseHandler() {
 		super(new GroupsXMLParser());
 	}
 
-	private Collection groups = new ArrayList();
+	private Collection<Group> groups = new ArrayList<Group>();
 
-	public Object getResult() {
+	public Collection<Group> getResult() {
 		return groups;
 	}
 
