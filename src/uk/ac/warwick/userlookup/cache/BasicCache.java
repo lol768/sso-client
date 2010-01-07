@@ -6,9 +6,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import uk.ac.warwick.userlookup.UserLookup;
-import uk.ac.warwick.userlookup.threads.ThreadPool;
 
 
 /**
@@ -31,7 +32,9 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 	
 	private final List<CacheListener<K,V>> listeners = new ArrayList<CacheListener<K,V>>();
 	
-	private final ThreadPool<Runnable> threadPool = new ThreadPool<Runnable>(5);
+	// Uses an unbounded queue, so when all threads are busy it will queue up
+	// waiting jobs and do them next
+	private final ExecutorService threadPool = Executors.newFixedThreadPool(5);
 	
 	private final CacheStore<K,V> store;
 	
@@ -103,7 +106,7 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 			} else {
 				// Entry is just expired. Return the stale version
 				// now and update in the background
-				threadPool.assign(UpdateEntryTask.task(this, new KeyEntry<K,V>(key, entry)));
+				threadPool.execute(UpdateEntryTask.task(this, new KeyEntry<K,V>(key, entry)));
 			}
 		}
 		return entry.getValue();
@@ -148,7 +151,7 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 				results.put(entry.getKey(), entry.getValue().getValue());
 			}
 		} else if (!expired.isEmpty()) {
-			threadPool.assign(UpdateEntryTask.task(this, expired));
+			threadPool.execute(UpdateEntryTask.task(this, expired));
 		}
 		
 		return results;

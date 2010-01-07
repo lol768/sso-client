@@ -83,6 +83,9 @@ public class UserLookup implements UserLookupInterface {
 	private int _httpConnectionTimeout;
 
 	private GroupService _groupService;
+	
+	// the innermmost groupService.
+	private GroupService _groupServiceBackend;
 
 	private String _version;
 	
@@ -550,18 +553,19 @@ public class UserLookup implements UserLookupInterface {
 			if (location == null) {
 				location = UserLookup.getConfigProperty("userlookup.groupservice.location"); 
 			}
-			if (location != null) {
-				_groupService = new WarwickGroupsService(location);
-
-				_groupService.setTimeoutConfig(new WebServiceTimeoutConfig(getHttpConnectionTimeout(), getHttpDataTimeout()));
+			if (location != null || _groupServiceBackend != null) {
+				if (_groupServiceBackend == null) {
+					_groupServiceBackend = new WarwickGroupsService(location);
+					_groupServiceBackend.setTimeoutConfig(new WebServiceTimeoutConfig(getHttpConnectionTimeout(), getHttpDataTimeout()));
+				}
 				// cache the groups
 				_groupService = new GroupAliasAwareGroupService(new GroupNameCheckerGroupService(
 						new IsUserInGroupCachingGroupsService(new GroupByNameCachingGroupsService(
-								new UsersInGroupCachingGroupsService(new GroupsNamesForUserCachingGroupsService(_groupService))))),
+								new UsersInGroupCachingGroupsService(new GroupsNamesForUserCachingGroupsService(_groupServiceBackend))))),
 						this);
 
 			} else {
-				LOGGER.debug("Creating DefaultGroupService because of no userlookup.groupservice.location property");
+				LOGGER.info("Creating DefaultGroupService that returns no groups, because of no userlookup.groupservice.location property");
 				_groupService = new GroupAliasAwareGroupService(new GroupNameCheckerGroupService(new DefaultGroupService()), this);
 			}
 		}
@@ -675,5 +679,18 @@ public class UserLookup implements UserLookupInterface {
 	void shutdown() {
 		_userByTokenCache.shutdown();
 		_userByUserIdCache.shutdown();
+	}
+
+	/**
+	 * If groupService has not yet been created, we can use this to set the innermost
+	 * GroupService backend that will get wrapped with the other GroupService instances.
+	 * This is probably only going to be useful for testing the behaviour of the
+	 * wrapping GroupServices.
+	 */
+	public final void setGroupServiceBackend(GroupService groupServiceBackend) {
+		if (_groupService != null) {
+			throw new IllegalStateException("Can only set backend before groupService has been created");
+		}
+		_groupServiceBackend = groupServiceBackend;
 	}
 }
