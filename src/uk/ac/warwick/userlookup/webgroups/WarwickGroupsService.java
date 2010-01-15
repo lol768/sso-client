@@ -36,7 +36,7 @@ public class WarwickGroupsService implements GroupService {
 
 	public static interface ExecuteAndParseEngine {
 
-		void execute(final String urlPath, final ResultAwareWebServiceResponseHandler handler) throws WebServiceException;
+		void execute(final String urlPath, final ResultAwareWebServiceResponseHandler<?> handler) throws WebServiceException;
 	}
 
 	private static final Logger LOGGER = Logger.getLogger(WarwickGroupsService.class);
@@ -47,7 +47,7 @@ public class WarwickGroupsService implements GroupService {
 
 	private ExecuteAndParseEngine engine = new ExecuteAndParseEngine() {
 
-		public void execute(final String urlPath, final ResultAwareWebServiceResponseHandler handler) throws WebServiceException {
+		public void execute(final String urlPath, final ResultAwareWebServiceResponseHandler<?> handler) throws WebServiceException {
 			try {
 				HttpMethodWebService arbitraryGroups = new HttpMethodWebService(new URL(urlPath),
 						new GetMethodFactory(), getTimeoutConfig(), _version, null);

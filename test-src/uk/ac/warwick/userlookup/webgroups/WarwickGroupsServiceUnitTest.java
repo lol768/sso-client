@@ -19,8 +19,7 @@ public class WarwickGroupsServiceUnitTest extends TestCase {
 	public void testHttpExceptionThrown() throws Exception {
 		WarwickGroupsService service = new WarwickGroupsService("http://example.com");
 		service.setEngine(new ExecuteAndParseEngine() {
-			public void execute(String urlPath,
-					ResultAwareWebServiceResponseHandler handler)
+			public void execute(String urlPath, ResultAwareWebServiceResponseHandler<?> handler)
 					throws WebServiceException {
 				throw new HttpMethodWebService.WebServiceException("http error is a happen, oh bother");
 			}
