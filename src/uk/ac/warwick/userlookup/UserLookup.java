@@ -95,6 +95,9 @@ public class UserLookup implements UserLookupInterface {
 
 	private boolean asynchronousUpdates = true;
 
+	// optional, will use a web-based default if not set.
+	private UserLookupBackend _backend;
+
 	public static UserLookup getInstance() {
 		if (INSTANCE == null) {
 			LOGGER.warn("UserLookup not initialized - creating new lookup with default settings...");
@@ -282,7 +285,8 @@ public class UserLookup implements UserLookupInterface {
 			User user = getUserByTokenCache().get(TOKEN_PREFIX + token);
 			return user;
 		} catch (EntryUpdateException e) {
-			throw e.getRuntimeException();
+			LOGGER.warn(e);
+			return new UnverifiedUser(e);
 		}
 	}
 
@@ -304,7 +308,8 @@ public class UserLookup implements UserLookupInterface {
 		try {
 			return getUserByUserIdCache().get(userId);
 		} catch (EntryUpdateException e) {
-			throw e.getRuntimeException();
+			LOGGER.warn(e);
+			return new UnverifiedUser(e);
 		}
 	}
 	
@@ -324,7 +329,12 @@ public class UserLookup implements UserLookupInterface {
 		try {
 			return getUserByUserIdCache().get(new ArrayList<String>(distinctIds));
 		} catch (EntryUpdateException e) {
-			throw e.getRuntimeException();
+			LOGGER.warn(e);
+			Map<String,User> unverifiedUsers = new HashMap<String, User>();
+			for (String id : distinctIds) {
+				unverifiedUsers.put(id, new UnverifiedUser(e));
+			}
+			return unverifiedUsers;
 		}
 	}
 
@@ -334,9 +344,16 @@ public class UserLookup implements UserLookupInterface {
 		getSpecificUserLookupType().signOut(token);
 	}
 
-	private UserLookupBackend getSpecificUserLookupType() {
+	protected UserLookupBackend getSpecificUserLookupType() {
+		if (_backend != null) {
+			return _backend;
+		}
 		return new WebUserLookup(_ssosUrl, new WebServiceTimeoutConfig(getHttpConnectionTimeout(), getHttpDataTimeout()),
 				_version, _apiKey);
+	}
+	
+	public void setUserLookupBackend(UserLookupBackend backend) {
+		this._backend = backend;
 	}
 
 	/**
