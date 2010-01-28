@@ -1,6 +1,7 @@
 package uk.ac.warwick.sso.client.oauth;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.concurrent.ExecutionException;
 
 import javax.servlet.Filter;
@@ -39,6 +40,8 @@ public final class OAuthFilter implements Filter {
     private OAuthService _service;
 
     private UserLookupInterface _userLookup;
+    
+    private boolean _expiredToken401 = true;
 
     public void doFilter(ServletRequest arg0, ServletResponse arg1, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) arg0;
@@ -69,12 +72,29 @@ public final class OAuthFilter implements Filter {
                     if (user != null && user.isFoundUser()) {
                         // Set it to the SSO Client Filter's parameter
                         request.setAttribute(SSOClientFilter.getUserKey(), user);
+                        
+                        chain.doFilter(request, response);
+                        return;
                     }
                 }
             } catch (ExecutionException e) {
                 LOGGER.error("Couldn't retrieve user from OAuth token", e);
             } catch (InterruptedException e) {
                 LOGGER.error("Couldn't retrieve user from OAuth token", e);
+            }
+            
+            // We were given a message and a token but have failed to find a
+            // valid user. This is usually because the token is expired (or we
+            // purged the tokens from the db)
+            if (_expiredToken401) {
+                URL url = new URL(requestedUrl);
+                String realm = url.getProtocol() + "://" + url.getHost();
+                
+                // Send a hint to the consumer that they should be OAuthing
+                response.addHeader("WWW-Authenticate", "OAuth realm=\"" + realm + "\"");
+                
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
             }
         }
         
@@ -156,6 +176,10 @@ public final class OAuthFilter implements Filter {
 
     public void setUserLookup(final UserLookupInterface userLookup) {
         _userLookup = userLookup;
+    }
+    
+    public void setExpiredToken401(final boolean expiredToken401) {
+        _expiredToken401 = expiredToken401;
     }
 
 }
