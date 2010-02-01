@@ -156,7 +156,9 @@ public class UserLookup implements UserLookupInterface {
 					Map<String, User> usersById = getSpecificUserLookupType().getUsersById(keys);
 					for (String key : keys) {
 						if (!usersById.containsKey(key)) {
-							usersById.put(key, new AnonymousUser());
+							AnonymousUser anon = new AnonymousUser();
+							anon.setUserId(key);
+							usersById.put(key, anon);
 						}
 					}
 					return usersById;
@@ -302,6 +304,7 @@ public class UserLookup implements UserLookupInterface {
 	public final User getUserByUserId(final String uncheckedUserId) {
 		if (uncheckedUserId == null || uncheckedUserId.equals("") || uncheckedUserId.equals(NOT_LOGGED_IN_TOKEN)) {
 			User anon = new AnonymousUser();
+			anon.setUserId(uncheckedUserId);
 			return anon;
 		}
 		String userId = uncheckedUserId.trim();
