@@ -33,6 +33,14 @@ public class WebUserLookup implements UserLookupBackend {
 
 	private static final Logger LOGGER = Logger.getLogger(WebUserLookup.class);
 
+	/**
+	 * If making a batch request for users greater than this size,
+	 * it will be partitioned into multiple web requests to avoid
+	 * the request timing out. It could still time out, but it's much
+	 * less likely.
+	 */
+	public static final int BATCH_USER_SIZE = 100;
+	
 	private static final int CHECK_TOKEN = 1;
 
 	private static final int TOKEN_OK = 1;
@@ -182,6 +190,21 @@ public class WebUserLookup implements UserLookupBackend {
 	 * Any users not found are not in the map, even as anonymous users.
 	 */
 	public Map<String, User> getUsersById(List<String> userIds) throws UserLookupException {
+		if (userIds.size() <= BATCH_USER_SIZE) {
+			return doGetUsersById(userIds);
+		} else {
+			Map<String,User> allBatches = new HashMap<String, User>();
+			for (int start = 0; start<userIds.size(); start += BATCH_USER_SIZE) {
+				int end = Math.min(start + BATCH_USER_SIZE, userIds.size());
+				List<String> sublist = userIds.subList(start, end);
+				allBatches.putAll(doGetUsersById(sublist));
+			}
+			return allBatches;
+		}
+	}
+
+	private Map<String, User> doGetUsersById(List<String> userIds)
+			throws UserLookupException {
 		Map<String,User> users = new HashMap<String,User>();
 		LOGGER.debug("getUsersById, " + userIds.size() + " users");
 		Map<String,Object> params = new HashMap<String,Object>();
@@ -319,9 +342,12 @@ public class WebUserLookup implements UserLookupBackend {
 						this.resultSet.add(p);
 						p = new HashMap<String,String>();
 					} else {
-						String name = line.substring(0, line.indexOf("="));
-						String value = line.substring(line.indexOf("=") + 1, line.length());
-						p.put(name, value);
+						int equals = line.indexOf("=");
+						if (equals > 0 && equals <= line.length()) {
+							String name = line.substring(0, equals);
+							String value = line.substring(equals + 1, line.length());
+							p.put(name, value);
+						}
 					}
 				}
 				if (!p.isEmpty()) {
