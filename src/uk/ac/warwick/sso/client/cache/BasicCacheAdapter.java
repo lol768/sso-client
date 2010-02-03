@@ -5,6 +5,10 @@ import uk.ac.warwick.userlookup.cache.Cache;
 import uk.ac.warwick.userlookup.cache.Entry;
 import uk.ac.warwick.userlookup.cache.EntryUpdateException;
 
+/**
+ * Adapter for creating a UserCache implementation (for SSOClient)
+ * powered by a Cache implementation (inherited from UserLookup).
+ */
 public class BasicCacheAdapter implements UserCache {
 
 	private final Cache<SSOToken, UserCacheItem> cache;

@@ -34,7 +34,8 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 	
 	// Uses an unbounded queue, so when all threads are busy it will queue up
 	// waiting jobs and do them next
-	private final ExecutorService threadPool = Executors.newFixedThreadPool(5);
+	// SSO-830 static - all caches together will use one threadpool.
+	private static final ExecutorService threadPool = Executors.newFixedThreadPool(15);
 	
 	private final CacheStore<K,V> store;
 	
