@@ -2,7 +2,9 @@ package uk.ac.warwick.sso.client.oauth;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.SecureRandom;
 import java.util.Date;
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.UUID;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.oauth.OAuth;
@@ -28,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 
 import uk.ac.warwick.sso.client.SSOConfigLoader;
 import uk.ac.warwick.sso.client.oauth.OAuthToken.Type;
+import uk.ac.warwick.sso.client.tags.SSOLinkGenerator;
 import uk.ac.warwick.userlookup.User;
 
 @SuppressWarnings("serial")
@@ -93,6 +97,23 @@ public abstract class AbstractOAuthServlet extends HttpServlet {
     
     protected void validateMessage(OAuthMessage message, OAuthAccessor accessor) throws OAuthException, IOException, URISyntaxException {
         getValidator().validateMessage(message, accessor);
+    }
+    
+    protected final String getRealm(HttpServletRequest request) throws ServletException {
+        SSOLinkGenerator generator = new SSOLinkGenerator();
+        generator.setConfig(getConfig());
+        generator.setRequest(request);
+        
+        String requestedUrl = generator.getTarget();
+        
+        try {
+            URL url = new URL(requestedUrl);
+            String realm = url.getProtocol() + "://" + url.getHost();
+            
+            return realm;
+        } catch (MalformedURLException e) {
+            throw new ServletException(e);
+        }
     }
     
     protected OAuthConsumer getConsumer(String consumerKey) throws OAuthProblemException {

@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.oauth.OAuth;
 import net.oauth.OAuthProblemException;
+import net.oauth.server.OAuthServlet;
 import uk.ac.warwick.sso.client.SSOClientFilter;
 import uk.ac.warwick.userlookup.User;
 
@@ -26,7 +27,7 @@ public abstract class AbstractUserAuthorisationServlet extends AbstractOAuthServ
         User user = SSOClientFilter.getUserFromRequest(req);
         if (!user.isFoundUser() || !user.isLoggedIn()) {
             // This servlet should go through SSOClientFilter
-            throw new ServletException("Couldn't find user in request!");
+            OAuthServlet.handleException(resp, new ServletException("Couldn't find user in request!"), getRealm(req), true);
         }
 
         String token = req.getParameter("token");
@@ -48,7 +49,7 @@ public abstract class AbstractUserAuthorisationServlet extends AbstractOAuthServ
         User user = SSOClientFilter.getUserFromRequest(req);
         if (!user.isFoundUser() || !user.isLoggedIn()) {
             // This servlet should go through SSOClientFilter
-            throw new ServletException("Couldn't find user in request!");
+            OAuthServlet.handleException(resp, new ServletException("Couldn't find user in request!"), getRealm(req), true);
         }
 
         try {
@@ -76,7 +77,7 @@ public abstract class AbstractUserAuthorisationServlet extends AbstractOAuthServ
             resp.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
             resp.setHeader("Location", azn.toString());
         } catch (OAuthProblemException e) {
-            throw new ServletException("OAuth problem", e);
+            OAuthServlet.handleException(resp, e, getRealm(req), true);
         }
     }
 

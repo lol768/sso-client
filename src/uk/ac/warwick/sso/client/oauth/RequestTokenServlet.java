@@ -24,7 +24,7 @@ public class RequestTokenServlet extends AbstractOAuthServlet {
         try {
             generateRequestToken(req, resp);
         } catch (Exception e) {
-            throw new ServletException(e);
+            OAuthServlet.handleException(resp, e, getRealm(req), true);
         }
     }
 
@@ -33,7 +33,7 @@ public class RequestTokenServlet extends AbstractOAuthServlet {
         try {
             generateRequestToken(req, resp);
         } catch (Exception e) {
-            throw new ServletException(e);
+            OAuthServlet.handleException(resp, e, getRealm(req), true);
         }
     }
 

@@ -26,7 +26,7 @@ public class AuthorisationServlet extends AbstractOAuthServlet {
         try {
             checkAuthorisation(req, resp);
         } catch (Exception e) {
-            throw new ServletException(e);
+            OAuthServlet.handleException(resp, e, getRealm(req), true);
         }
     }
     
@@ -35,7 +35,7 @@ public class AuthorisationServlet extends AbstractOAuthServlet {
         try {
             checkAuthorisation(req, resp);
         } catch (Exception e) {
-            throw new ServletException(e);
+            OAuthServlet.handleException(resp, e, getRealm(req), true);
         }
     }
     
