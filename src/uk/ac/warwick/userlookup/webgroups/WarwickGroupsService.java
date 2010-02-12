@@ -180,7 +180,7 @@ public class WarwickGroupsService implements GroupService {
 		} catch (WebServiceException e) {
 			return false;
 		}
-		return ((Boolean) handler.getResult()).booleanValue();
+		return handler.getResult();
 	}
 
 	public List getUserCodesInGroup(final String groupName) {

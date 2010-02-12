@@ -13,7 +13,7 @@ import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
  *
  * @author xusqac
  */
-public final class BooleanResponseHandler implements ResultAwareWebServiceResponseHandler {
+public final class BooleanResponseHandler implements ResultAwareWebServiceResponseHandler<Boolean> {
 	private static final Logger LOGGER = Logger.getLogger(BooleanResponseHandler.class);
 	private boolean _result;
 
@@ -27,7 +27,7 @@ public final class BooleanResponseHandler implements ResultAwareWebServiceRespon
 		_result = "t".equalsIgnoreCase(firstChar);
 	}
 	
-	public Object getResult() {
+	public Boolean getResult() {
 		return Boolean.valueOf(_result);
 	}
 }
