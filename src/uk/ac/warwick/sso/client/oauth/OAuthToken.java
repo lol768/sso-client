@@ -1,10 +1,13 @@
 package uk.ac.warwick.sso.client.oauth;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class OAuthToken {
+public final class OAuthToken implements Serializable {
+
+    private static final long serialVersionUID = 5925205291368946976L;
 
     public static enum Type {
         REQUEST, ACCESS, DISABLED

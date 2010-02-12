@@ -91,6 +91,26 @@ are "on" and "off".  The default is "autodetect".
            diskSpoolBufferSizeMB="20"
            memoryStoreEvictionPolicy="LFU"
             />
+            
+    <cache name="OAuthConsumerCache"
+           maxElementsInMemory="2000"
+           maxElementsOnDisk="100000"
+           eternal="true"
+           overflowToDisk="true"
+           diskPersistent="true"
+           diskSpoolBufferSizeMB="20"
+           memoryStoreEvictionPolicy="LFU"
+            />
+            
+    <cache name="OAuthTokenCache"
+           maxElementsInMemory="2000"
+           maxElementsOnDisk="100000"
+           eternal="true"
+           overflowToDisk="true"
+           diskPersistent="true"
+           diskSpoolBufferSizeMB="20"
+           memoryStoreEvictionPolicy="LFU"
+            />
 
         
     <!-- 

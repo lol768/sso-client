@@ -30,12 +30,21 @@ import org.apache.xml.security.signature.XMLSignature;
 
 import uk.ac.warwick.sso.client.SSOClientVersionLoader;
 import uk.ac.warwick.sso.client.SSOException;
+import uk.ac.warwick.sso.client.oauth.OAuthToken.Type;
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.sso.client.util.ImmediateFuture;
 import uk.ac.warwick.userlookup.HttpPool;
+import uk.ac.warwick.userlookup.cache.BasicCache;
+import uk.ac.warwick.userlookup.cache.Caches;
+import uk.ac.warwick.userlookup.cache.EntryUpdateException;
+import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
 
 public final class OAuthServiceImpl implements OAuthService {
+    
+    public static final String CONSUMER_CACHE_NAME = "OAuthConsumerCache";
+    
+    public static final String TOKEN_CACHE_NAME = "OAuthTokenCache";
 
     private static final Log LOGGER = LogFactory.getLog(OAuthServiceImpl.class);
 
@@ -52,6 +61,12 @@ public final class OAuthServiceImpl implements OAuthService {
     private String cacertsPassword;
 
     private Protocol protocol;
+    
+    // One hour timeout for consumers, one day for tokens (access/disabled tokens only)
+    private final BasicCache<String, OAuthConsumer> consumerCache
+        = Caches.newCache(CONSUMER_CACHE_NAME, new OAuthConsumerEntryFactory(), 60 * 60);
+    private final BasicCache<String, OAuthToken> tokenCache
+        = Caches.newCache(TOKEN_CACHE_NAME, new OAuthTokenEntryFactory(), 24 * 60 * 60);
 
     protected OAuthServiceImpl() {
     }
@@ -210,57 +225,21 @@ public final class OAuthServiceImpl implements OAuthService {
 
     public Future<OAuthConsumer> getConsumerByConsumerKey(String consumerKey) {
         try {
-            OAuthServiceRequest request = new OAuthServiceRequest.GetConsumerRequest(consumerKey, _config.getString("shire.providerid"));
-
-            LOGGER.info("Trying to get consumer from key:" + request);
-
-            Map<String, String> attributes = getResponse(request);
-            
-            OAuthConsumer consumer = null;
-            if (attributes.containsKey("consumer_key") && attributes.containsKey("consumer_secret")) {
-                if (attributes.get("key_type").equals("RSA_PRIVATE")) {
-                    consumer = new OAuthConsumer(attributes.get("callback_url"), attributes.get("consumer_key"), null, generateServiceProvider());
-                    
-                    // The oauth.net java code has lots of magic. By setting this
-                    // property here, code thousands of lines away knows that the
-                    // consumerSecret value in the consumer should be treated as an RSA
-                    // private key and not an HMAC key.
-                    consumer.setProperty(OAuth.OAUTH_SIGNATURE_METHOD, OAuth.RSA_SHA1);
-                    consumer.setProperty(RSA_SHA1.PUBLIC_KEY, attributes.get("consumer_secret"));
-                } else {
-                    consumer = new OAuthConsumer(attributes.get("callback_url"), attributes.get("consumer_key"), attributes.get("consumer_secret"), generateServiceProvider());
-                    consumer.setProperty(OAuth.OAUTH_SIGNATURE_METHOD, OAuth.HMAC_SHA1);
-                }
-                
-                consumer.setProperty("title", attributes.get("title"));
-                consumer.setProperty("trusted", Boolean.valueOf(attributes.get("trusted")));
-                consumer.setProperty("description", attributes.get("description"));
-                consumer.setProperty("technical_contact", attributes.get("technical_contact"));
-                
-                return ImmediateFuture.of(consumer);
-            }
-        } catch (SSOException e) {
-            LOGGER.debug("Could not get consumer from key", e);
+            return ImmediateFuture.of(consumerCache.get(consumerKey));
+        } catch (EntryUpdateException e) {
+            LOGGER.error("Couldn't get consumer from key " + consumerKey, e.getCause());
         }
-
+        
         return ImmediateFuture.of(null);
     }
 
     public Future<OAuthToken> getToken(String tokenString) {
         try {
-            OAuthServiceRequest request = new OAuthServiceRequest.GetTokenRequest(tokenString, _config.getString("shire.providerid"));
-
-            LOGGER.info("Trying to get token details from token:" + request);
-
-            Map<String, String> attributes = getResponse(request);
-
-            OAuthToken token = OAuthToken.fromMap(attributes);
-
-            return ImmediateFuture.of(token);
-        } catch (SSOException e) {
-            LOGGER.error("Could not get token details from token", e);
+            return ImmediateFuture.of(tokenCache.get(tokenString));
+        } catch (EntryUpdateException e) {
+            LOGGER.error("Couldn't get token for token string " + tokenString, e.getCause());
         }
-
+        
         return ImmediateFuture.of(null);
     }
 
@@ -280,5 +259,75 @@ public final class OAuthServiceImpl implements OAuthService {
     public final void setConfig(final Configuration config) {
         _config = config;
     }
+    
+    private class OAuthConsumerEntryFactory extends SingularEntryFactory<String, OAuthConsumer> {
+
+        public OAuthConsumer create(String consumerKey) throws EntryUpdateException {
+            try {
+                OAuthServiceRequest request = new OAuthServiceRequest.GetConsumerRequest(consumerKey, _config.getString("shire.providerid"));
+
+                LOGGER.info("Trying to get consumer from key:" + request);
+
+                Map<String, String> attributes = getResponse(request);
+                
+                OAuthConsumer consumer = null;
+                if (attributes.containsKey("consumer_key") && attributes.containsKey("consumer_secret")) {
+                    if (attributes.get("key_type").equals("RSA_PRIVATE")) {
+                        consumer = new OAuthConsumer(attributes.get("callback_url"), attributes.get("consumer_key"), null, generateServiceProvider());
+                        
+                        // The oauth.net java code has lots of magic. By setting this
+                        // property here, code thousands of lines away knows that the
+                        // consumerSecret value in the consumer should be treated as an RSA
+                        // private key and not an HMAC key.
+                        consumer.setProperty(OAuth.OAUTH_SIGNATURE_METHOD, OAuth.RSA_SHA1);
+                        consumer.setProperty(RSA_SHA1.PUBLIC_KEY, attributes.get("consumer_secret"));
+                    } else {
+                        consumer = new OAuthConsumer(attributes.get("callback_url"), attributes.get("consumer_key"), attributes.get("consumer_secret"), generateServiceProvider());
+                        consumer.setProperty(OAuth.OAUTH_SIGNATURE_METHOD, OAuth.HMAC_SHA1);
+                    }
+                    
+                    consumer.setProperty("title", attributes.get("title"));
+                    consumer.setProperty("trusted", Boolean.valueOf(attributes.get("trusted")));
+                    consumer.setProperty("description", attributes.get("description"));
+                    consumer.setProperty("technical_contact", attributes.get("technical_contact"));
+                    
+                    return consumer;
+                }
+                
+                return null;
+            } catch (SSOException e) {
+                throw new EntryUpdateException(e);
+            }
+        }
+
+        public boolean shouldBeCached(OAuthConsumer consumer) {
+            return true;
+        }
+        
+    };
+    
+    private class OAuthTokenEntryFactory extends SingularEntryFactory<String, OAuthToken> {
+
+        public OAuthToken create(String tokenString) throws EntryUpdateException {
+            try {
+                OAuthServiceRequest request = new OAuthServiceRequest.GetTokenRequest(tokenString, _config.getString("shire.providerid"));
+    
+                LOGGER.info("Trying to get token details from token:" + request);
+    
+                Map<String, String> attributes = getResponse(request);
+    
+                OAuthToken token = OAuthToken.fromMap(attributes);
+    
+                return token;
+            } catch (SSOException e) {
+                throw new EntryUpdateException(e);
+            }
+        }
+
+        public boolean shouldBeCached(OAuthToken token) {
+            return token != null && token.getType() != Type.REQUEST;
+        }
+        
+    };
 
 }
