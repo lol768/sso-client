@@ -1,7 +1,6 @@
 package uk.ac.warwick.sso.client.oauth;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.concurrent.ExecutionException;
 
 import javax.servlet.Filter;
@@ -87,11 +86,8 @@ public final class OAuthFilter implements Filter {
             // valid user. This is usually because the token is expired (or we
             // purged the tokens from the db)
             if (_expiredToken401) {
-                URL url = new URL(requestedUrl);
-                String realm = url.getProtocol() + "://" + url.getHost();
-                
                 // Send a hint to the consumer that they should be OAuthing
-                response.addHeader("WWW-Authenticate", "OAuth realm=\"" + realm + "\"");
+                response.addHeader("WWW-Authenticate", "OAuth realm=\"" + getConfig().getString("shire.providerid") + "\"");
                 
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;

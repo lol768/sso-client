@@ -35,6 +35,9 @@ import uk.ac.warwick.sso.client.tags.SSOLinkGenerator;
 import uk.ac.warwick.userlookup.User;
 
 @SuppressWarnings("serial")
+/**
+ * @deprecated See SSO-840
+ */
 public abstract class AbstractOAuthServlet extends HttpServlet {
     
     public static final String OAUTH_SESSION_HANDLE = "oauth_session_handle";

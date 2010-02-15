@@ -16,6 +16,8 @@ import uk.ac.warwick.userlookup.User;
  * A servlet designed for extension by the developer of the parent application,
  * which will present a form to the user asking whether they wish to authorise
  * this application, and accept the response from that form.
+ * 
+ * @deprecated See SSO-840
  */
 @SuppressWarnings("serial")
 public abstract class AbstractUserAuthorisationServlet extends AbstractOAuthServlet {

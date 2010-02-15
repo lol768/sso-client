@@ -15,6 +15,9 @@ import net.oauth.OAuthMessage;
 import net.oauth.server.OAuthServlet;
 
 @SuppressWarnings("serial")
+/**
+ * @deprecated See SSO-840
+ */
 public class AuthorisationServlet extends AbstractOAuthServlet {
     
     public static final String AUTHORISE_PARAMETER = "authorise";

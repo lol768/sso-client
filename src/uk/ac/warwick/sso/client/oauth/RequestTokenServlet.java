@@ -17,6 +17,9 @@ import net.oauth.OAuth.Parameter;
 import net.oauth.server.OAuthServlet;
 
 @SuppressWarnings("serial")
+/**
+ * @deprecated See SSO-840
+ */
 public class RequestTokenServlet extends AbstractOAuthServlet {
     
     @Override
