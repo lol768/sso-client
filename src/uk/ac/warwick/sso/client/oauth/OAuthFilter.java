@@ -13,7 +13,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.oauth.OAuth;
 import net.oauth.OAuthMessage;
+import net.oauth.OAuthProblemException;
 import net.oauth.server.OAuthServlet;
 
 import org.apache.commons.configuration.Configuration;
@@ -65,7 +67,12 @@ public final class OAuthFilter implements Filter {
             try {
                 OAuthToken token = getOAuthService().getToken(message.getToken()).get();
                 
-                if (token != null && token.isAuthorised() && !token.isExpired() && token.getType() == Type.ACCESS && token.getConsumerKey().equals(message.getConsumerKey())) {
+                if (token != null 
+                 && token.isAuthorised() 
+                 && !token.isExpired() 
+                 && token.getType() == Type.ACCESS 
+                 && token.getConsumerKey().equals(message.getConsumerKey())
+                 && isCorrectScope(token, getConfig().getString("shire.providerid"))) {
                     user = getUserLookup().getUserByUserId(token.getUserId());
                     
                     if (user != null && user.isFoundUser()) {
@@ -76,6 +83,8 @@ public final class OAuthFilter implements Filter {
                         return;
                     }
                 }
+            } catch (OAuthProblemException e) {
+                OAuthServlet.handleException(response, e, getConfig().getString("shire.providerid"));
             } catch (ExecutionException e) {
                 LOGGER.error("Couldn't retrieve user from OAuth token", e);
             } catch (InterruptedException e) {
@@ -95,6 +104,18 @@ public final class OAuthFilter implements Filter {
         }
         
         chain.doFilter(request, response);
+    }
+
+    private static boolean isCorrectScope(OAuthToken token, String expectedScope) throws OAuthProblemException {
+        for (String scope : token.getService().split("\\+")) {
+            if (scope.equalsIgnoreCase(expectedScope)) {
+                return true;
+            }
+        }
+        
+        OAuthProblemException e = new OAuthProblemException(OAuth.Problems.PARAMETER_REJECTED);
+        e.setParameter(OAuth.Problems.OAUTH_PARAMETERS_REJECTED, "scope");
+        throw e;
     }
 
     public void init(FilterConfig ctx) throws ServletException {
@@ -177,5 +198,4 @@ public final class OAuthFilter implements Filter {
     public void setExpiredToken401(final boolean expiredToken401) {
         _expiredToken401 = expiredToken401;
     }
-
 }
