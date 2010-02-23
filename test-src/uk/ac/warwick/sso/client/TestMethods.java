@@ -1,0 +1,73 @@
+package uk.ac.warwick.sso.client;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.hamcrest.Matcher;
+import static org.hamcrest.core.DescribedAs.describedAs;
+
+import uk.ac.warwick.userlookup.AnonymousUser;
+import uk.ac.warwick.userlookup.User;
+
+/**
+ * Methods for static importing in tests. 
+ */
+@SuppressWarnings("unchecked")
+public class TestMethods {
+	
+	private TestMethods() {}
+	
+	public static Matcher<User> verified() { return isVerified(true); }
+	
+	public static <T> Matcher<T> isVerified(boolean verified) {
+		Matcher<T> hasProperty = hasProperty("verified", is(verified));
+		return describedAs("verified user", hasProperty);
+	}
+	
+	public static Matcher<User> found() {
+		Matcher<User> hasProperty = hasProperty("foundUser", is(true));
+		return describedAs("found user", hasProperty);
+	}
+	
+	public static Matcher<User> anonymous() {
+		Matcher<User> anonymous = allOf(verified(), not(found()));
+		return describedAs("anonymous user", anonymous);
+	}
+	
+	public static Matcher<User> unverified() {
+		return not(verified());
+	}
+	
+	/**
+	 * Create a valid test User object.
+	 */
+	public static User user(String userId) {
+		User user = new User(userId);
+		user.setFullName(String.format("%sy %serson", userId, userId));
+		user.setFoundUser(true);
+		return user;
+	}
+	
+	/**
+	 * Create an AnonymousUser.
+	 */
+	public static AnonymousUser anon(String userId) {
+		AnonymousUser user = new AnonymousUser();
+		user.setUserId(userId);
+		return user;
+	}
+	
+	public static Map<String,String> mapFrom(String... keysAndValues) {
+		if (keysAndValues.length % 2 != 0) {
+			throw new IllegalArgumentException("must be an even number of strings");
+		}
+		Map<String,String> map = new HashMap<String, String>();
+		for (int i=0; i<keysAndValues.length-1; i+=2) {
+			map.put(keysAndValues[i], keysAndValues[i+1]);
+		}
+		return map;
+	}
+}

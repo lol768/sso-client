@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
+import org.eclipse.jetty.util.log.Log;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
@@ -53,6 +54,8 @@ final class SSOUserLookup implements UserFilter {
 	 */
 	public List<User> findUsersWithFilter(Map<String,String> filterValues, boolean returnDisabledUsers)
 			throws UserLookupException {
+		String error;
+		Exception exception;
 		try {
 			HttpMethodWebService service = new HttpMethodWebService(new URL(_ssosUrl), new GetMethodFactory(), getTimeoutConfig(), _version, _apiKey);
 			Map<String,Object> parameters = new HashMap<String,Object>();
@@ -79,13 +82,17 @@ final class SSOUserLookup implements UserFilter {
 			return users;
 			
 		} catch (MalformedURLException e) {
-			LOGGER.warn("Invalid SSOS url: " + _ssosUrl);
+			exception = e;
+			error = "Invalid SSOS url: " + _ssosUrl;
 		} catch (HandlerException e) {
-			LOGGER.warn("Error reading XML response from SSOS", e);
+			exception = e;
+			error = "Error reading XML response from SSOS";
 		} catch (WebServiceException e) {
-			LOGGER.warn("Exception while contacting SSOS", e);
+			exception = e;
+			error = "Exception while contacting SSOS";
 		}
-		return Collections.emptyList();
+		LOGGER.warn(exception);
+		throw new UserLookupException(error, exception);
 	}
 	
 	private String getSsosUrl(String providedUrl) {

@@ -434,7 +434,13 @@ public class UserLookup implements UserLookupInterface {
 
 		Map<String,String> filterValues = new HashMap<String,String>();
 		filterValues.put("warwickuniid", warwickUniId);
-		List<User> users = findUsersWithFilter(filterValues, returnDisabledUsers);
+		List<User> users;
+		try {
+			users = findUsersWithFilterUnsafe(filterValues, returnDisabledUsers);
+		} catch (UserLookupException e) {
+			LOGGER.warn("Problem looking up user by warwickuniid, returning unverified user");
+			return new UnverifiedUser(e);
+		}
 
 		if (users.isEmpty()) {
 			LOGGER.debug("No user found that matches Warwick Uni Id:" + warwickUniId);
@@ -469,22 +475,30 @@ public class UserLookup implements UserLookupInterface {
 	 */
 	public final List<User> findUsersWithFilter(final Map<String,String> filterValues, boolean returnDisabledUsers) {
 		try {
-			List<User> list = new SSOUserLookup(_ssosUrl, _apiKey).findUsersWithFilter(filterValues, returnDisabledUsers);
-			final Cache<String, User> cache = getUserByUserIdCache();
-			for (User user : list) {
-				if (user.isFoundUser()) {
-					String userId = user.getUserId();
-					if (userId != null && !"".equals(userId.trim())) {
-						cache.put(new Entry<String,User>(userId, user));
-					}
-				}
-			}
-			return list;
+			return findUsersWithFilterUnsafe(filterValues, returnDisabledUsers);
 		} catch (UserLookupException e) {
 			LOGGER.warn("findUsersWithFilter failed, returning empty list", e);
 			return new ArrayList<User>();
 		}
 	}
+
+	private List<User> findUsersWithFilterUnsafe(
+			final Map<String, String> filterValues, boolean returnDisabledUsers)
+			throws UserLookupException {
+		List<User> list = new SSOUserLookup(_ssosUrl, _apiKey).findUsersWithFilter(filterValues, returnDisabledUsers);
+		final Cache<String, User> cache = getUserByUserIdCache();
+		for (User user : list) {
+			if (user.isFoundUser()) {
+				String userId = user.getUserId();
+				if (userId != null && !"".equals(userId.trim())) {
+					cache.put(new Entry<String,User>(userId, user));
+				}
+			}
+		}
+		return list;
+	}
+	
+	
 
 	/**
 	 * @param ssosUrl

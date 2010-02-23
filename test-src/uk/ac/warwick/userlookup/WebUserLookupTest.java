@@ -3,7 +3,6 @@ package uk.ac.warwick.userlookup;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +14,6 @@ import junit.framework.TestCase;
 
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
 public class WebUserLookupTest extends TestCase {
@@ -47,7 +45,7 @@ public class WebUserLookupTest extends TestCase {
 			manyUsers.add("cuxx"+i);
 		}
 		
-		runServer(port, handler, new Runnable(){
+		TestSentryServer.runServer(port, handler, new Runnable(){
 			public void run() {
 				try {
 					WebServiceTimeoutConfig config = new WebServiceTimeoutConfig(0, 0);
@@ -65,19 +63,6 @@ public class WebUserLookupTest extends TestCase {
 		});
 	}
 
-	private void runServer(int port, Handler handler, Runnable callback)
-			throws Exception {
-		Server server = new Server(port);
-		try {
-			server.setHandler(handler);
-			server.start();
-			System.out.println("Server started");
-			callback.run();
-		} finally {
-			System.out.println("Server stopping");
-			server.stop();
-			server.destroy();
-		}
-	}
+	
 
 }
