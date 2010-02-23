@@ -6,11 +6,16 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.hamcrest.collection.IsCollectionWithSize.*;
 import static uk.ac.warwick.sso.client.TestMethods.*;
+import static org.hamcrest.collection.IsEmptyCollection.*;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.hamcrest.Matcher;
+import org.hamcrest.collection.IsEmptyCollection;
 import org.jmock.Mockery;
 import org.junit.Before;
 import org.junit.Test; 
@@ -44,8 +49,8 @@ public class UserLookupTest {
 			assertThat(usersMap, hasEntry(is("aaa"), is(unverified()) ));
 			assertThat(usersMap, hasEntry(is("bbb"), is(unverified()) ));
 			
-			
-			ul.findUsersWithFilter(mapFrom("sn","Aigabe"));
+			List<User> filtered = ul.findUsersWithFilter(mapFrom("sn","Aigabe"));
+			assertThat((Collection)filtered, is(empty()));
 		}});
 	}
 	
@@ -53,8 +58,7 @@ public class UserLookupTest {
 		sentry.willReturnUsers(new AnonymousUser());
 		sentry.run(new Runnable() { public void run() {
 			User anon = ul.getUserByUserId("invisibleman");
-			assertThat(anon, is(verified()));
-			assertThat(anon, hasProperty("foundUser", is(false)));
+			assertThat(anon, is(anonymous()));
 		}});
 	}
 	

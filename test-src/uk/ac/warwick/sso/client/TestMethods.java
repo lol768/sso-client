@@ -6,6 +6,8 @@ import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import static org.hamcrest.core.DescribedAs.describedAs;
 
@@ -69,5 +71,18 @@ public class TestMethods {
 			map.put(keysAndValues[i], keysAndValues[i+1]);
 		}
 		return map;
+	}
+	
+	public static Matcher<Map<?,?>> emptyMap() {
+		return new BaseMatcher<Map<?,?>>() {
+			public boolean matches(Object item) {
+				return ((Map)item).isEmpty();
+			}
+
+			public void describeTo(Description description) {
+				description.appendText("empty");
+			}
+			
+		};
 	}
 }
