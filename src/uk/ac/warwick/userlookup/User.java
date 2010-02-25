@@ -48,6 +48,8 @@ public class User implements Serializable, ExtraProperties {
 	private String _warwickId = "";
 	
 	private boolean verified = true;
+	
+	private boolean oauthUser;
 
 	private Map<String, String> _extraProperties = new HashMap<String, String>();
 
@@ -468,5 +470,17 @@ public class User implements Serializable, ExtraProperties {
 			.replaceAll("\"", "&quot;")
 			.replaceAll("<", "&lt;")
 			.replaceAll(">", "&gt;");
+	}
+
+    /**
+     * Will return true if the user was generated from an OAuth Access token
+     * rather than a cookie or a username and password.
+     */
+	public boolean isOAuthUser() {
+	    return oauthUser;
+	}
+	
+	public void setOAuthUser(boolean isOAuthUser) {
+	    this.oauthUser = isOAuthUser;
 	}
 }
