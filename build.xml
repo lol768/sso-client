@@ -2,53 +2,114 @@
 
 <project xmlns:ivy="antlib:org.apache.ivy.ant" basedir="." default="buildjar" name="sso-client">
 
+  <property file="build.properties"/>
+  <property name="srcDir" value="src" />
+  <property name="buildDir" value="build" />
+  <property name="buildName" value="sso-client" />
+	<property name="compileDest" value="${buildDir}/${buildName}-jar" />
+	<property name="compileDest.tests" value="${buildDir}/test" />
+  <property name="jarFile" value="dist/${buildName}-${version}.jar" />
+	
+	<path id="project.classpath">
+    <fileset dir="external-libs">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+	
+	<path id="run.classpath">
+    <pathelement location="${buildDir}/${buildName}-jar"/>
+    <pathelement location="external-libs"/>
+    <fileset dir="external-libs">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+	
 	<target name="init">
-
-		<property file="build.properties"/>
-		<property name="srcDir" value="src" />
-		<property name="buildDir" value="build" />
-		<property name="buildName" value="sso-client" />
-		<property name="jarFile" value="dist/${buildName}-${version}.jar"/>
-		
-		<path id="project.classpath">
-			<fileset dir="external-libs">
-				<include name="*.jar"/>
-			</fileset>
-		</path>
-			
-		<path id="run.classpath">
-			<pathelement location="${buildDir}/${buildName}-jar"/>
-			<pathelement location="external-libs"/>
-			<fileset dir="external-libs">
-				<include name="*.jar"/>
-			</fileset>
-		</path>
 
 		<delete file="${jarFile}" />	
 		
 		<delete dir="${buildDir}" />
 
-		<mkdir dir="${buildDir}/${buildName}-jar/"/>
+		<mkdir dir="${compileDest}"/>
+		<mkdir dir="${compileDest.tests}"/>
 		
 	</target>
+	
 
+  <target name="cucumber" depends="-compile-impl, -compile-tests">
+    <property environment="ENV" />
+    <java classname="org.jruby.Main" fork="true" failonerror="true">
+      <classpath>
+        <pathelement location="${compileDest}" />
+      	<pathelement location="${compileDest.tests}" />
+        <!-- <pathelement location="external-libs/test/jruby/lib/jruby.jar" /> -->
+      	<!-- <fileset dir="external-libs/test/jruby/lib" includes="**/*.jar" /> -->
+        <fileset dir="external-libs" includes="**/*.jar" />
+      </classpath>
+      <arg value="-I" />
+      <arg value="external-libs/test/jruby/lib/ruby/1.8" />
+      <arg value="-I" />
+      <arg value="external-libs/test/jruby/lib/ruby/site_ruby/1.8" />
+      <arg value="-I" />
+      <arg value="external-libs/test/jruby/lib/ruby/gems/1.8/gems/rspec-1.2.6/lib" />
+      <arg value="-I" />
+      <arg value="external-libs/test/cucumber/lib" />
+      
+      <arg value="external-libs/test/cucumber/bin/cucumber" />
+      <arg value="specs/features"/>
+    </java>
+  </target>
 
-	<target name="compile" depends="init">
-		
-		<javac destdir="${buildDir}/${buildName}-jar" excludes="" includes="" srcdir="${srcDir}" source="1.5" target="1.5" debug="true">
-				<classpath refid="project.classpath" />
+	<target name="javadoc">
+	 <delete dir="doc" includes="*" />
+	 <javadoc windowtitle="SSO Client API"
+	 	        destdir="doc"
+	 	        defaultexcludes="yes">
+	   <sourcefiles>
+	 	   <fileset dir="src">
+	 	     <patternset includes="**/package.java" />
+	 	     <patternset includes="**/*User.java" />
+	   	   <patternset includes="**/UserLookup.java" />
+	 	     <patternset includes="**/UserLookupFactory.java" />
+	 	     <patternset includes="**/UserLookupInterface.java" />
+	 	     <patternset includes="**/Group.java" />
+	 	     <patternset includes="**/SSOConfigLoader.java" />
+	 	     <patternset includes="**/GroupService.java" />
+         
+  	 	   <patternset includes="**/oauth/OAuthFilter.java" />
+	 	     <patternset includes="**/oauth/OAuthService.java" />
+	 	     <patternset includes="**/oauth/OAuthServiceImpl.java" />
+	 	     <patternset includes="**/oauth/OAuthToken.java" />
+	       <patternset includes="**/client/tags/*" />
+	 	     <patternset includes="**/client/*Filter.java" />
+	 	     <patternset includes="**/client/*Servlet.java" />
+	 	     <patternset includes="**/*Exception.java" />
+	   	 </fileset>
+	 	 </sourcefiles>
+	 </javadoc>
+	</target>
+	
+	<target name="javadoc-jar" depends="javadoc">
+	  <jar basedir="doc" destfile="dist/${buildName}-${version}-docs.jar" />
+	</target>
+
+	<target name="compile" depends="init, -compile-impl"/>
+	
+	<target name="-compile-impl">
+		<javac destdir="${compileDest}" excludes="" includes="" srcdir="${srcDir}" source="1.5" target="1.5" debug="true">
+		   <classpath refid="project.classpath" />
 		</javac>
-		<copy todir="${buildDir}/${buildName}-jar">
-			<fileset dir="${buildName}-jar">
-				<include name="**/*.*" />
-			</fileset>
-			<fileset dir="${srcDir}">
-				
-			</fileset>
-		</copy>
-		
 	</target>
-
+	
+	<target name="-compile-tests" depends="-compile-impl">
+		<mkdir dir="${compileDest.tests}"/>
+		<javac destdir="${compileDest.tests}" excludes="" includes="" srcdir="test-src" source="1.5" target="1.5" debug="true">
+       <classpath>
+       	  <pathelement path="${compileDest}" />
+       	  <fileset dir="external-libs" includes="**/*.jar" />
+       </classpath>
+    </javac>
+  </target>
 	
 	<target name="buildjar" depends="compile">
 		
