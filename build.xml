@@ -57,6 +57,13 @@
       <arg value="external-libs/test/cucumber/lib" />
       
       <arg value="external-libs/test/cucumber/bin/cucumber" />
+    	<arg value="--format" />
+    	<arg value="pretty" />
+    	<arg value="--format" />
+    	<arg value="junit" />
+    	<arg value="--out" />
+    	<arg value="build/test-results" />
+    	
       <arg value="specs/features"/>
     </java>
   </target>

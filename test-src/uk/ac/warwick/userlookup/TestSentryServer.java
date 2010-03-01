@@ -3,6 +3,7 @@ package uk.ac.warwick.userlookup;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.helpers.OnlyOnceErrorHandler;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -31,6 +34,9 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
  * </pre>
  */
 public class TestSentryServer extends AbstractHandler {
+	
+	private static final Logger LOGGER = Logger.getLogger(TestSentryServer.class);
+	
 	private int requests;
 	
 	// Port should be free unless you are running a Call of Duty server
@@ -47,9 +53,11 @@ public class TestSentryServer extends AbstractHandler {
 		this.port = port;
 	}
 
-	private List<Map<String,String>> results;
+	private List<Map<String,String>> results = new ArrayList<Map<String,String>>();
 
 	private UserResolver userResolver;
+
+	private boolean onlyIfFound;
 	
 	public void setResults(List<Map<String, String>> results) {
 		this.results = results;
@@ -71,11 +79,15 @@ public class TestSentryServer extends AbstractHandler {
 			throw new ServletException("Server configured to break");
 		}
 		
+		List<String> requestedUserIds = Arrays.asList(req.getParameterValues("user"));
 		
 		boolean first = true;
 		PrintWriter writer = res.getWriter();
 		if (userResolver == null) {
 			for (Map<String,String> attributes : results) {
+				if (onlyIfFound && !requestedUserIds.contains(attributes.get("user"))) {
+					continue;
+				}
 				if (!first) {
 					writer.println("-------");
 				}
@@ -83,7 +95,7 @@ public class TestSentryServer extends AbstractHandler {
 				first = false;
 			}
 		} else {
-			for (String userId : req.getParameterValues("user")) {
+			for (String userId : requestedUserIds) {
 				if (!first) {
 					writer.println("-------");
 				}
@@ -125,10 +137,10 @@ public class TestSentryServer extends AbstractHandler {
 		try {
 			server.setHandler(handler);
 			server.start();
-			System.out.println("Server started");
+			LOGGER.debug("Server started");
 			callback.run();
 		} finally {
-			System.out.println("Server stopping");
+			LOGGER.debug("Server stopping");
 			server.stop();
 			server.destroy();
 		}
@@ -140,11 +152,16 @@ public class TestSentryServer extends AbstractHandler {
 	public void willReturnUsers(User... users) {
 		brokenServer = false;
 		userResolver = null;
-		List<Map<String,String>> results = new ArrayList<Map<String,String>>();
+		List<Map<String,String>> map = new ArrayList<Map<String,String>>();
 		for (User user : users) {
-			results.add(toMap(user));
+			map.add(toMap(user));
 		}
-		setResults(results);
+		setResults(map);
+	}
+	
+	public void willReturnUsersIfFound(User...users) {
+		willReturnUsers(users);
+		onlyIfFound = true;
 	}
 	
 	public void willReturnErrors() {

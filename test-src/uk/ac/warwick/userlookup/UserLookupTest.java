@@ -1,13 +1,11 @@
 package uk.ac.warwick.userlookup;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.collection.IsEmptyCollection.*;
 import static org.hamcrest.collection.IsMapContaining.*;
 import static org.junit.Assert.*;
 import static uk.ac.warwick.sso.client.TestMethods.*;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
