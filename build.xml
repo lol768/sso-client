@@ -24,6 +24,16 @@
     </fileset>
   </path>
 	
+	<path id="test.classpath">
+		<pathelement location="src" />
+		<pathelement location="test-src" />
+    <pathelement location="${compileDest}" />
+    <pathelement location="${compileDest.tests}" />
+    <!-- <pathelement location="external-libs/test/jruby/lib/jruby.jar" /> -->
+    <!-- <fileset dir="external-libs/test/jruby/lib" includes="**/*.jar" /> -->
+    <fileset dir="external-libs" includes="**/*.jar" />
+  </path>
+	
 	<target name="init">
 
 		<delete file="${jarFile}" />	
@@ -39,14 +49,7 @@
   <target name="cucumber" depends="-compile-impl, -compile-tests">
     <property environment="ENV" />
     <java classname="org.jruby.Main" fork="true" failonerror="true">
-      <classpath>
-      	<pathelement location="src" />
-        <pathelement location="${compileDest}" />
-      	<pathelement location="${compileDest.tests}" />
-        <!-- <pathelement location="external-libs/test/jruby/lib/jruby.jar" /> -->
-      	<!-- <fileset dir="external-libs/test/jruby/lib" includes="**/*.jar" /> -->
-        <fileset dir="external-libs" includes="**/*.jar" />
-      </classpath>
+      <classpath refid="test.classpath" />
       <arg value="-I" />
       <arg value="external-libs/test/jruby/lib/ruby/1.8" />
       <arg value="-I" />
@@ -129,7 +132,19 @@
 		
 		<zip destfile="dist/${buildName}-${version}-src.zip" basedir="${srcDir}" />
 	</target>
-		
+	
+	<target name="run-tests" depends="-compile-tests">
+	  <junit failureproperty="tests.failed">
+		  <classpath refid="test.classpath" />
+	  	<formatter type="xml" />
+      <batchtest todir="${buildDir}/test-results">
+        <fileset dir="${compileDest.tests}" includes="**/*Test.class" excludes="**/Abstract*.class" />
+      </batchtest>
+		</junit>
+		<fail if="tests.failed" message="Unit tests failed" />
+	</target>
+  
+	<target name="integration" depends="buildjar, run-tests, cucumber" />
 
 	<target name="deployjar" depends="compile,buildjar">
 		<copy file="${jarFile}" todir="/apps/jboss-3.2.7/server/default/deploy/" />
