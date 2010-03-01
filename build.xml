@@ -122,11 +122,16 @@
     </javac>
   </target>
 	
+	<target name="build-release" depends="buildjar">
+	  
+	</target>
+	
 	<target name="buildjar" depends="compile">
 		
+		<copy file="src/ssoclient.version" todir="${buildDir}/${buildName}-jar" />
 		<replace file="${buildDir}/${buildName}-jar/ssoclient.version" token="[version]" value="${version}" />
 		
-		<jar destfile="${jarFile}" manifest="${buildName}-jar/META-INF/manifest.mf">
+		<jar destfile="${jarFile}">
 			<fileset dir="${buildDir}/${buildName}-jar/" />
 		</jar>
 		
@@ -134,6 +139,7 @@
 	</target>
 	
 	<target name="run-tests" depends="-compile-tests">
+		<mkdir dir="${buildDir}/test-results" />
 	  <junit failureproperty="tests.failed">
 		  <classpath refid="test.classpath" />
 	  	<formatter type="xml" />
