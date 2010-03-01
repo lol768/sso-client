@@ -3,7 +3,6 @@ package uk.ac.warwick.userlookup;
 /**
  * Exception to indicate that there was a problem looking up a user
  */
-@Api
 public class UserLookupException extends Exception {
 	private static final long serialVersionUID = 1196632562612007291L;
 

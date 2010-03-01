@@ -23,6 +23,14 @@ import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService;
 
 /**
  * A class to look up arbitrary users from Single Sign-on.
+ * <p>
+ * The recommended way to get an instance of this is to use
+ * {@link UserLookupFactory#getInstance()}, which will return a
+ * {@link UserLookupInterface} object. However, it is also
+ * acceptable to simply create a UserLookup object yourself. If you
+ * do this, it's recommended to make one instance of it for your
+ * application and re-use it. If you use a Web framework such as
+ * Spring then you can create it as a bean and share it around.
  */
 public class UserLookup implements UserLookupInterface {
 
@@ -468,11 +476,7 @@ public class UserLookup implements UserLookupInterface {
 		return findUsersWithFilter(filterValues, false);
 	}
 
-	/**
-	 * Return a list of users with names matching the parameters passed in FilterValues.
-	 * 
-	 * @see LDAPUserLookup#findUsersWithFilter(HashMap)
-	 */
+
 	public final List<User> findUsersWithFilter(final Map<String,String> filterValues, boolean returnDisabledUsers) {
 		try {
 			return findUsersWithFilterUnsafe(filterValues, returnDisabledUsers);
@@ -643,23 +647,6 @@ public class UserLookup implements UserLookupInterface {
 		this.asynchronousUpdates = async;
 	}
 
-	/**
-	 * This will go and get all the usercodes and then turn those codes into User objects. This will return a fully
-	 * populated list of User's.
-	 * 
-	 * @param userCodes
-	 * @return
-	 * 
-	 * @deprecated Use {@link UserLookup#getUsersByUserIds(List)}.
-	 */
-	public final List<User> convertUserCodesIntoUsers(final List<String> userCodes) {
-		List<User> users = new ArrayList<User>();
-		for (String userCode : userCodes) {
-			users.add(getUserByUserId(userCode));
-		}
-		return users;
-	}
-
 
 	public void setApiKey(String apiKey) {
 		_apiKey = apiKey;
@@ -716,6 +703,8 @@ public class UserLookup implements UserLookupInterface {
 	}
 
 	/**
+	 * Don't use this in regular code.
+	 * <p>
 	 * If groupService has not yet been created, we can use this to set the innermost
 	 * GroupService backend that will get wrapped with the other GroupService instances.
 	 * This is probably only going to be useful for testing the behaviour of the

@@ -24,13 +24,16 @@ import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
 import uk.ac.warwick.userlookup.GroupService;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookupFactory;
+import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
 /**
- * Configure with an init-param called "group" which is a group name from WebGroups. Only people in that group will be
- * allowed through
  * 
- * @author Kieran Shaw
- * 
+ * A filter which will allow through requests only if the user is a member of a particular
+ * Webgroup - otherwise it will redirect to the login screen.
+ * <p>
+ * <b>Usage:</b> In the filter definition in web.xml, use an init-param called "group" whose value is the
+ * name of the Webgroup you want to use.
+ *
  */
 public class UserInWebGroupFilter implements Filter {
 
@@ -63,10 +66,14 @@ public class UserInWebGroupFilter implements Filter {
 
 		User user = SSOClientFilter.getUserFromRequest((HttpServletRequest) req);
 
-		if (user.isLoggedIn() && getGroupService().isUserInGroup(user.getUserId(), _group)) {
-			LOGGER.debug("User " + user.getUserId() + " is in group " + _group + " so allowing through filter");
-			chain.doFilter(req, res);
-			return;
+		try {
+			if (user.isLoggedIn() && getGroupService().isUserInGroup(user.getUserId(), _group)) {
+				LOGGER.debug("User " + user.getUserId() + " is in group " + _group + " so allowing through filter");
+				chain.doFilter(req, res);
+				return;
+			}
+		} catch (GroupServiceException e) {
+			LOGGER.warn("Error looking up group, continuing assuming user is not in group.", e);
 		}
 
 		LOGGER.info("User " + user.getUserId() + " is NOT in group " + _group + " so NOT allowing through filter");

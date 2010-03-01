@@ -4,7 +4,6 @@
  */
 package uk.ac.warwick.sso.client;
 
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
@@ -29,10 +28,20 @@ import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 
 /**
+ * Listener to be inserted into web.xml which will load the SSO configuration on startup.
+ * 
  * Requires a ServletContext Parameter to be set "ssoclient.config=/sso-config.xml"
  * 
- * @author Kieran Shaw
+ * <p><b>Example</b></p>
+ * <pre>
+ * &lt;context-param>
+ *  &lt;param-name>ssoclient.config&lt;/param-name>
+ *  &lt;param-value>/sso-config.xml&lt;/param-value>
+ * &lt;/context-param>
  * 
+ * &lt;listener>
+ *  &lt;listener-class>uk.ac.warwick.sso.client.SSOConfigLoader&lt;/listener-class>
+ * &lt;/listener>
  */
 public class SSOConfigLoader implements ServletContextListener {
 
@@ -61,15 +70,17 @@ public class SSOConfigLoader implements ServletContextListener {
 			String message = "Could not find SSO config at location " + ssoConfigLocation + " - check your classpath";
 			LOGGER.error(message);
 			throw new RuntimeException(message);
-		}
+		}		
 
 		XMLConfiguration config;
 		try {
-			config = new XMLConfiguration(new File(configUrl.getFile()));
+			config = new XMLConfiguration(configUrl);
 		} catch (ConfigurationException e) {
 			throw new RuntimeException("Could not setup configuration", e);
 		}
-
+		
+		sanityCheck(config);
+		
 		if (shouldUseKeystore(config)) {
 			String websignonLoginUrl = config.getString("origin.login.location");
 			setupHttpsProtocol(websignonLoginUrl, config.getString("shire.keystore.location"), config.getString("shire.keystore.password"), config
@@ -80,6 +91,16 @@ public class SSOConfigLoader implements ServletContextListener {
 
 	}
 
+	private void sanityCheck(XMLConfiguration config) {
+		String mode = config.getString("mode");
+		String loginLocation = config.getString("origin.login.location");
+		if ("new".equals(mode) && loginLocation.contains("/slogin")) {
+			LOGGER.error("It looks like you are using new mode with /slogin in the configuration. New mode should point to /hs");
+		} else if ("old".equals(mode) && loginLocation.contains("/hs")) {
+			LOGGER.error("It looks like you are using old mode with /hs in the configuration. Old mode should point to /slogin");
+		}
+	}
+	
 	/**
 	 * Use client keystore for HTTPS connections, unless we're in old
 	 * mode. In old mode, just use the default HTTPS setup. 
@@ -169,8 +190,9 @@ public class SSOConfigLoader implements ServletContextListener {
 			//URL websignonUrl = new URL(websignonLoginUrl);
 			final int standardHttpsPort = 443;
 		
+			URL truststoreUrl = (cacertsKeystoreLoc == null)?null : new URL(cacertsKeystoreLoc);
 			Protocol authhttps = new Protocol(AttributeAuthorityResponseFetcher.ALTERNATE_PROTOCOL, new AuthSSLProtocolSocketFactory(new URL(shireKeystoreLoc),
-					shireKeystorePass, new URL(cacertsKeystoreLoc), cacertsKeystorePass), standardHttpsPort);
+					shireKeystorePass, truststoreUrl, cacertsKeystorePass), standardHttpsPort);
 			Protocol.registerProtocol(AttributeAuthorityResponseFetcher.ALTERNATE_PROTOCOL, authhttps);
 		} catch (MalformedURLException e) {
 			throw new RuntimeException("Could not setup SSL protocols", e);

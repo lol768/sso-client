@@ -13,7 +13,6 @@ import org.apache.log4j.Logger;
  * 
  * @author cusebr
  */
-@Api
 public final class UserLookupFactory {
 	
 	private static final Logger LOGGER = Logger.getLogger(UserLookupFactory.class);

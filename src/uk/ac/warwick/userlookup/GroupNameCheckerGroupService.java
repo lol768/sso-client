@@ -1,6 +1,7 @@
 package uk.ac.warwick.userlookup;
 
 import uk.ac.warwick.userlookup.webgroups.GroupServiceAdapter;
+import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
 
 /**
@@ -14,7 +15,7 @@ public final class GroupNameCheckerGroupService extends GroupServiceAdapter impl
 		super(decorated);
 	}
 
-	public boolean isUserInGroup(final String userId, final String group) {
+	public boolean isUserInGroup(final String userId, final String group) throws GroupServiceException {
 		return group != null && group.indexOf("-") >= 0 && getDecorated().isUserInGroup(userId, group);
 	}
 }

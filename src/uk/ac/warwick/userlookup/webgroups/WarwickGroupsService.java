@@ -33,9 +33,10 @@ public class WarwickGroupsService implements GroupService {
 	public static final String TYPE = "WarwickGroups";
 
 	private String _version;
+	
+	public static final List<Group> PROBLEM_FINDING_GROUPS = Collections.unmodifiableList(Collections.<Group>emptyList());
 
 	public static interface ExecuteAndParseEngine {
-
 		void execute(final String urlPath, final ResultAwareWebServiceResponseHandler<?> handler) throws WebServiceException;
 	}
 
@@ -77,38 +78,39 @@ public class WarwickGroupsService implements GroupService {
 		}
 	}
 
-	public List getGroupsForUser(final String userId) {
+	public List<Group> getGroupsForUser(final String userId) {
 		if (getServiceLocation() == null || getServiceLocation().trim().length() == 0) {
 			LOGGER.warn("uri is invalid, so returning empty groups");
-			return Collections.EMPTY_LIST;
+			return PROBLEM_FINDING_GROUPS;
 		}
 
 		String urlPath = getServiceLocation() + "/query" + "/user/" + userId + "/groups";
 		try {
 			return doQuery(urlPath);
 		} catch (WebServiceException e) {
-			return Collections.EMPTY_LIST;
+			LOGGER.warn("Problem looking up groups: ", e);
+			return PROBLEM_FINDING_GROUPS;
 		}
 	}
 
-	public List getGroupsForDeptCode(final String deptCode) {
+	public List<Group> getGroupsForDeptCode(final String deptCode) {
 		if (getServiceLocation() == null || getServiceLocation().trim().length() == 0) {
 			LOGGER.warn("uri is invalid, so returning empty groups");
-			return Collections.EMPTY_LIST;
+			return PROBLEM_FINDING_GROUPS;
 		}
 
 		String urlPath = getServiceLocation() + "/query/search/deptcode/" + deptCode;
 		try {
 			return doQuery(urlPath);
 		} catch (WebServiceException e) {
-			return Collections.EMPTY_LIST;
+			return PROBLEM_FINDING_GROUPS;
 		}
 	}
 
 	public List getGroupsForQuery(final String search) {
 		if (getServiceLocation() == null || getServiceLocation().trim().length() == 0) {
 			LOGGER.warn("uri is invalid, so returning empty groups");
-			return Collections.EMPTY_LIST;
+			return PROBLEM_FINDING_GROUPS;
 		}
 
 		if (search == null || search.trim().equals("")) {
@@ -119,7 +121,7 @@ public class WarwickGroupsService implements GroupService {
 		try {
 			return doQuery(urlPath);
 		} catch (WebServiceException e) {
-			return Collections.EMPTY_LIST;
+			return PROBLEM_FINDING_GROUPS;
 		}
 	}
 
@@ -127,19 +129,19 @@ public class WarwickGroupsService implements GroupService {
 	 * @param urlPath
 	 * @return
 	 */
-	private List doQuery(String urlPath) throws HttpMethodWebService.WebServiceException {
+	private List<Group> doQuery(String urlPath) throws HttpMethodWebService.WebServiceException {
 		GroupsXMLResponseHandler handler = new GroupsXMLResponseHandler();
 		engine.execute(urlPath, handler);
-		return new ArrayList((Collection) handler.getResult());
+		return new ArrayList<Group>(handler.getResult());
 	}
 
-	public final Group getGroupByName(String groupName) throws GroupNotFoundException {
+	public final Group getGroupByName(String groupName) throws GroupNotFoundException, GroupServiceException {
 		if (getServiceLocation() == null || getServiceLocation().trim().length() == 0) {
 			LOGGER.warn("uri is invalid, so returning empty groups");
-			throw new GroupNotFoundException("No service url provided");
+			throw new GroupServiceException("No service url provided");
 		}
 		if (groupName == null || groupName.trim().equals("")) {
-			throw new GroupNotFoundException("No group name provided");
+			throw new GroupNotFoundException("(null)");
 		}
 
 		groupName = groupName.trim();
@@ -152,13 +154,14 @@ public class WarwickGroupsService implements GroupService {
 		} catch (WebServiceException e) {
 			LOGGER.warn("Error fetching info about group "+groupName+", returning empty group", e);
 			GroupImpl group = new GroupImpl();
+			group.setVerified(false);
 			group.setName(groupName);
 			return group;
 		}
-		Collection groups = (Collection) handler.getResult();
+		Collection<Group> groups = handler.getResult();
 		if (groups.isEmpty()) {
 			LOGGER.warn("Group not found:" + groupName);
-			throw new GroupNotFoundException();
+			throw new GroupNotFoundException(groupName);
 		}
 		return (Group) groups.iterator().next();
 	}
@@ -183,7 +186,7 @@ public class WarwickGroupsService implements GroupService {
 		return handler.getResult();
 	}
 
-	public List getUserCodesInGroup(final String groupName) {
+	public List getUserCodesInGroup(final String groupName) throws GroupServiceException {
 		if (getServiceLocation() == null || getServiceLocation().trim().length() == 0) {
 			LOGGER.warn("uri is invalid, so returning empty groups");
 			return Collections.EMPTY_LIST;

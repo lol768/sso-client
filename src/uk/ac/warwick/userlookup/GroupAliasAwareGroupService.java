@@ -3,7 +3,10 @@ package uk.ac.warwick.userlookup;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import uk.ac.warwick.userlookup.webgroups.GroupServiceAdapter;
+import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
 /**
  * GroupService that knows about the magic ANYONE, MEMBER, STAFF, STAFFNOPGR, PGRESEARCH, ALUMNI and STUDENT groups.
@@ -30,6 +33,8 @@ public final class GroupAliasAwareGroupService extends GroupServiceAdapter imple
 	private static final String PGRSTUDENT_CLASS = "PG(R)";
 	private static final String WARWICKCATEGORY_KEY = "warwickcategory";
 	private static final String RESEARCH_CATEGORY = "R";
+	
+	private static final Logger LOGGER = Logger.getLogger(GroupAliasAwareGroupService.class);
     
     private UserLookup _userLookup;
 
@@ -38,7 +43,7 @@ public final class GroupAliasAwareGroupService extends GroupServiceAdapter imple
         this._userLookup = userlookup;
     }
 
-    public boolean isUserInGroup(final String userId, final String groupName) {
+    public boolean isUserInGroup(final String userId, final String groupName) throws GroupServiceException {
         User user = _userLookup.getUserByUserId(userId);
         if (groupName == null) {
             return false;
@@ -71,7 +76,9 @@ public final class GroupAliasAwareGroupService extends GroupServiceAdapter imple
             String prefix = groupName.substring(0, groupName.indexOf("*"));
             return (userId.startsWith(prefix));
         }
-        return getDecorated().isUserInGroup(userId, groupName);
+        
+		return getDecorated().isUserInGroup(userId, groupName);
+		
     }
 
     private boolean userIsStaffNotPGR(User user) {
@@ -87,7 +94,7 @@ public final class GroupAliasAwareGroupService extends GroupServiceAdapter imple
 			|| RESEARCH_CATEGORY.equals(user.getExtraProperty(WARWICKCATEGORY_KEY));
 	}
 
-	public final List<String> getUserCodesInGroup(final String group) {
+	public final List<String> getUserCodesInGroup(final String group) throws GroupServiceException {
         if (ANYONE.equals(group) || MEMBER.equals(group) || STAFF.equals(group)) {
             return Collections.emptyList();
         }
@@ -97,6 +104,7 @@ public final class GroupAliasAwareGroupService extends GroupServiceAdapter imple
             return Collections.singletonList(group);
         }
 
-        return getDecorated().getUserCodesInGroup(group);
+        
+		return getDecorated().getUserCodesInGroup(group);
     }
 }

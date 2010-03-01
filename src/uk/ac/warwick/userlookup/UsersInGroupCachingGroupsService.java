@@ -10,6 +10,7 @@ import uk.ac.warwick.userlookup.cache.EntryUpdateException;
 import uk.ac.warwick.userlookup.cache.SerializeUtils;
 import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceAdapter;
+import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
 /**
  * Decorater which will cache getUserCodesInGroup results from the GroupService
@@ -27,8 +28,12 @@ public final class UsersInGroupCachingGroupsService extends GroupServiceAdapter 
     public UsersInGroupCachingGroupsService(final GroupService theGroupService) {
         super(theGroupService);
         _cache = Caches.newCache(UserLookup.GROUP_MEMBER_CACHE_NAME, new SingularEntryFactory<String, ArrayList<String>>() {
-			public ArrayList<String> create(final String group) throws RuntimeException {
-				return SerializeUtils.arrayList(getDecorated().getUserCodesInGroup(group));
+			public ArrayList<String> create(final String group) throws EntryUpdateException {
+				try {
+					return SerializeUtils.arrayList(getDecorated().getUserCodesInGroup(group));
+				} catch (GroupServiceException e) {
+					throw new EntryUpdateException(e);
+				}
 			}
 			public boolean shouldBeCached(ArrayList<String> val) {
 				return true;
@@ -44,12 +49,15 @@ public final class UsersInGroupCachingGroupsService extends GroupServiceAdapter 
         _cache.addCacheListener(listener);
     }
 
-    public List<String> getUserCodesInGroup(final String group) {
+    public List<String> getUserCodesInGroup(final String group) throws GroupServiceException {
     	try {
 			return _cache.get(group);
 		} catch (EntryUpdateException e) {
-			// don't expect any exceptions
-			throw new RuntimeException(e);
+			if (e.getCause() instanceof GroupServiceException){
+				throw (GroupServiceException)e.getCause();
+			} else {
+				throw e.getRuntimeException();
+			}
 		}
     }
 }

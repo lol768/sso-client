@@ -6,7 +6,9 @@ import uk.ac.warwick.userlookup.cache.Caches;
 import uk.ac.warwick.userlookup.cache.EntryUpdateException;
 import uk.ac.warwick.userlookup.cache.Pair;
 import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
+import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceAdapter;
+import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
 /**
  * Decorater which will cache isUserInGroup from the GroupService.
@@ -22,13 +24,17 @@ public final class IsUserInGroupCachingGroupsService extends GroupServiceAdapter
     public IsUserInGroupCachingGroupsService(final GroupService theGroupService) {
         super(theGroupService);
         cache = Caches.newCache(UserLookup.IN_GROUP_CACHE_NAME, new SingularEntryFactory<Pair<String,String>, Boolean>() {
-			public Boolean create(Pair<String,String> key) {
+			public Boolean create(Pair<String,String> key) throws EntryUpdateException {
 				// we munged the two arguments into a key - now to get them out.
 				// It might be better to extend the Cache API to allow secondary data to
 				// be passed to cache.get(), which will get sent here.
 				String userId = key.getFirst();
 				String group = key.getSecond();
-				return getDecorated().isUserInGroup(userId, group);
+				try {
+					return getDecorated().isUserInGroup(userId, group);
+				} catch (GroupServiceException e) {
+					throw new EntryUpdateException(e);
+				}
 			}
 			public boolean shouldBeCached(Boolean val) {
 				return true;
@@ -44,11 +50,15 @@ public final class IsUserInGroupCachingGroupsService extends GroupServiceAdapter
         cache.addCacheListener(listener);
     }
 
-    public boolean isUserInGroup(final String userId, final String group) {
+    public boolean isUserInGroup(final String userId, final String group) throws GroupServiceException {
     	try {
 			return cache.get(Pair.of(userId, group));
 		} catch (EntryUpdateException e) {
-			throw e.getRuntimeException();
+			if (e.getCause() instanceof GroupServiceException){
+				throw (GroupServiceException)e.getCause();
+			} else {
+				throw e.getRuntimeException();
+			}
 		}
     }
 

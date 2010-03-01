@@ -30,6 +30,7 @@ public class WarwickGroupsServiceUnitTest extends TestCase {
 		assertEquals("in-serbia", group.getName());
 		assertTrue(group.getUserCodes().isEmpty());
 		assertTrue(group.getOwners().isEmpty());
+		assertFalse(group.isVerified());
 		
 	}
 }

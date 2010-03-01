@@ -7,6 +7,7 @@ import uk.ac.warwick.userlookup.cache.EntryUpdateException;
 import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceAdapter;
+import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
 /**
  * Decorator which will cache Groups by name from the GroupService.
@@ -29,6 +30,8 @@ final class GroupByNameCachingGroupsService extends GroupServiceAdapter {
 					return getDecorated().getGroupByName(key);
 				} catch (GroupNotFoundException e) {
 					throw new EntryUpdateException(e);
+				} catch (GroupServiceException e) {
+					throw new EntryUpdateException(e);
 				}
 			}
 			public boolean shouldBeCached(Group val) {
@@ -45,12 +48,14 @@ final class GroupByNameCachingGroupsService extends GroupServiceAdapter {
         _cache.addCacheListener(listener);
     }
 
-    public Group getGroupByName(final String name) throws GroupNotFoundException {
+    public Group getGroupByName(final String name) throws GroupNotFoundException, GroupServiceException {
         try {
 			return _cache.get(name);
 		} catch (EntryUpdateException e) {
 			if (e.getCause() instanceof GroupNotFoundException) {
 				throw (GroupNotFoundException)e.getCause();
+			} else if (e.getCause() instanceof GroupServiceException){
+				throw (GroupServiceException)e.getCause();
 			} else {
 				throw e.getRuntimeException();
 			}

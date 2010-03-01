@@ -3,12 +3,10 @@ package uk.ac.warwick.userlookup;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.BrokenBarrierException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -50,6 +48,8 @@ public class TestSentryServer extends AbstractHandler {
 	}
 
 	private List<Map<String,String>> results;
+
+	private UserResolver userResolver;
 	
 	public void setResults(List<Map<String, String>> results) {
 		this.results = results;
@@ -71,20 +71,36 @@ public class TestSentryServer extends AbstractHandler {
 			throw new ServletException("Server configured to break");
 		}
 		
+		
 		boolean first = true;
 		PrintWriter writer = res.getWriter();
-		for (Map<String,String> attributes : results) {
-			if (!first) {
-				writer.println("-------");
+		if (userResolver == null) {
+			for (Map<String,String> attributes : results) {
+				if (!first) {
+					writer.println("-------");
+				}
+				writeAttributes(writer, attributes);
+				first = false;
 			}
-			for (Entry<String,String> entry : attributes.entrySet()) {
-				writer.print(entry.getKey());
-				writer.print("=");
-				writer.println(entry.getValue());
+		} else {
+			for (String userId : req.getParameterValues("user")) {
+				if (!first) {
+					writer.println("-------");
+				}
+				writeAttributes(writer, toMap(userResolver.getUserByUserId(userId)));
+				first = false;
 			}
-			first = false;
 		}
 		req.setHandled(true);
+	}
+
+	private void writeAttributes(PrintWriter writer,
+			Map<String, String> attributes) {
+		for (Entry<String,String> entry : attributes.entrySet()) {
+			writer.print(entry.getKey());
+			writer.print("=");
+			writer.println(entry.getValue());
+		}
 	}
 	
 	
@@ -118,8 +134,12 @@ public class TestSentryServer extends AbstractHandler {
 		}
 	}
 
+	/**
+	 * The server will return these users regardless of what is requested.
+	 */
 	public void willReturnUsers(User... users) {
 		brokenServer = false;
+		userResolver = null;
 		List<Map<String,String>> results = new ArrayList<Map<String,String>>();
 		for (User user : users) {
 			results.add(toMap(user));
@@ -143,5 +163,27 @@ public class TestSentryServer extends AbstractHandler {
 			throw new IllegalArgumentException("there's no representation for an unverified user, the whole point is that the server didn't return a response!");
 		}
 		return results;
+	}
+
+	/**
+	 * Allows the test server to dynamically generate User results to use
+	 * when 
+	 */
+	public void willReturnUsers(UserResolver userResolver) {
+		this.userResolver = userResolver; 
+	}
+
+	/**
+	 * The server will return all requested users as if they exist.
+	 * For more complex requirements see {@link #willReturnUsers(UserResolver)}.
+	 */
+	public void willReturnAllUsers() {
+		willReturnUsers(new UserResolver() {
+			public User getUserByUserId(String uncheckedUserId) {
+				User u = new User(uncheckedUserId);
+				u.setFoundUser(true);
+				return u;
+			}
+		});
 	}
 }

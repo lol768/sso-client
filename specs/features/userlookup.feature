@@ -9,4 +9,3 @@ Feature: Get user by ID
     Then I should receive a User object
       And the property foundUser should return true
       And the property verified should return true
-    

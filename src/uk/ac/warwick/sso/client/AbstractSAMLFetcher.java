@@ -85,7 +85,7 @@ public abstract class AbstractSAMLFetcher {
             if (protocol == null) {
                 protocol = new Protocol("https", new AuthSSLProtocolSocketFactory(
                         new URL(keystoreLocation),
-                        keystorePassword, new URL(cacertsLocation), cacertsPassword), standardHttpsPort);
+                        keystorePassword, ((cacertsLocation==null)?null:new URL(cacertsLocation)), cacertsPassword), standardHttpsPort);
             }
         } catch (MalformedURLException e) {
             throw new SSOException(e);

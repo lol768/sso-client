@@ -1,6 +1,5 @@
 package uk.ac.warwick.userlookup;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,27 +7,19 @@ import java.util.Map;
  * Interface to UserLookup, so that applications can 
  * proxy the interface.
  * 
- * If you are looking for UserLookup.getInstance(), see
- * {@link UserLookupFactory#getInstance()}
- * 
  * @see UserLookupFactory#getInstance()
  */
-@Api
 public interface UserLookupInterface extends UserResolver {
 
 	/**
 	 * Do a userlookup from LDAP that returns all users in a given department, eg. Information Technology Services
-	 * 
-	 * @param department
-	 * @return
+	 * <p>
+	 * This  
 	 */
 	List<User> getUsersInDepartment(final String department);
 
 	/**
 	 * Do a userlookup from LDAP that returns all users in a given department code, eg. IN, AR, BO
-	 * 
-	 * @param department
-	 * @return
 	 */
 	List<User> getUsersInDepartmentCode(final String department);
 
@@ -69,12 +60,26 @@ public interface UserLookupInterface extends UserResolver {
 	User getUserByWarwickUniId(final String warwickUniId);
 	User getUserByWarwickUniId(final String warwickUniId, boolean includeDisabledLogins);
 	
+	/**
+	 * Return a list of users with names matching the parameters passed in FilterValues.
+	 * <p>
+	 * This version of the method will not return any users if they have an attribute
+	 * saying their account login is disabled.
+	 * <p>
+	 * If there was any error retrieving the data, an empty list will be returned, and
+	 * a warning logged.
+	 */
 	List<User> findUsersWithFilter(final Map<String, String> filterValues);
 
 	/**
 	 * Return a list of users with names matching the parameters passed in FilterValues.
+	 * <p>
+	 * If there was any error retrieving the data, an empty list will be returned, and
+	 * a warning logged.
 	 * 
-	 * @see LDAPUserLookup#findUsersWithFilter(HashMap)
+	 * @param filterValues A map of attribute names to search values.
+	 * @param returnDisabledUsers If true, the results will include users even if their
+	 * 		account has been marked as disabled.
 	 */
 	List<User> findUsersWithFilter(final Map<String, String> filterValues, boolean returnDisabledUsers);
 	

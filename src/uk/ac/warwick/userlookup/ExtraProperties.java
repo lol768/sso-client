@@ -6,7 +6,6 @@ package uk.ac.warwick.userlookup;
 
 import java.util.Map;
 
-@Api
 public interface ExtraProperties {
 
 	String WARWICK_YEAR_OF_STUDY = "warwickyearofstudy";

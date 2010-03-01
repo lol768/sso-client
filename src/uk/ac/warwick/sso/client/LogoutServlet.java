@@ -16,6 +16,15 @@ import org.apache.log4j.Logger;
 
 import uk.ac.warwick.sso.client.cache.UserCache;
 
+/**
+ * The LogoutServlet is necessary for new-mode SSO apps that want to be informed
+ * when the user has logged out. The user doesn't visit this servlet - instead, they
+ * visit the Websignon servlet which sends a POST request to the logout servlet of
+ * any apps currently signed in.
+ * <p>
+ * This servlet must only be used over HTTPS. The full URL to this servlet will be
+ * required when registering an application with SSO, so that it knows where to call.
+ */
 @SuppressWarnings("serial")
 public class LogoutServlet extends HttpServlet {
 

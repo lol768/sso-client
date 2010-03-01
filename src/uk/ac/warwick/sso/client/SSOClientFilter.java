@@ -38,9 +38,17 @@ import uk.ac.warwick.userlookup.UserLookupFactory;
 import uk.ac.warwick.userlookup.UserLookupInterface;
 
 /**
- * SSOClientFilter gets a User object from the request (via a cookie or a proxyticket) and puts it in the request.
- * 
- * @author Kieran Shaw
+ * SSOClientFilter is responsible for checking cookies for an existing session,
+ * looking up the details of the user if one is found, and placing this User object
+ * into a request attribute. Even if no user is found, it will place an AnonymousUser
+ * object in the request.
+ * <p>
+ * It is generally appropriate to map this filter to run for all your application requests,
+ * i.e. mapped to "/*". It will know not to run when your ShireServlet or LogoutServlet are
+ * requested, as long as these are specified correctly in your sso-config.xml file. 
+ * <p>
+ * {@link SSOClientFilter#getUserFromRequest(HttpServletRequest)} can be used to conveniently
+ * fetch the current User object from the appropriate request attribute.
  */
 public final class SSOClientFilter implements Filter {
 

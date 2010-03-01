@@ -10,7 +10,7 @@ public final class GroupNameAwareGroupServiceTest extends TestCase {
 	final String testUserId = "user";
 	final String testGroup = "group";
 	
-	public void testValidGroup() {
+	public void testValidGroup() throws Exception {
 		GroupService decorated = new GroupServiceAdapter(null) {
 			public boolean isUserInGroup(String userId, String group) {
 				assertEquals("user", testUserId, userId);
@@ -23,7 +23,7 @@ public final class GroupNameAwareGroupServiceTest extends TestCase {
 		assertFalse(groupNameAware.isUserInGroup(testUserId, testGroup));	// force the assertions check.
 	}
 	
-	public void testSillyGroup() {
+	public void testSillyGroup() throws Exception {
 		GroupService decorated = new GroupServiceAdapter(null) {
 			public boolean isUserInGroup(String userId, String group) {
 				assertEquals("user", testUserId, userId);

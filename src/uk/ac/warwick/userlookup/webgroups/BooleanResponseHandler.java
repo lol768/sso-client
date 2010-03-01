@@ -10,10 +10,8 @@ import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
 
 /**
  * <p>Implementation which expects a stream whose first character is either "t" or "f".</p>
- *
- * @author xusqac
  */
-public final class BooleanResponseHandler implements ResultAwareWebServiceResponseHandler<Boolean> {
+final class BooleanResponseHandler implements ResultAwareWebServiceResponseHandler<Boolean> {
 	private static final Logger LOGGER = Logger.getLogger(BooleanResponseHandler.class);
 	private boolean _result;
 
@@ -22,7 +20,7 @@ public final class BooleanResponseHandler implements ResultAwareWebServiceRespon
 		try {
 			firstChar = String.valueOf((char) fromServer.read());
 		} catch (IOException e1) {
-			LOGGER.error("Cannot read first char: " + e1);
+			LOGGER.error("Cannot read first char: ", e1);
 		}
 		_result = "t".equalsIgnoreCase(firstChar);
 	}

@@ -8,47 +8,40 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-
 /**
- * @author Kieran Shaw
- *
+ * A group looked up from Webgroups. It can contain individuals user codes,
+ * or other groups, or a combination of both. A Group is generally obtained
+ * from {@link GroupService}, which you can access via {@link UserLookup#getGroupService()}.
  */
-@Api
 public interface Group extends Serializable {
 	
 	/**
-	 * Name of this group, for instance "webdevwest"
-	 * @return
+	 * @return Name of this group, for instance "webdevwest"
 	 */
 	String getName();
 	
 	/**
-	 * Title of this group, longer than the name, for instance "WebDev westwood"
-	 * @return
+	 * @return Title of this group, longer than the name, for instance "WebDev westwood"
 	 */
 	String getTitle();
-
 	
 	/**
-	 * A list of Strings containing the usercodes of those who are members of this group
-	 * @return
+	 * @return A list of Strings containing the usercodes of those who are members of this group
 	 */
 	List<String> getUserCodes();
 	
 	/**
-	 * A list of Strings containing the usercodes of those who are owners of this group
-	 * @return
+	 * @return A list of Strings containing the usercodes of those who are owners of this group
 	 */
 	List<String> getOwners();
 	
 	/**
-	 * Get the type of group, eg. Module, Department, Tutor Group, etc..
-	 * @return
+	 * @return The type of group, eg. Module, Department, Tutor Group, etc..
 	 */
 	String getType();
 
 	/**
-	 * @return the Department this group belongs to.  Initially set to the 
+	 * @return The Department this group belongs to.  Initially set to the 
 	 * department of the user who created this group.
 	 */
 	String getDepartment();
@@ -59,5 +52,11 @@ public interface Group extends Serializable {
 	String getDepartmentCode();
 	
 	Date getLastUpdatedDate();
+	
+	/**
+	 * Whether this Group is a result of a valid lookup. If this is false,
+	 * it means there was some problem communicating with the server.
+	 */
+	boolean isVerified();
 
 }

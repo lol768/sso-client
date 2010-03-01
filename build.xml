@@ -40,6 +40,7 @@
     <property environment="ENV" />
     <java classname="org.jruby.Main" fork="true" failonerror="true">
       <classpath>
+      	<pathelement location="src" />
         <pathelement location="${compileDest}" />
       	<pathelement location="${compileDest.tests}" />
         <!-- <pathelement location="external-libs/test/jruby/lib/jruby.jar" /> -->

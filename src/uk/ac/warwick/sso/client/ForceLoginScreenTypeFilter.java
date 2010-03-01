@@ -17,6 +17,18 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
+/**
+ * SSO supports a few alternate login screens for mobile and text-only user agents.
+ * By default, SSO client won't use either of these but this filter can force the
+ * type used for redirects, so that if a subsequent filter sends the user to the
+ * login screen then it will be used instead
+ * <p>
+ * Current known values are "mini" (mobile) and "text" (text only). Leave unset for the default.
+ * <p>
+ * If you have complex user agent needs then you can write your own filter and configure it
+ * to set the attribute {@link #SSO_SCREEN_TYPE_KEY} to "mini" when you want it to show a mobile
+ * login screen. You might do some user agent sniffing to detect this.
+ */
 public class ForceLoginScreenTypeFilter implements Filter {
 
 	private static final Logger LOGGER = Logger.getLogger(ForceOldModeFilter.class);

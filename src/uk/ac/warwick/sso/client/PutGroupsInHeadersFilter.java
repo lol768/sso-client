@@ -18,7 +18,17 @@ import uk.ac.warwick.userlookup.Group;
 import uk.ac.warwick.userlookup.GroupService;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookupFactory;
+import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
+/**
+ * A simple convenience filter that gets the current user, finds out which
+ * Webgroups they are in (if any) and places the names of the groups in a
+ * comma-separated list in a request header, which by default is called
+ * SSO_USER_groups.
+ * 
+ * @deprecated This class seems rather pointless - it's very easy to get the
+ * 			user's groups yourself.
+ */
 public class PutGroupsInHeadersFilter implements Filter {
 
 	private GroupService _groupService;
@@ -41,13 +51,16 @@ public class PutGroupsInHeadersFilter implements Filter {
 
 		String sep = "";
 		StringBuilder groupList = new StringBuilder();
-		for (Group group : getGroupService().getGroupsForUser(user.getUserId())) {
-			groupList.append(sep).append(group.getName());
-			sep = ",";
-		}
-
-		String userKey = SSOClientFilter.getUserKey();
-		request.addHeader(userKey + "_groups", groupList.toString());
+		try {
+			for (Group group : getGroupService().getGroupsForUser(user.getUserId())) {
+				groupList.append(sep).append(group.getName());
+				sep = ",";
+			}
+			String userKey = SSOClientFilter.getUserKey();
+			request.addHeader(userKey + "_groups", groupList.toString());
+		} catch (GroupServiceException e) {
+			// Failed to look up groups. This is deprecated so I don't really care.
+		}		
 
 		chain.doFilter(request, res);
 

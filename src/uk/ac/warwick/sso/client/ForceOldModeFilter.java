@@ -16,6 +16,16 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 
+/**
+ * This filter only makes sense if you are using a new-mode application. By
+ * mapping this filter to certain URLs, it will cause SSOClientFilter to use
+ * old-mode authentication (i.e. just checking the shared WarwickSSO cookie)
+ * instead of new-mode. Most people shouldn't need this most of the time, but
+ * here it is in case you do.
+ * <p>
+ * The mapping should be <i>before</i> the mapping for {@link SSOClientFilter},
+ * otherwise it will be too late.
+ */
 public class ForceOldModeFilter implements Filter {
 
 	private static final Logger LOGGER = Logger.getLogger(ForceOldModeFilter.class);

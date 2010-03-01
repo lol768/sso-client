@@ -22,7 +22,31 @@ import org.springframework.util.FileCopyUtils;
 import uk.ac.warwick.sso.client.cache.UserCache;
 
 /**
- * @author Kieran Shaw
+ * <h2>What on earth is a shire?</h2>
+ * 
+ * <p>The shire, which is only used for new-mode SSO apps, is where Websignon
+ * sends its security assertion to say that a particular user has just successfully
+ * signed in.</p>
+ * 
+ * <p>After the user has signed in via Websignon, an auto-submitting form containing
+ * the security assertion is posted here, to the shire. The shire will do a few things:
+ * <ol>
+ *   <li>Check that the assertion is valid (not expired, properly signed)
+ *   <li>Extract a token out of the assertion
+ *   <li>Use the token to request the user's details from the Websignon Attribute Authority URL
+ *   <li>Set a Service Specific Cookie (SSC) to say this service is signed in
+ * </ol>
+ * 
+ * The last step is why it's important that this is done by the user's browser - otherwise
+ * it wouldn't be able to save this cookie. It then redirects the browser to the originally
+ * requested URL.
+ * <p>
+ * After this is done, {@link SSOClientFilter} will see the SSC and set up the current user
+ * in the request.
+ * <p>
+ * ShireServlet should be defined in web.xml, and <b>must</b> be served over HTTPS. When
+ * your application is registered with SSO, the URL to your shire will be one of the
+ * pieces of information it knows about.
  */
 public class ShireServlet extends HttpServlet {
 	private static final long serialVersionUID = 3043814958673574588L;

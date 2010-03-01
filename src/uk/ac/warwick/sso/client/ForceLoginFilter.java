@@ -27,9 +27,6 @@ import uk.ac.warwick.userlookup.User;
  * This Filter forces a user to be logged in. This filter works with SSOClientFilter and must come after it as it looks
  * for the user with SSOClientFilter.getUserFromRequest(request); If a user is not logged in, it redirects to the SSO
  * permission denied page
- * 
- * @author Kieran Shaw
- * 
  */
 public class ForceLoginFilter implements Filter {
 

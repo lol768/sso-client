@@ -85,7 +85,7 @@ public final class CachingGroupsServiceTest extends TestCase {
 		// setTimeout
 	}
 
-	public void testCacheWorks() {
+	public void testCacheWorks() throws Exception {
 		final String firstUserId = "userIdA";
 		final String firstGroupName = "groupName";
 

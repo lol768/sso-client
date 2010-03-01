@@ -56,7 +56,7 @@ public class WebGroupsLiveTest extends TestCase {
 	}
 	
 
-	public final void testGetNonExistantGroup() {
+	public final void testGetNonExistantGroup() throws Exception {
 
 		WarwickGroupsService service = new WarwickGroupsService(HTTP_WEBGROUPS_LOCATION);
 		service.setTimeoutConfig(new WebServiceTimeoutConfig(5000, 5000));

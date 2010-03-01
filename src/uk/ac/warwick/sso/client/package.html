@@ -1,0 +1,15 @@
+<body>
+<p>
+The ssoclient package assists with handling the authentication and authorization of
+the current user (if there is one).
+</p>
+<p>
+Authentication is handled by SSOClientFilter, which wraps around your application request
+and checks for the appropriate cookie. If there is one, it looks this up with Websignon.
+</p>
+<p>
+Authorization is handled by your own code or one of the provided filters. You can use them
+and the User object provided by SSOClientFilter to decide whether to allow the request through
+or redirect them to the SSO login screen.
+</p> 
+</body>

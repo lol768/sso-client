@@ -8,9 +8,9 @@ import java.util.Map;
  * Represents a user obtained from Single Sign On. A user can either be logged in or anonymous. Not all attributes will
  * always be populated. Although you can get at most of the users attributes via the accessor methods, not all
  * attributes from SSO have their own accessor. To get at all of the attributes, use the getExtraProperties() methods.
- * 
+ * <p>
+ * Note: User is not a persistent object so any changes made with setter methods are not saved anywhere.
  */
-@Api
 public class User implements Serializable, ExtraProperties {
 
 	private static final long serialVersionUID = 8170132489896721008L;

@@ -33,6 +33,8 @@ public class GroupImpl implements Group {
 	private String _departmentCode;
 	
 	private Date _lastUpdatedDate = new Date();
+	
+	private boolean _verified = true;
 
 	/**
 	 * Will return a list of usercodes as String's of users in this group
@@ -127,6 +129,14 @@ public class GroupImpl implements Group {
 	
 	public void setDepartmentCode(final String departmentCode) {
 		_departmentCode = departmentCode;
+	}
+
+	public final boolean isVerified() {
+		return _verified;
+	}
+
+	public final void setVerified(boolean verified) {
+		this._verified = verified;
 	}
 
 }
