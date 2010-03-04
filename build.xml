@@ -188,7 +188,9 @@
 	     Used by Bamboo to copy release data to a public download area. -->
 	<target name="copy-artifacts" depends="create-artifacts">
 		<fail message="Property ssoclient.artifacts.dir must be set to the dir where you want the artifacts copied" unless="ssoclient.artifacts.dir" />
-	  <copy dir="${artifacts.dir}" todir="${ssoclient.artifacts.dir}" />
+	  <copy todir="${ssoclient.artifacts.dir}">
+	  	<fileset dir="${artifacts.dir}" />
+	  </copy>
 	</target>
 	
 	<target name="deployjar" depends="compile,buildjar">
