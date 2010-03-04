@@ -214,8 +214,10 @@
 	<target name="integration" depends="buildjar, run-tests, cucumber, create-artifacts" />
 
 	<!-- Simply copies the created artifacts to a dir specified in a property.
-	     Used by Bamboo to copy release data to a public download area. -->
-	<target name="copy-artifacts" depends="create-artifacts">
+	     Used by Bamboo to copy release data to a public download area. 
+	     requires that create-artifacts has been run (but doesn't depend on it,
+	     otherwise Ant will call create-artifacts twice. -->
+	<target name="copy-artifacts">
 		<fail message="Property ssoclient.artifacts.dir must be set to the dir where you want the artifacts copied" unless="ssoclient.artifacts.dir" />
 	  <copy todir="${ssoclient.artifacts.dir}">
 	  	<fileset dir="${artifacts.dir}" />
