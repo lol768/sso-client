@@ -90,16 +90,39 @@
 				 <zip destfile="${artifacts.dir}/${buildName}-${version}-api-src.zip">
 				 	 <fileset refid="public.api.fileset" />
 				 </zip>
+				 <antcall target="javadoc" />
+				 <antcall target="cucumber-html" />
+				 <copy file="build/feature-spec.html" todir="${artifacts.dir}" />
 			</then>
 			<else>
 			   <echo message="Version number ends in a letter, so not creating artifacts for this version" /> 
 			</else>
 		</if>
 	</target>
+	
+	<target name="cucumber-html" depends="-compile-impl, -compile-tests">
+		<java classname="org.jruby.Main" fork="true" failonerror="true">
+		      <classpath refid="test.classpath" />
+
+		      <arg value="-I" />
+		      <arg value="external-libs/test/cucumber/lib" />
+		      <arg value="external-libs/test/cucumber/bin/cucumber" />
+
+		      <!-- don't actually run the tests, just format the features up nice -->
+		      <arg value="--dry-run" />
+
+		      <arg value="--format" />
+		      <arg value="html" />
+		      <arg value="--out" />
+		      <arg value="build/feature-spec.html" />
+		      
+		      <arg value="specs/features"/>
+		 </java>
+	</target>
 
   <target name="cucumber" depends="-compile-impl, -compile-tests">
     <property environment="ENV" />
-    <java classname="org.jruby.Main" fork="true" failonerror="true">
+    <java classname="org.jruby.Main" fork="true" failonerror="true" errorproperty="cucumber.failed">
     	<sysproperty key="log4j.disable" value="ERROR" />
       <classpath refid="test.classpath" />
     	
@@ -112,13 +135,20 @@
       <arg value="external-libs/test/cucumber/bin/cucumber" />
     	<arg value="--format" />
     	<arg value="pretty" />
+    	
     	<arg value="--format" />
     	<arg value="junit" />
     	<arg value="--out" />
     	<arg value="build/test-results" />
     	
+    	<arg value="--format" />
+      <arg value="html" />
+    	<arg value="--out" />
+    	<arg value="build/test-results-html" />
+    	
       <arg value="specs/features"/>
     </java>
+  	<fail message="Cucumber feature testing failed" if="cucumber.failed" />
   </target>
 
 	<target name="javadoc">
