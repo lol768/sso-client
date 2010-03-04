@@ -124,7 +124,7 @@
 	<target name="javadoc">
 	 <delete dir="doc" includes="*" />
 	 <javadoc windowtitle="SSO Client API"
-	 	        destdir="doc"
+	 	        destdir="dist/artifacts/javadoc"
 	 	        defaultexcludes="yes">
 	   <sourcefiles>
 	 	   <fileset refid="public.api.fileset" />
