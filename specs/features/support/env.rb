@@ -3,15 +3,38 @@ require 'csv'
 # Can define our own methods in here that will be available
 # in all step definitions. Our own personalised World.
 module WarwickHelper
+
+  # make the uk.* package available more easily
+  def uk
+    Java::Uk
+  end
   
-  Warwick = Java::uk.ac.warwick
-  TestSentryServer = Warwick.userlookup.TestSentryServer
-  User = Warwick.userlookup.User
-  UserLookup = Warwick.userlookup.UserLookup
+  def load_userlookup_classes
+    java_import uk.ac.warwick.userlookup.User
+    java_import uk.ac.warwick.userlookup.AnonymousUser
+    java_import uk.ac.warwick.userlookup.UnverifiedUser
+    java_import uk.ac.warwick.userlookup.UserLookup
+    java_import uk.ac.warwick.userlookup.TestSentryServer
+  end
   
   def sentry
     @sentry ||= TestSentryServer.new
   end
+  
+  def userlookup
+    if @userlookup.nil?
+      @userlookup = UserLookup.new
+      @userlookup.getUserByUserIdCache.clear
+      @userlookup.getUserByTokenCache.clear
+      @userlookup.setSsosUrl sentry.getPath
+    end
+    @userlookup
+  end
+  
+#  def group_service
+#    userlookup.group_service_backend = 
+#    userlookup.group_service
+#  end
   
   # convert e.g. "foundUser" to "isFoundUser"
   def gettername(s)
@@ -42,5 +65,6 @@ end
 World(WarwickHelper)
 
 Before do
+  load_userlookup_classes
   #puts "Using WarwickWorld"
 end

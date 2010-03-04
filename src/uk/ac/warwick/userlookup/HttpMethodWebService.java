@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethodBase;
+import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.log4j.Logger;
@@ -75,6 +76,12 @@ public final class HttpMethodWebService {
 		}
 		
 		addApiKeyToUrl(method);
+		
+		try {
+			System.out.println("This is me calling " + method.getURI().toString());
+		} catch (URIException e1) {
+			System.out.println("Urgh");
+		}
 		
 		_methodFactory.setMethodParams(method, parameters);
 		LOGGER.debug("Connecting to WebService on " + _location.toExternalForm());

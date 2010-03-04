@@ -9,6 +9,33 @@
 	<property name="compileDest" value="${buildDir}/${buildName}-jar" />
 	<property name="compileDest.tests" value="${buildDir}/test" />
   <property name="jarFile" value="dist/${buildName}-${version}.jar" />
+	<property name="jarFile.latest" value="dist/${buildName}-current.jar" />
+	<property name="artifacts.dir" value="dist/artifacts" />
+	
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+	  <classpath>
+	    <pathelement location="external-libs/test/ant/ant-contrib-1.0b3.jar"/>
+	  </classpath>
+	</taskdef>
+	
+	<fileset id="public.api.fileset" dir="src">
+     <patternset includes="**/package.java" />
+     <patternset includes="**/*User.java" />
+     <patternset includes="**/UserLookup.java" />
+     <patternset includes="**/UserLookupFactory.java" />
+     <patternset includes="**/UserLookupInterface.java" />
+     <patternset includes="**/Group.java" />
+     <patternset includes="**/GroupService.java" />
+     
+     <patternset includes="**/oauth/OAuthFilter.java" />
+     <patternset includes="**/oauth/OAuthService.java" />
+     <patternset includes="**/oauth/OAuthServiceImpl.java" />
+     <patternset includes="**/oauth/OAuthToken.java" />
+     <patternset includes="**/client/tags/*" />
+     <patternset includes="**/client/*Filter.java" />
+     <patternset includes="**/client/*Servlet.java" />
+     <patternset includes="**/*Exception.java" />
+   </fileset>
 	
 	<path id="project.classpath">
     <fileset dir="external-libs">
@@ -45,17 +72,40 @@
 		
 	</target>
 	
+	<target name="create-artifacts">
+		<condition property="is-release-version">
+		  <not><matches pattern="[a-zA-Z]$" string="${version}" /></not>
+		</condition>
+		<if>
+		  <isset property="is-release-version"/>
+			<then>
+				 <echo message="Version number is a release version so creating new artifacts" />
+				 <delete dir="${artifacts.dir}" />
+				 <mkdir dir="${artifacts.dir}" />
+				 <mkdir dir="${artifacts.dir}/feature-spec" />
+				 <copy file="${jarFile}" todir="${artifacts.dir}" />
+				 <copy todir="${artifacts.dir}/feature-spec">
+				 	 <fileset dir="specs/features" includes="*.feature" />
+				 </copy>
+				 <zip destfile="${artifacts.dir}/${buildName}-${version}-api-src.zip">
+				 	 <fileset refid="public.api.fileset" />
+				 </zip>
+			</then>
+			<else>
+			   <echo message="Version number ends in a letter, so not creating artifacts for this version" /> 
+			</else>
+		</if>
+	</target>
 
   <target name="cucumber" depends="-compile-impl, -compile-tests">
     <property environment="ENV" />
     <java classname="org.jruby.Main" fork="true" failonerror="true">
+    	<sysproperty key="log4j.disable" value="ERROR" />
       <classpath refid="test.classpath" />
-      <arg value="-I" />
-      <arg value="external-libs/test/jruby/lib/ruby/1.8" />
-      <arg value="-I" />
-      <arg value="external-libs/test/jruby/lib/ruby/site_ruby/1.8" />
-      <arg value="-I" />
-      <arg value="external-libs/test/jruby/lib/ruby/gems/1.8/gems/rspec-1.2.6/lib" />
+    	
+    	<!-- uncomment when debugging -->
+    	<!-- <jvmarg value="-agentlib:jdwp=transport=dt_socket,server=y,address=8787"/> -->
+
       <arg value="-I" />
       <arg value="external-libs/test/cucumber/lib" />
       
@@ -77,25 +127,7 @@
 	 	        destdir="doc"
 	 	        defaultexcludes="yes">
 	   <sourcefiles>
-	 	   <fileset dir="src">
-	 	     <patternset includes="**/package.java" />
-	 	     <patternset includes="**/*User.java" />
-	   	   <patternset includes="**/UserLookup.java" />
-	 	     <patternset includes="**/UserLookupFactory.java" />
-	 	     <patternset includes="**/UserLookupInterface.java" />
-	 	     <patternset includes="**/Group.java" />
-	 	     <patternset includes="**/SSOConfigLoader.java" />
-	 	     <patternset includes="**/GroupService.java" />
-         
-  	 	   <patternset includes="**/oauth/OAuthFilter.java" />
-	 	     <patternset includes="**/oauth/OAuthService.java" />
-	 	     <patternset includes="**/oauth/OAuthServiceImpl.java" />
-	 	     <patternset includes="**/oauth/OAuthToken.java" />
-	       <patternset includes="**/client/tags/*" />
-	 	     <patternset includes="**/client/*Filter.java" />
-	 	     <patternset includes="**/client/*Servlet.java" />
-	 	     <patternset includes="**/*Exception.java" />
-	   	 </fileset>
+	 	   <fileset refid="public.api.fileset" />
 	 	 </sourcefiles>
 	 </javadoc>
 	</target>
@@ -123,7 +155,7 @@
   </target>
 	
 	<target name="build-release" depends="buildjar">
-	  
+	  <copy file="${jarFile}" tofile="${jarFile.latest}" />
 	</target>
 	
 	<target name="buildjar" depends="compile">
@@ -150,7 +182,7 @@
 		<fail if="tests.failed" message="Unit tests failed" />
 	</target>
   
-	<target name="integration" depends="buildjar, run-tests, cucumber" />
+	<target name="integration" depends="buildjar, run-tests, cucumber, create-artifacts" />
 
 	<target name="deployjar" depends="compile,buildjar">
 		<copy file="${jarFile}" todir="/apps/jboss-3.2.7/server/default/deploy/" />

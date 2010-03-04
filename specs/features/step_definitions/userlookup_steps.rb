@@ -1,13 +1,3 @@
-Warwick = Java::uk.ac.warwick
-User = Warwick.userlookup.User
-UserLookup = Warwick.userlookup.UserLookup
-
-Before do
-  @userlookup = UserLookup.new
-  @userlookup.getUserByUserIdCache.clear
-  @userlookup.getUserByTokenCache.clear
-  @userlookup.setSsosUrl sentry.getPath
-end
 
 Given /^there (?:is|exists) no user with ID "([^\"]*)"$/ do |id|
    # test sentry will default to not finding a user, so do nothing
@@ -27,7 +17,7 @@ end
 
 When /^(?:when )?I call userLookup.getUserByUserId\("([^\"]*)"\)$/ do |id|
   with_sso_running do
-    @result = @userlookup.get_user_by_user_id id
+    @result = userlookup.get_user_by_user_id id
   end
 end
 
@@ -45,28 +35,32 @@ Given /^there are users with #{ListOfIds}$/ do |user_ids|
 end
 
 Given /^the following users exist:$/ do |table|
-  sentry.search_results = table.hashes.map do |hash|
-    user = User.new
-    user.user_id = hash["User ID"]
-    user.last_name = hash["Surname"] if hash["Surname"]
-    user
-  end
+  sentry.search_results = table.hashes
 end
 
 When /^I search for users with an "([^\"]*)" of "([^\"]*)"$/ do |attribute, value|
   with_sso_running do
-    @result = @userlookup.find_users_with_filter attribute => value
+    @result = userlookup.find_users_with_filter attribute => value
   end
 end
 
 Then /^I should receive the following User objects:$/ do |table|
   @result.size.should == table.hashes.size
-  
+end
+
+When /^I search for anything$/ do
+  with_sso_running do
+    @result = userlookup.find_users_with_filter attribute => value
+  end
+end
+
+Then /^I should receive an empty list$/i do
+  @result.should be_empty
 end
 
 When /^I call userLookup.getUsersByUserIds\(#{StringArray}\)$/ do |user_ids|
   with_sso_running do
-    @result = @userlookup.get_users_by_user_ids user_ids
+    @result = userlookup.get_users_by_user_ids user_ids
   end
 end
 
@@ -88,9 +82,9 @@ end
 Transform /an? ((?:Anonymous|Unverified)?User) object/ do |kind|
   case kind
     when "AnonymousUser"
-      Warwick.userlookup.AnonymousUser
+      AnonymousUser
     when "UnverifiedUser"
-      Warwick.userlookup.UnverifiedUser
+      UnverifiedUser
     when "User"
       User
     else
@@ -99,9 +93,7 @@ Transform /an? ((?:Anonymous|Unverified)?User) object/ do |kind|
 end
 
 Transform /\[((?:"[^\"]*",\s*)*"[^\"]*")\]/ do |id_list|
-  x = parse_csv id_list
-  p x
-  x
+  parse_csv id_list
 end
 
 Transform /IDs ((?:"[^\"]*",\s*)*"[^\"]*")/ do |id_list|

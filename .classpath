@@ -25,6 +25,10 @@
 	<classpathentry kind="lib" path="external-libs/test/jetty/jetty-continuation-7.0.1.v20091125.jar"/>
 	<classpathentry kind="lib" path="external-libs/junit/hamcrest-library-1.3RC0.jar"/>
 	<classpathentry kind="lib" path="external-libs/junit/hamcrest-core-1.3RC0.jar"/>
+	<classpathentry kind="lib" path="external-libs/test/ant/ant-contrib-1.0b3.jar"/>
+	<classpathentry kind="lib" path="external-libs/test/ant/bcel-5.1.jar"/>
+	<classpathentry kind="lib" path="external-libs/test/ant/ivy-1.3.1.jar"/>
+	<classpathentry kind="lib" path="external-libs/test/jruby-complete-1.4.0.jar"/>
 	<classpathentry kind="src" path="test-src"/>
 	<classpathentry kind="lib" path="external-libs/commons-collections-3.1.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-digester.jar"/>

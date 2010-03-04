@@ -9,12 +9,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.collections.EnumerationUtils;
 import org.apache.log4j.Logger;
-import org.apache.log4j.helpers.OnlyOnceErrorHandler;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -52,6 +55,10 @@ public class TestSentryServer extends AbstractHandler {
 	public void setPort(int port) {
 		this.port = port;
 	}
+	
+	private Map<String,String> columnToLdapMappings;
+	
+	private List<Map<String,String>> lookupResults = new ArrayList<Map<String,String>>();
 
 	private List<Map<String,String>> results = new ArrayList<Map<String,String>>();
 
@@ -74,13 +81,61 @@ public class TestSentryServer extends AbstractHandler {
 	public void handle(String target, Request req, HttpServletRequest hreq, HttpServletResponse res)
 			throws IOException, ServletException {
 		requests++;
-		
+	
+
 		if (brokenServer) {
 			throw new ServletException("Server configured to break");
 		}
 		
-		List<String> requestedUserIds = Arrays.asList(req.getParameterValues("user"));
 		
+
+		if (req.getRequestURI().startsWith("/sentry")) {
+			List<String> requestedUserIds = Arrays.asList(req.getParameterValues("user"));
+			handleSentry(req, res, requestedUserIds);
+		} else if (req.getRequestURI().startsWith("/origin/api/userSearch")) {			
+			Map<String,String> filter = new HashMap<String, String>();
+			for (Object key : EnumerationUtils.toList(req.getParameterNames())) {
+				String name = (String)key;
+				if (name.startsWith("f_")) {
+					String attribute = name.substring(2);
+					String value = req.getParameter(name);
+					filter.put(attribute, value);
+					//System.out.println(attribute + "=" + value);
+				}
+			}
+			
+			PrintWriter out = res.getWriter();
+			out.println("<users>");
+			
+			for (Map<String,String> result : lookupResults) {
+				for (Entry<String,String> entry : filter.entrySet()) {
+					String columnName = entry.getKey();
+					if (result.containsKey(columnName) &&
+							filterMatches(entry.getValue(), result.get(columnName))) {
+						out.println(" <user>");
+						for (Entry<String,String> attr : result.entrySet()) {
+							out.println("  <attribute name=\""+attr.getKey()+"\" value=\""+attr.getValue()+"\" />");
+						}
+						out.println(" </user>");
+					}
+				}
+			}
+			out.println("</users>");
+			
+			req.setHandled(true);
+		}
+	}
+
+	/**
+	 * Used for the pretend attribute search. Assumes for the moment that
+	 * it will match any attribute that begins with the search value.
+	 */
+	private boolean filterMatches(String filterValue, String attributeValue) {
+		return (attributeValue.startsWith(filterValue));
+	}
+
+	private void handleSentry(Request req, HttpServletResponse res,
+			List<String> requestedUserIds) throws IOException {
 		boolean first = true;
 		PrintWriter writer = res.getWriter();
 		if (userResolver == null) {
@@ -128,7 +183,7 @@ public class TestSentryServer extends AbstractHandler {
 	}
 	
 	public String getPath() {
-		return "http://127.0.0.1:"+port+"/";
+		return "http://127.0.0.1:"+port;
 	}
 	
 	public static void runServer(int port, Handler handler, Runnable callback)
@@ -189,6 +244,30 @@ public class TestSentryServer extends AbstractHandler {
 	public void willReturnUsers(UserResolver userResolver) {
 		this.userResolver = userResolver; 
 	}
+	
+	/**
+	 * Provides maps of attributes to be searched across when doing a user
+	 * search.
+	 * 
+	 * @param results List of maps. Each map is a user's attributes. The key
+	 * 	should either be an LDAP compatible name, OR a column name that has
+	 *  a mapping to LDAP in {@link #getColumnToLdapMappings()}
+	 */
+	public void setSearchResults(List<Map<String,String>> results) {
+		List<Map<String,String>> translated = new ArrayList<Map<String,String>>();
+		for (Map<String,String> map : results) {
+			Map<String,String> translatedMap = new HashMap<String, String>();
+			for (Entry<String,String> entry : map.entrySet()) {
+				String newKey = entry.getKey();
+				if (getColumnToLdapMappings().containsKey(newKey)) {
+					newKey = getColumnToLdapMappings().get(entry.getKey());
+				}
+				translatedMap.put(newKey, entry.getValue());
+			}
+			translated.add(translatedMap);
+		}
+		this.lookupResults = translated;
+	}
 
 	/**
 	 * The server will return all requested users as if they exist.
@@ -202,5 +281,17 @@ public class TestSentryServer extends AbstractHandler {
 				return u;
 			}
 		});
+	}
+
+	/**
+	 * Maps friendly names to LDAP names for calling {@link #setSearchResults(List)}
+	 */
+	public final Map<String, String> getColumnToLdapMappings() {
+		if (columnToLdapMappings == null) {
+			columnToLdapMappings = new HashMap<String, String>();
+			columnToLdapMappings.put("User ID","cn");
+			columnToLdapMappings.put("Surname","sn");
+		}
+		return columnToLdapMappings;
 	}
 }
