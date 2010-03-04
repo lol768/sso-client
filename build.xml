@@ -184,6 +184,13 @@
   
 	<target name="integration" depends="buildjar, run-tests, cucumber, create-artifacts" />
 
+	<!-- Simply copies the created artifacts to a dir specified in a property.
+	     Used by Bamboo to copy release data to a public download area. -->
+	<target name="copy-artifacts" depends="create-artifacts">
+		<fail message="Property ssoclient.artifacts.dir must be set to the dir where you want the artifacts copied" unless="ssoclient.artifacts.dir" />
+	  <copy dir="${artifacts.dir}" todir="${ssoclient.artifacts.dir}" />
+	</target>
+	
 	<target name="deployjar" depends="compile,buildjar">
 		<copy file="${jarFile}" todir="/apps/jboss-3.2.7/server/default/deploy/" />
 	</target>
