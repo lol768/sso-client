@@ -2,17 +2,18 @@ require 'webrick'
 include WEBrick
 
 module FakeServerHelper
-  def use_server server_class
+  # options will get passed to server mount, and on to
+  # the servlet's initialize method
+  def use_server(server_class, *options)
     @fake_server = server_class
+    @options = options
   end
   
   # All calls to webgroups should be within here, so that if we've
   # defined a fake server it will be running within the given block
   def using_webgroups(&block)
     if @fake_server 
-      puts "Going to use a fake server"
-      FakeServer.run @fake_server do
-        puts "Inside outer block"
+      FakeServer.run @fake_server, @options do
         block.call
       end
     else
@@ -34,9 +35,9 @@ class FakeServer < WEBrick::HTTPServlet::AbstractServlet
 
   Port = 26080
   
-  def self.run(mount)
+  def self.run(mount, *options)
     s = HTTPServer.new( :Port => Port )
-    s.mount("/", mount)
+    s.mount("/", mount, options)
     trap("INT"){ s.shutdown }
     begin
       Thread.new do
@@ -51,19 +52,15 @@ end
 
 # For returning the same content
 class StaticServer < FakeServer
+  def initialize(server, content)
+    super(server)
+    @content = content
+  end
+  
   def do_GET(req,res)
-    res.body = @@content
+    res.body = @content
   end
   alias do_POST do_GET
-  
-  # Returns an anonymous servlet Class that will
-  # always produce the given content. Pass the
-  # result to the use_server method. 
-  def self.producing(content)
-    Class.new StaticServer do
-      @@content = content
-    end
-  end
 end
 
 # Handy server that will return 500 errors

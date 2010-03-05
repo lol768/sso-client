@@ -27,7 +27,7 @@ Given /^that the group "([^\"]*)" exists$/ do |group_name|
 end
 
 Given /^that the group "([^\"]*)" doesn't exist$/ do |group_name|
-  use_server StaticServer.producing %{<groups></groups>}
+  use_server StaticServer, %{<groups></groups>}
   userlookup.group_service_location = server_path
 end
 
