@@ -99,5 +99,15 @@ public final class HashMapCacheStore<K extends Serializable,V extends Serializab
 		clear();
 		maps.remove(name);
 	}
+	
+	/** Empty all hashmap cache stores. For debugging. */
+	public static void clearAll() {
+		for (WeakReference<Map> ref : maps.values()) {
+			Map m = ref.get();
+			if (m != null) {
+				m.clear();
+			}
+		}
+	}
 
 }

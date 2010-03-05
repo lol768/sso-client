@@ -1,3 +1,4 @@
+@userlookup
 Feature: Get multiple users by IDs
   In order to efficiently show the names of many users
   As an application developer

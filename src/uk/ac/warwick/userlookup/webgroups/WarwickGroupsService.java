@@ -34,7 +34,7 @@ public class WarwickGroupsService implements GroupService {
 
 	private String _version;
 	
-	public static final List<Group> PROBLEM_FINDING_GROUPS = Collections.unmodifiableList(Collections.<Group>emptyList());
+	
 
 	public static interface ExecuteAndParseEngine {
 		void execute(final String urlPath, final ResultAwareWebServiceResponseHandler<?> handler) throws WebServiceException;

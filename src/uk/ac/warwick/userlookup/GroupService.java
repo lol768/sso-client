@@ -4,6 +4,7 @@
  */
 package uk.ac.warwick.userlookup;
 
+import java.util.Collections;
 import java.util.List;
 
 import uk.ac.warwick.userlookup.webgroups.GroupInfo;
@@ -19,6 +20,9 @@ import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
  */
 public interface GroupService extends WebService {
 
+	public static final List<Group> PROBLEM_FINDING_GROUPS = Collections.unmodifiableList(Collections.<Group>emptyList());
+	public static final Group PROBLEM_FINDING_GROUP = new GroupImpl();
+	
 	/**
 	 * Fetches a list of Group objects that the given user ID is in.
 	 * If the user does not exist, an empty list is returned.

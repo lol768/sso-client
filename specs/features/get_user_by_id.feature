@@ -1,3 +1,4 @@
+@userlookup
 Feature: Get user by ID
   In order to show the names of other users
   As an application developer

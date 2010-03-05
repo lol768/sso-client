@@ -1,3 +1,4 @@
+@userlookup
 Feature: Find users by filter
   In order to provide search facilities to users
   As an application developer
@@ -11,7 +12,7 @@ Feature: Find users by filter
       | cus003  | Jones   |
       | cus004  | Carbon  |
       | cus005  | Grep    |
-    When I search for users with an "sn" of "Jones"
+    When I call userLookup.findUsersWithFilter({"sn"=>"Jones"})
     Then I should receive the following User objects:
       | User ID |
       | cus001  |
@@ -22,7 +23,7 @@ Feature: Find users by filter
       | User ID | Surname |
       | cus001  | Jones   |
       | cus002  | Smith   |
-    When I search for users with an "sn" of "Crabapple"
+    When I call userLookup.findUsersWithFilter({"sn"=>"Crabapple"})
     Then I should receive an empty list
     
   Scenario: SSO is down
@@ -31,5 +32,5 @@ Feature: Find users by filter
       | cus001  | Jones   |
       | cus002  | Smith   |
     But SSO is down
-    When I search for users with an "sn" of "Jones"
+    When I call userLookup.findUsersWithFilter({"sn"=>"Jones"})
     Then I should receive an empty list

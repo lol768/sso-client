@@ -1,5 +1,15 @@
 require 'csv'
 
+# Implement GroupService so you can then implement your method of choice, eg
+#   mock = MockGroupService.new do
+#     def getGroupByName(name)
+#       raise "Surprise!"
+#     end
+#   end
+class MockGroupService
+  include Java::Uk.ac.warwick.userlookup.GroupService
+end
+
 # Can define our own methods in here that will be available
 # in all step definitions. Our own personalised World.
 module WarwickHelper
@@ -15,6 +25,8 @@ module WarwickHelper
     java_import uk.ac.warwick.userlookup.UnverifiedUser
     java_import uk.ac.warwick.userlookup.UserLookup
     java_import uk.ac.warwick.userlookup.TestSentryServer
+    java_import uk.ac.warwick.userlookup.GroupImpl
+    java_import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException
   end
   
   def sentry
@@ -31,10 +43,17 @@ module WarwickHelper
     @userlookup
   end
   
-#  def group_service
-#    userlookup.group_service_backend = 
-#    userlookup.group_service
-#  end
+  def group_service=(backend)
+    @group_service_backend = backend
+  end
+  
+  def group_service
+    if @group_service.nil?
+      userlookup.group_service_backend = @group_service_backend
+      @group_service = userlookup.group_service
+    end
+    @group_service
+  end
   
   # convert e.g. "foundUser" to "isFoundUser"
   def gettername(s)
@@ -66,5 +85,6 @@ World(WarwickHelper)
 
 Before do
   load_userlookup_classes
-  #puts "Using WarwickWorld"
+  # Ensure any in-memory caches are empty before starting a test.
+  Java::Uk.ac.warwick.userlookup.cache.HashMapCacheStore.clearAll
 end

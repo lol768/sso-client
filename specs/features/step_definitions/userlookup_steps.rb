@@ -1,4 +1,7 @@
 
+StringArray = /(\[(?:"[^\"]*",\s*)*"[^\"]*"\])/
+ListOfIds = /(IDs (?:"[^\"]*", ?)*"[^\"]*")/
+
 Given /^there (?:is|exists) no user with ID "([^\"]*)"$/ do |id|
    # test sentry will default to not finding a user, so do nothing
 end
@@ -15,22 +18,7 @@ Given /^SSO is down$/ do
    sentry.willReturnErrors
 end
 
-When /^(?:when )?I call userLookup.getUserByUserId\("([^\"]*)"\)$/ do |id|
-  with_sso_running do
-    @result = userlookup.get_user_by_user_id id
-  end
-end
-
-Then /^I should receive (an? \w*User object)$/ do |user_class|
-  # Must be an exact match
-  @result.class.should == user_class
-end
-
-StringArray = /(\[(?:"[^\"]*",\s*)*"[^\"]*"\])/
-ListOfIds = /(IDs (?:"[^\"]*", ?)*"[^\"]*")/
-
 Given /^there are users with #{ListOfIds}$/ do |user_ids|
-  puts "Will return #{user_ids}"
   sentry.will_return_users_if_found user_ids.map { |id| valid_user id }.to_java(User)
 end
 
@@ -38,30 +26,46 @@ Given /^the following users exist:$/ do |table|
   sentry.search_results = table.hashes
 end
 
-When /^I search for users with an "([^\"]*)" of "([^\"]*)"$/ do |attribute, value|
+
+
+When /^(?:when )?I call userLookup.getUserByUserId\("([^\"]*)"\)$/ do |id|
   with_sso_running do
-    @result = userlookup.find_users_with_filter attribute => value
+    @result = userlookup.get_user_by_user_id id
   end
 end
 
-Then /^I should receive the following User objects:$/ do |table|
-  @result.size.should == table.hashes.size
+# Need to expand on this if you want to search on multiple attributes.
+# Maybe allow it to accept a table with "Key" and "Value" columns
+When /^I call userLookup.findUsersWithFilter\(\{"([^\"]*)"\s*=>\s*"([^\"]*)"\}\)$/ do |attribute, value|
+  with_sso_running do
+    @result = userlookup.find_users_with_filter attribute => value
+  end
 end
 
 When /^I search for anything$/ do
   with_sso_running do
-    @result = userlookup.find_users_with_filter attribute => value
+    @result = userlookup.find_users_with_filter "sn" => "Jones"
   end
-end
-
-Then /^I should receive an empty list$/i do
-  @result.should be_empty
 end
 
 When /^I call userLookup.getUsersByUserIds\(#{StringArray}\)$/ do |user_ids|
   with_sso_running do
     @result = userlookup.get_users_by_user_ids user_ids
   end
+end
+
+
+Then /^I should receive (an? \w*User object)$/ do |user_class|
+  # Must be an exact match
+  @result.class.should == user_class
+end
+
+Then /^I should receive the following User objects:$/ do |table|
+  @result.size.should == table.hashes.size
+end
+
+Then /^I should receive an empty list$/i do
+  @result.should be_empty
 end
 
 Then /^I should receive (\d) User objects$/ do |count|
@@ -92,10 +96,12 @@ Transform /an? ((?:Anonymous|Unverified)?User) object/ do |kind|
   end
 end
 
+# list of strings surrounded by square brackets
 Transform /\[((?:"[^\"]*",\s*)*"[^\"]*")\]/ do |id_list|
   parse_csv id_list
 end
 
+# list of strings starting "IDs " but with no brackets
 Transform /IDs ((?:"[^\"]*",\s*)*"[^\"]*")/ do |id_list|
   parse_csv id_list
 end

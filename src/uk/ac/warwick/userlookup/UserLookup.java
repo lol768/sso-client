@@ -603,7 +603,7 @@ public class UserLookup implements UserLookupInterface {
 						this);
 
 			} else {
-				LOGGER.info("Creating DefaultGroupService that returns no groups, because of no userlookup.groupservice.location property");
+				LOGGER.warn("Creating DefaultGroupService that returns no groups, because of no userlookup.groupservice.location property");
 				_groupService = new GroupAliasAwareGroupService(new GroupNameCheckerGroupService(new DefaultGroupService()), this);
 			}
 		}
