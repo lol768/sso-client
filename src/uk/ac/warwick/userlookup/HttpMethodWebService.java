@@ -77,12 +77,6 @@ public final class HttpMethodWebService {
 		
 		addApiKeyToUrl(method);
 		
-		try {
-			System.out.println("This is me calling " + method.getURI().toString());
-		} catch (URIException e1) {
-			System.out.println("Urgh");
-		}
-		
 		_methodFactory.setMethodParams(method, parameters);
 		LOGGER.debug("Connecting to WebService on " + _location.toExternalForm());
 		try {

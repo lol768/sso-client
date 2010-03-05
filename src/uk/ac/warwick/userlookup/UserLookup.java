@@ -359,7 +359,7 @@ public class UserLookup implements UserLookupInterface {
 		if (_backend != null) {
 			return _backend;
 		}
-		return new WebUserLookup(_ssosUrl, new WebServiceTimeoutConfig(getHttpConnectionTimeout(), getHttpDataTimeout()),
+		return new WebUserLookup(getSsosUrl(), new WebServiceTimeoutConfig(getHttpConnectionTimeout(), getHttpDataTimeout()),
 				_version, _apiKey);
 	}
 	
@@ -489,7 +489,7 @@ public class UserLookup implements UserLookupInterface {
 	private List<User> findUsersWithFilterUnsafe(
 			final Map<String, String> filterValues, boolean returnDisabledUsers)
 			throws UserLookupException {
-		List<User> list = new SSOUserLookup(_ssosUrl, _apiKey).findUsersWithFilter(filterValues, returnDisabledUsers);
+		List<User> list = new SSOUserLookup(getSsosUrl(), _apiKey).findUsersWithFilter(filterValues, returnDisabledUsers);
 		final Cache<String, User> cache = getUserByUserIdCache();
 		for (User user : list) {
 			if (user.isFoundUser()) {
@@ -502,7 +502,13 @@ public class UserLookup implements UserLookupInterface {
 		return list;
 	}
 	
-	
+	public final String getSsosUrl() {
+		if (_ssosUrl == null) {
+			LOGGER.error("About to throw an exception because we don't have the SSO URL");
+			throw new IllegalStateException("No URL to SSO has been specified. Either specify the userlookup.ssosUrl system property, or call userLookup.setSsosUrl(...)");
+		}
+		return _ssosUrl;
+	}
 
 	/**
 	 * @param ssosUrl
