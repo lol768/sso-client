@@ -29,8 +29,6 @@ end
 # Single step for calling any userLookup method - a Transform parses the arguments as JSON
 When i_call_a_method_on :userLookup do |invocation|
   method_name, args = invocation
-  p method_name
-  p args
   with_sso_running do
     @result = userlookup.send method_name, *args.compact
   end
@@ -83,11 +81,6 @@ Transform /an? ((?:Anonymous|Unverified)?User) object/ do |kind|
       raise ArgumentError, "Unrecognised user kind"
   end
 end
-
-## list of strings surrounded by square brackets
-#Transform /(\[(?:"[^\"]*",\s*)*"[^\"]*"\])/ do |id_list|
-#  JSON.parse id_list
-#end
 
 # list of strings starting "IDs " but with no brackets
 Transform /IDs ((?:"[^\"]*",\s*)*"[^\"]*")/ do |id_list|

@@ -37,8 +37,6 @@ Given /^Webgroups is down$/ do
   userlookup.group_service_location = server_path
 end
 
-StringArg = /\s*"([^\"]*)"\s*/
-
 When i_call_a_method_on :groupService do |invocation|
   method_name, args = invocation
   using_webgroups do
