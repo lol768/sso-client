@@ -64,6 +64,7 @@ public class AttributeAuthorityResponseFetcherImpl extends AbstractSAMLFetcher i
 		user.setWarwickId(getValueFromAttribute("warwickuniid", attributes));
 		user.setDepartmentCode(getValueFromAttribute("warwickdeptcode", attributes));
 		user.setDepartment(getValueFromAttribute("ou", attributes));
+		user.setShortDepartment(getValueFromAttribute("deptshort", attributes));
 		user.setEmail(getValueFromAttribute("mail", attributes));
 
 		user.setUserType(getValueFromAttribute("urn:websignon:usertype", attributes));
