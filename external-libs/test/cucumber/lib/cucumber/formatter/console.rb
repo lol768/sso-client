@@ -68,7 +68,7 @@ module Cucumber
         if !@failures.empty?
           @io.puts format_string("Failing Scenarios:", :failed)
           @failures.each do |failure|
-            profiles_string = (profiles.map{|profile| "-p #{profile} " }).flatten unless profiles.empty?
+            profiles_string = profiles.empty? ? '' : (profiles.map{|profile| "-p #{profile}" }).join(' ') + ' '
             @io.puts format_string("cucumber #{profiles_string}" + failure.file_colon_line, :failed) +
             format_string(" # Scenario: " + failure.name, :comment)
           end
@@ -145,9 +145,11 @@ module Cucumber
         if @delayed_announcements
           @delayed_announcements << announcement
         else
-          @io.puts
-          @io.puts(format_string(announcement, :tag))
-          @io.flush
+          if @io
+            @io.puts
+            @io.puts(format_string(announcement, :tag))
+            @io.flush
+          end
         end
       end
 
