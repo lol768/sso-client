@@ -26,31 +26,19 @@ Given /^the following users exist:$/ do |table|
   sentry.search_results = table.hashes
 end
 
-
-
-When /^(?:when )?I call userLookup.getUserByUserId\("([^\"]*)"\)$/ do |id|
+# Single step for calling any userLookup method - a Transform parses the arguments as JSON
+When i_call_a_method_on :userLookup do |invocation|
+  method_name, args = invocation
+  p method_name
+  p args
   with_sso_running do
-    @result = userlookup.get_user_by_user_id id
-  end
-end
-
-# Need to expand on this if you want to search on multiple attributes.
-# Maybe allow it to accept a table with "Key" and "Value" columns
-When /^I call userLookup.findUsersWithFilter\(\{"([^\"]*)"\s*=>\s*"([^\"]*)"\}\)$/ do |attribute, value|
-  with_sso_running do
-    @result = userlookup.find_users_with_filter attribute => value
+    @result = userlookup.send method_name, *args.compact
   end
 end
 
 When /^I search for anything$/ do
   with_sso_running do
     @result = userlookup.find_users_with_filter "sn" => "Jones"
-  end
-end
-
-When /^I call userLookup.getUsersByUserIds\(#{StringArray}\)$/ do |user_ids|
-  with_sso_running do
-    @result = userlookup.get_users_by_user_ids user_ids
   end
 end
 
@@ -96,12 +84,12 @@ Transform /an? ((?:Anonymous|Unverified)?User) object/ do |kind|
   end
 end
 
-# list of strings surrounded by square brackets
-Transform /\[((?:"[^\"]*",\s*)*"[^\"]*")\]/ do |id_list|
-  parse_csv id_list
-end
+## list of strings surrounded by square brackets
+#Transform /(\[(?:"[^\"]*",\s*)*"[^\"]*"\])/ do |id_list|
+#  JSON.parse id_list
+#end
 
 # list of strings starting "IDs " but with no brackets
 Transform /IDs ((?:"[^\"]*",\s*)*"[^\"]*")/ do |id_list|
-  parse_csv id_list
+  JSON.parse "[#{id_list}]"
 end
