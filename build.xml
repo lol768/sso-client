@@ -189,8 +189,10 @@
 	
 	<target name="buildjar" depends="compile">
 		
+		<copy file="src/ehcache-userlookup-default.xml" todir="${buildDir}/${buildName}-jar" />
 		<copy file="src/ssoclient.version" todir="${buildDir}/${buildName}-jar" />
 		<replace file="${buildDir}/${buildName}-jar/ssoclient.version" token="[version]" value="${version}" />
+		
 		
 		<jar destfile="${jarFile}">
 			<fileset dir="${buildDir}/${buildName}-jar/" />
