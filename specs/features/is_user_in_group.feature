@@ -1,5 +1,5 @@
 @webgroups
-Feature: Is User In Group
+Feature: GroupService.isUserInGroup
   In order to make authentication decisions
   As an application developer
   I want to quickly check whether a user is a member of a group
@@ -18,4 +18,4 @@ Feature: Is User In Group
   Scenario: Webgroups is down
     Given Webgroups is down
     When I call groupService.isUserInGroup("cus001", "in-testgroup")
-    Then the result should be false
+    Then a GroupServiceException should be thrown

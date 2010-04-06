@@ -27,6 +27,7 @@ module WarwickHelper
     java_import uk.ac.warwick.userlookup.TestSentryServer
     java_import uk.ac.warwick.userlookup.GroupImpl
     java_import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException
+    java_import uk.ac.warwick.userlookup.webgroups.GroupServiceException
   end
   
   def sentry

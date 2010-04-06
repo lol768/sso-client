@@ -119,7 +119,6 @@ public class BasicCacheTest extends TestCase {
 		slowFactory.addFastRequest("one");
 		
 		String result1 = slowCache.get("one");
-		System.err.println("Got first item");
 		String result2 = slowCache.get("one");
 		Thread.sleep(1100);
 		String result3 = slowCache.get("one");
@@ -148,7 +147,6 @@ public class BasicCacheTest extends TestCase {
 	
 	@Override
 	protected void tearDown() throws Exception {
-		System.out.println("Tearing down");
 		cache.shutdown();
 		EhCacheUtils.tearDown();
 	}

@@ -25,12 +25,11 @@ public class WarwickGroupsServiceUnitTest extends TestCase {
 			}
 		});
 		
-		Group group = service.getGroupByName("in-serbia");
-		
-		assertEquals("in-serbia", group.getName());
-		assertTrue(group.getUserCodes().isEmpty());
-		assertTrue(group.getOwners().isEmpty());
-		assertFalse(group.isVerified());
-		
+		try {
+			service.getGroupByName("in-serbia");
+			fail("Expected exception");
+		} catch (GroupServiceException e) {
+			//hooray
+		}
 	}
 }

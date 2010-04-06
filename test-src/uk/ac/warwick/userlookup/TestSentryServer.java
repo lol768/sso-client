@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -131,7 +128,11 @@ public class TestSentryServer extends AbstractHandler {
 	 * it will match any attribute that begins with the search value.
 	 */
 	private boolean filterMatches(String filterValue, String attributeValue) {
-		return (attributeValue.startsWith(filterValue));
+		if (filterValue.endsWith("*")) {
+			return (attributeValue.startsWith(filterValue.substring(0, filterValue.length()-1)));
+		} else {
+			return attributeValue.equals(filterValue);
+		}
 	}
 
 	private void handleSentry(Request req, HttpServletResponse res,

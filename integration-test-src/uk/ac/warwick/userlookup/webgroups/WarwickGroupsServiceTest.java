@@ -14,7 +14,7 @@ import junit.framework.TestCase;
  */
 public final class WarwickGroupsServiceTest extends TestCase {
 
-	public void testGetGroupsForUser() {
+	public void testGetGroupsForUser() throws Exception {
 		WarwickGroupsService service = new WarwickGroupsService("xxx");
 		final String userName = "nonExistantUser";
 		service.setEngine(new WarwickGroupsService.ExecuteAndParseEngine() {
@@ -26,7 +26,7 @@ public final class WarwickGroupsServiceTest extends TestCase {
 		service.getGroupsForUser(userName);
 	}
 
-	public void testIsUserInGroup() {
+	public void testIsUserInGroup() throws Exception {
 		WarwickGroupsService service = new WarwickGroupsService("xxx");
 		final String userName = "user";
 		final String group = "group";
@@ -70,7 +70,7 @@ public final class WarwickGroupsServiceTest extends TestCase {
 
 	}
 
-	public void testGetGroupNamesForUser() {
+	public void testGetGroupNamesForUser() throws Exception {
 		WarwickGroupsService service = new WarwickGroupsService("xxx");
 		final String userId = "userId";
 		final String groupName = "myGroup";

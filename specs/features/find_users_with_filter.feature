@@ -4,19 +4,20 @@ Feature: Find users by filter
   As an application developer
   I want to be able to search for users based on attributes other than user ID
   
-  Scenario: Search by surname
+  Scenario: Search by surname with wildcard
     Given the following users exist:
       | User ID | Surname |
       | cus001  | Jones   |
       | cus002  | Smith   |
       | cus003  | Jones   |
       | cus004  | Carbon  |
-      | cus005  | Grep    |
-    When I call userLookup.findUsersWithFilter({"sn":"Jones"})
+      | cus005  | Jonty   |
+    When I call userLookup.findUsersWithFilter({"sn":"Jon*"})
     Then I should receive the following User objects:
       | User ID |
       | cus001  |
       | cus003  |
+      | cus005  |
   
   Scenario: Search by surname with no results
     Given the following users exist:

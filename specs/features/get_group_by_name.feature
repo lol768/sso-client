@@ -1,5 +1,5 @@
 @webgroups
-Feature: WebgroupService.getGroupByName
+Feature: GroupService.getGroupByName
   In order to give users access to Webgroups information
   As an application developer
   I need to be able to query the Webgroups server
@@ -21,5 +21,5 @@ Feature: WebgroupService.getGroupByName
   Scenario: Get group when Webgroups is down
     Given Webgroups is down
     When I call groupService.getGroupByName("in-testgroup")
-    Then I should receive an empty Group object
+    Then a GroupServiceException should be thrown
     

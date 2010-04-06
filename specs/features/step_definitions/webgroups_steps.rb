@@ -42,7 +42,7 @@ When i_call_a_method_on :groupService do |invocation|
   using_webgroups do
     begin
       @result = group_service.send method_name, *args.compact
-    rescue GroupNotFoundException => e
+    rescue Exception => e
       @thrown_exception = e
     end
   end
@@ -66,5 +66,11 @@ Then /^I should receive an empty Group object$/ do
 end
 
 Then /^a GroupNotFoundException should be thrown$/ do
+  @thrown_exception.should_not be_nil
   @thrown_exception.cause.class.should == GroupNotFoundException
+end
+
+Then /^a GroupServiceException should be thrown$/ do
+  @thrown_exception.should_not be_nil
+  @thrown_exception.cause.class.should == GroupServiceException
 end
