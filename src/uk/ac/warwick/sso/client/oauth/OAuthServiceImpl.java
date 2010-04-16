@@ -157,10 +157,13 @@ public final class OAuthServiceImpl implements OAuthService {
         try {
             KeyStore keyStore = getKeyStore();
             Key key = keyStore.getKey(alias, _config.getString("shire.keystore.password").toCharArray());
+            if (key == null) {
+        		throw new RuntimeException("Key with alias "+alias+" was not found in the keystore");
+        	}
             return key;
         } catch (Exception e) {
-            LOGGER.error("Could not create keystore", e);
-            throw new RuntimeException("Could not create keystore", e);
+            LOGGER.error("Could not load keystore", e);
+            throw new RuntimeException("Could not load keystore", e);
         }
 
     }

@@ -104,6 +104,10 @@ public final class SSOClientFilter implements Filter {
 				LOGGER.info("Found sso config");
 			}
 		}
+		
+		if (_config != null) {
+			runSanityCheck(_config);
+		}
 
 		// AttributeAuthorityResponseFetcher already loaded, probably through spring injection
 		if (getAaFetcher() == null) {
@@ -115,6 +119,17 @@ public final class SSOClientFilter implements Filter {
 			setCache((UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + _configSuffix));
 		}
 
+	}
+
+	private void runSanityCheck(Configuration config) {
+		String loginLocation = config.getString("origin.login.location");
+		String mode = config.getString("mode");
+		
+		if (mode.equals("old") && loginLocation.contains("/hs")) {
+			LOGGER.warn("Possible misconfiguration: you are using old mode but the login location contains /hs, which is for new mode. Do you mean /slogin?");
+		} else if (mode.equals("new") && loginLocation.contains("/slogin")) {
+			LOGGER.warn("Possible misconfiguration: you are using new mode but the login location contains /slogin, which is for old mode. Do you mean /hs?");
+		}
 	}
 
 	public void doFilter(final ServletRequest arg0, final ServletResponse arg1, final FilterChain chain) throws IOException,

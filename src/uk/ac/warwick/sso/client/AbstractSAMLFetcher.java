@@ -11,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -186,15 +187,26 @@ public abstract class AbstractSAMLFetcher {
         }
     }
 
+    /**
+     * Finds a Key entry in the given alias of the keystore.
+     * An exception is thrown if the alias isn't found in the keystore,
+     * or if the keystore couldn't be loaded.
+     */
     private Key getKey(final String alias) {
-
         try {
             KeyStore keyStore = getKeyStore();
-            Key key = keyStore.getKey(alias, _config.getString("shire.keystore.password").toCharArray());
-            return key;
+        	Key key = keyStore.getKey(alias, _config.getString("shire.keystore.password").toCharArray());
+        	if (key == null) {
+        		StringBuilder sb = new StringBuilder("");
+        		for (Enumeration<String> aliases = keyStore.aliases(); aliases.hasMoreElements();) {
+        			String a = aliases.nextElement();
+        			sb.append(" ").append(a);
+        		}
+        		throw new RuntimeException("Key with alias "+alias+" was not found in the keystore. Aliases in keystore:"+sb.toString());
+        	}
+        	return key;
         } catch (Exception e) {
-            LOGGER.error("Could not create keystore", e);
-            throw new RuntimeException("Could not create keystore", e);
+            throw new RuntimeException("Could not load key from keystore", e);
         }
 
     }
@@ -214,8 +226,8 @@ public abstract class AbstractSAMLFetcher {
             Certificate originCert = keyStore.getCertificate(alias);
             return originCert;
         } catch (Exception e) {
-            LOGGER.error("Could not create keystore", e);
-            throw new RuntimeException("Could not create keystore", e);
+            LOGGER.error("Could not load keystore", e);
+            throw new RuntimeException("Could not load keystore", e);
         }
 
     }
@@ -229,10 +241,15 @@ public abstract class AbstractSAMLFetcher {
      * @throws MalformedURLException
      */
     private KeyStore getKeyStore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
-        KeyStoreHelper helper = new KeyStoreHelper();
-        KeyStore keyStore = helper.createKeyStore(new URL(_config.getString("shire.keystore.location")), _config
-                .getString("shire.keystore.password"));
-        return keyStore;
+    	try {
+    		URL uri = new URL(_config.getString("shire.keystore.location"));
+    		String password = _config.getString("shire.keystore.password");
+    		KeyStoreHelper helper = new KeyStoreHelper();
+            KeyStore keyStore = helper.createKeyStore(uri, password);
+            return keyStore;
+    	} catch (MalformedURLException e) {
+    		throw new IllegalArgumentException("shire.keystore.location could not be parsed as a URI", e);
+    	}
     }
 
     protected String getValueFromAttribute(final String key, final Properties attributes) {

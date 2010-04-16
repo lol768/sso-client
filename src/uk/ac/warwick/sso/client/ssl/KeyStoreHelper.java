@@ -23,7 +23,8 @@ public class KeyStoreHelper {
 		if (url == null) {
 			throw new IllegalArgumentException("Keystore url may not be null");
 		}
-		return createKeyStore(url.openStream(), password);
+		InputStream openStream = url.openStream();
+		return createKeyStore(openStream, password);
 	}
 
 	public KeyStore createKeyStore(final InputStream keyStream, final String password) throws KeyStoreException,
