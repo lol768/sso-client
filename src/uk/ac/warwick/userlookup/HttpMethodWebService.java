@@ -7,12 +7,14 @@ import java.net.URL;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.log4j.Logger;
+
+import uk.ac.warwick.sso.client.SSOConfiguration;
 
 /**
  * Class that represents a web service accessed via an HTTP POST.
@@ -54,6 +56,21 @@ public final class HttpMethodWebService {
 		_version = version;
 		_apiKey = apiKey;
 	}
+	
+	public static final String getUserAgent(String version) {
+		StringBuilder sb = new StringBuilder("SSOClient");
+        if (version != null) {
+            sb.append(" ").append(version);
+        }
+        Configuration config = SSOConfiguration.getConfig();
+		if (config != null) {
+			String providerId = config.getString("shire.providerid");
+			if (providerId != null) {
+				sb.append(" (providerId=").append(providerId).append(")");
+			}
+		}
+		return sb.toString();
+	}
 
 	@SuppressWarnings("deprecation")
 	public void doRequest(final Map<String,Object> parameters, final WebServiceResponseHandler responseHandler) throws WebServiceException,
@@ -69,11 +86,7 @@ public final class HttpMethodWebService {
 		HttpMethodBase method = _methodFactory.getMethod(_location);
 		//method.addRequestHeader("Connection", "close");
 
-		if (_version == null) {
-			method.addRequestHeader("User-Agent", "Userlookup");
-		} else {
-			method.addRequestHeader("User-Agent", "Userlookup " + _version);
-		}
+		method.addRequestHeader("User-Agent", getUserAgent(_version));
 		
 		addApiKeyToUrl(method);
 		

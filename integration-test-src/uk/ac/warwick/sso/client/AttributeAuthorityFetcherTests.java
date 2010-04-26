@@ -131,9 +131,12 @@ public class AttributeAuthorityFetcherTests extends TestCase {
 	private void testSSL(Configuration config, String url,int expectedStatus) {
 		final int standardHttpsPort = 443;
 		try {
-			 Protocol authhttps = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(config
-			 .getString("shire.keystore.location")), config.getString("shire.keystore.password"), new URL(config
-			 .getString("cacertskeystore.location")), config.getString("cacertskeystore.password")),
+			 Protocol authhttps = new Protocol("https", 
+					 new AuthSSLProtocolSocketFactory(
+							 new URL(ConfigHelper.getRequiredString(config,"shire.keystore.location")), 
+							 ConfigHelper.getRequiredString(config,"shire.keystore.password"), 
+							 new URL(ConfigHelper.getRequiredString(config,"cacertskeystore.location")), 
+							 ConfigHelper.getRequiredString(config,"cacertskeystore.password")),
 			 standardHttpsPort);
 
 			Protocol.registerProtocol("https", authhttps);

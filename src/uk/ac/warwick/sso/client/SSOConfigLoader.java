@@ -82,7 +82,7 @@ public class SSOConfigLoader implements ServletContextListener {
 		sanityCheck(config);
 		
 		if (shouldUseKeystore(config)) {
-			String websignonLoginUrl = config.getString("origin.login.location");
+			String websignonLoginUrl = ConfigHelper.getRequiredString(config,"origin.login.location");
 			setupHttpsProtocol(websignonLoginUrl, config.getString("shire.keystore.location"), config.getString("shire.keystore.password"), config
 					.getString("cacertskeystore.location"), config.getString("cacertskeystore.password"));
 		}

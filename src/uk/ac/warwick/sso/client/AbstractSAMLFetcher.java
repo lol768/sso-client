@@ -42,6 +42,7 @@ import org.xml.sax.SAXException;
 
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
+import uk.ac.warwick.userlookup.HttpMethodWebService;
 import uk.ac.warwick.userlookup.HttpPool;
 
 public abstract class AbstractSAMLFetcher {
@@ -97,11 +98,7 @@ public abstract class AbstractSAMLFetcher {
         client.getHostConfiguration().setHost(url.getHost(), url.getPort(), protocol);
         PostMethod method = new PostMethod(url.getPath());
         
-        if (_version == null) {
-            method.addRequestHeader("User-Agent", "SSOClient");
-        } else {
-            method.addRequestHeader("User-Agent", "SSOClient " + _version);
-        }
+        method.addRequestHeader("User-Agent", HttpMethodWebService.getUserAgent(_version));
 
         method.addRequestHeader("Content-Type", "text/xml");
         SAMLRequest samlRequest = new SAMLRequest();
@@ -176,7 +173,7 @@ public abstract class AbstractSAMLFetcher {
     protected abstract String getEndpointLocation();
 
     private void signRequest(final SAMLRequest samlRequest) {
-        String alias = _config.getString("shire.keystore.shire-alias");
+        String alias = ConfigHelper.getRequiredString(_config,"shire.keystore.shire-alias");
         List<Certificate> certChain = new ArrayList<Certificate>();
         certChain.add(getCertificate(alias));
         try {
@@ -223,7 +220,13 @@ public abstract class AbstractSAMLFetcher {
 
         try {
             KeyStore keyStore = getKeyStore();
+            if (alias == null) {
+            	throw new IllegalArgumentException("Tried to request a null alias from a keystore");
+            }
             Certificate originCert = keyStore.getCertificate(alias);
+            if (originCert == null) {
+            	throw new IllegalArgumentException("Couldn't find a certificate under alias '"+alias+"' in keystore");
+            }
             return originCert;
         } catch (Exception e) {
             LOGGER.error("Could not load keystore", e);

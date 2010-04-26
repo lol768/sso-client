@@ -28,12 +28,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.signature.XMLSignature;
 
+import uk.ac.warwick.sso.client.ConfigHelper;
 import uk.ac.warwick.sso.client.SSOClientVersionLoader;
 import uk.ac.warwick.sso.client.SSOException;
 import uk.ac.warwick.sso.client.oauth.OAuthToken.Type;
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.sso.client.util.ImmediateFuture;
+import uk.ac.warwick.userlookup.HttpMethodWebService;
 import uk.ac.warwick.userlookup.HttpPool;
 import uk.ac.warwick.userlookup.cache.BasicCache;
 import uk.ac.warwick.userlookup.cache.Caches;
@@ -75,10 +77,10 @@ public final class OAuthServiceImpl implements OAuthService {
         org.apache.xml.security.Init.init();
         
         _config = config;
-        keystoreLocation = _config.getString("shire.keystore.location");
-        keystorePassword = _config.getString("shire.keystore.password");
-        cacertsLocation = _config.getString("cacertskeystore.location");
-        cacertsPassword = _config.getString("cacertskeystore.password");
+        keystoreLocation = ConfigHelper.getRequiredString(_config,"shire.keystore.location");
+        keystorePassword = ConfigHelper.getRequiredString(_config,"shire.keystore.password");
+        cacertsLocation = ConfigHelper.getRequiredString(_config,"cacertskeystore.location");
+        cacertsPassword = ConfigHelper.getRequiredString(_config,"cacertskeystore.password");
         _version = SSOClientVersionLoader.getVersion();
     }
 
@@ -104,11 +106,7 @@ public final class OAuthServiceImpl implements OAuthService {
         client.getHostConfiguration().setHost(url.getHost(), url.getPort(), protocol);
         PostMethod method = new PostMethod(url.getPath());
 
-        if (_version == null) {
-            method.addRequestHeader("User-Agent", "SSOClient");
-        } else {
-            method.addRequestHeader("User-Agent", "SSOClient " + _version);
-        }
+        method.addRequestHeader("User-Agent", HttpMethodWebService.getUserAgent(_version));
 
         method.addRequestHeader("Content-Type", "text/xml");
         
@@ -145,7 +143,7 @@ public final class OAuthServiceImpl implements OAuthService {
     }
 
     private String signedRequest(final OAuthServiceRequest request) {
-        String alias = _config.getString("shire.keystore.shire-alias");
+        String alias = ConfigHelper.getRequiredString(_config,"shire.keystore.shire-alias");
         List<Certificate> certChain = new ArrayList<Certificate>();
         certChain.add(getCertificate(alias));
         
@@ -199,8 +197,8 @@ public final class OAuthServiceImpl implements OAuthService {
      */
     private KeyStore getKeyStore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
         KeyStoreHelper helper = new KeyStoreHelper();
-        KeyStore keyStore = helper.createKeyStore(new URL(_config.getString("shire.keystore.location")), _config
-                .getString("shire.keystore.password"));
+        KeyStore keyStore = helper.createKeyStore(new URL(ConfigHelper.getRequiredString(_config,"shire.keystore.location")), 
+        		ConfigHelper.getRequiredString(_config,"shire.keystore.password"));
         return keyStore;
     }
 

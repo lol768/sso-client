@@ -34,17 +34,12 @@ public class AttributeAuthorityResponseFetcherImpl extends AbstractSAMLFetcher i
 	}
 
 	public final User getUserFromSubject(final SAMLSubject subject) throws SSOException {
-
 		SAMLResponse response = getSAMLResponse(subject);
-
 		Properties attributes = getAttributesFromResponse(response);
-
 		User user = createUserFromAttributes(attributes);
 
 		LOGGER.info("Returning user " + user.getFullName() + "(" + user.getUserId() + ") from SAMLSubject");
-
 		return user;
-
 	}
 
 	@Override
