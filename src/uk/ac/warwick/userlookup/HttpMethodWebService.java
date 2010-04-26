@@ -39,6 +39,8 @@ public final class HttpMethodWebService {
 	private String _version;
 	
 	private String _apiKey;
+	
+	private static String userAgentString;
 
 	/**
 	 * @param server
@@ -58,18 +60,21 @@ public final class HttpMethodWebService {
 	}
 	
 	public static final String getUserAgent(String version) {
-		StringBuilder sb = new StringBuilder("SSOClient");
-        if (version != null) {
-            sb.append(" ").append(version);
-        }
-        Configuration config = SSOConfiguration.getConfig();
-		if (config != null) {
-			String providerId = config.getString("shire.providerid");
-			if (providerId != null) {
-				sb.append(" (providerId=").append(providerId).append(")");
+		if (userAgentString == null) {
+			StringBuilder sb = new StringBuilder("SSOClient");
+	        if (version != null) {
+	            sb.append(" ").append(version);
+	        }
+	        Configuration config = SSOConfiguration.getConfig();
+			if (config != null) {
+				String providerId = config.getString("shire.providerid");
+				if (providerId != null) {
+					sb.append(" (providerId=").append(providerId).append(")");
+				}
 			}
+			userAgentString = sb.toString();
 		}
-		return sb.toString();
+		return userAgentString;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -84,7 +89,6 @@ public final class HttpMethodWebService {
 		client.setTimeout(_timeoutConfig.getDataTimeout());
 
 		HttpMethodBase method = _methodFactory.getMethod(_location);
-		//method.addRequestHeader("Connection", "close");
 
 		method.addRequestHeader("User-Agent", getUserAgent(_version));
 		
