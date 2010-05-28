@@ -503,10 +503,11 @@ public class UserLookup implements UserLookupInterface {
 	}
 	
 	public final String getSsosUrl() {
-		if (_ssosUrl == null) {
-			LOGGER.error("About to throw an exception because we don't have the SSO URL");
-			throw new IllegalStateException("No URL to SSO has been specified. Either specify the userlookup.ssosUrl system property, or call userLookup.setSsosUrl(...)");
-		}
+		// A default is used deeper down
+//		if (_ssosUrl == null) {
+//			LOGGER.error("About to throw an exception because we don't have the SSO URL");
+//			throw new IllegalStateException("No URL to SSO has been specified. Either specify the userlookup.ssosUrl system property, or call userLookup.setSsosUrl(...)");
+//		}
 		return _ssosUrl;
 	}
 

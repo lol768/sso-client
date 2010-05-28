@@ -18,7 +18,7 @@ public class ShireServletTest extends TestCase {
 	public void testGet() throws Exception {
 		servlet.doGet(request,response);
 		assertEquals(HttpServletResponse.SC_METHOD_NOT_ALLOWED, response.getStatus());
-		assertTrue(response.getContentAsString().contains("mailto:elab@warwick.ac.uk"));
+		assertTrue(response.getContentAsString().contains("mailto:webteam@warwick.ac.uk"));
 	}
 	
 	/**
