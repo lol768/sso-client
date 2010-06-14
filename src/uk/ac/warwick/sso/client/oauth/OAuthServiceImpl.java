@@ -79,8 +79,9 @@ public final class OAuthServiceImpl implements OAuthService {
         _config = config;
         keystoreLocation = ConfigHelper.getRequiredString(_config,"shire.keystore.location");
         keystorePassword = ConfigHelper.getRequiredString(_config,"shire.keystore.password");
-        cacertsLocation = ConfigHelper.getRequiredString(_config,"cacertskeystore.location");
-        cacertsPassword = ConfigHelper.getRequiredString(_config,"cacertskeystore.password");
+        // Optional - if missing, will use the default cacerts
+        cacertsLocation = _config.getString("cacertskeystore.location");
+        cacertsPassword = _config.getString("cacertskeystore.password");
         _version = SSOClientVersionLoader.getVersion();
     }
 
@@ -94,8 +95,9 @@ public final class OAuthServiceImpl implements OAuthService {
         try {
             url = new URL(location);
             if (protocol == null) {
-                protocol = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(keystoreLocation), keystorePassword,
-                        new URL(cacertsLocation), cacertsPassword), standardHttpsPort);
+                URL truststoreUrl = cacertsLocation==null? null : new URL(cacertsLocation);
+				protocol = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(keystoreLocation), keystorePassword,
+                        truststoreUrl, cacertsPassword), standardHttpsPort);
             }
         } catch (MalformedURLException e) {
             throw new SSOException(e);
