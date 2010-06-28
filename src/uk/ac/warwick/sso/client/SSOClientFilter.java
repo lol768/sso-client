@@ -167,14 +167,14 @@ public final class SSOClientFilter implements Filter {
 		String requestToken = request.getParameter(WARWICK_SSO);
 		boolean postCookies = ("POST".equalsIgnoreCase(request.getMethod()) && requestToken != null);
 
-		if (allowBasic && "true".equals(request.getParameter("forcebasic")) && request.getHeader("Authorization") == null) {
+		if (allowBasic && "true".equals(request.getParameter("forcebasic")) && !isBasicAuthRequest(request)) {
 			sendBasicAuthHeaders(response);
 			return;
 		}
 
 		Cookie[] cookies = request.getCookies();
 
-		if (allowBasic && request.getHeader("Authorization") != null) {
+		if (allowBasic && isBasicAuthRequest(request)) {
 			user = doBasicAuth(request);
 		} else if (_config.getString("mode").equals("old") || request.getAttribute(ForceOldModeFilter.ALLOW_OLD_KEY) != null) {
 			// do old style single sign on via WarwickSSO cookie
@@ -463,6 +463,10 @@ public final class SSOClientFilter implements Filter {
 		return user;
 	}
 
+	private boolean isBasicAuthRequest(final HttpServletRequest request) {
+		String header = request.getHeader("Authorization");
+		return header != null && header.startsWith("Basic ");
+	}
 
 	private User doBasicAuth(final HttpServletRequest request) throws IOException {
 
