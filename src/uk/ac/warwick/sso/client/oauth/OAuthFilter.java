@@ -96,6 +96,9 @@ public final class OAuthFilter implements Filter {
                     if (user != null && user.isFoundUser()) {
                         user.setOAuthUser(true);
                         
+                        // Ensure the user is logged in
+                        user.setIsLoggedIn(true);
+                        
                         // Set it to the SSO Client Filter's parameter
                         request.setAttribute(SSOClientFilter.getUserKey(), user);
 
