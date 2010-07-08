@@ -26,12 +26,15 @@ import org.opensaml.SAMLResponse;
 import org.springframework.util.FileCopyUtils;
 
 import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
+import uk.ac.warwick.userlookup.User;
+import uk.ac.warwick.userlookup.UserLookup;
+import uk.ac.warwick.userlookup.cache.Caches;
 
 public class ShireCommandTests extends TestCase {
 
 	public final void testShireCommand() throws Exception {
 
-		ShireCommand command = new ShireCommand();
+		ShireCommand command = new ShireCommand(Caches.<String, User>newCache(UserLookup.USER_CACHE_NAME, null, 0));
 
 		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
 

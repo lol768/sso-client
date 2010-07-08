@@ -20,6 +20,10 @@ import org.apache.log4j.Logger;
 import org.springframework.util.FileCopyUtils;
 
 import uk.ac.warwick.sso.client.cache.UserCache;
+import uk.ac.warwick.userlookup.User;
+import uk.ac.warwick.userlookup.UserLookup;
+import uk.ac.warwick.userlookup.cache.BasicCache;
+import uk.ac.warwick.userlookup.cache.Caches;
 
 /**
  * <h2>What on earth is a shire?</h2>
@@ -59,6 +63,8 @@ public class ShireServlet extends HttpServlet {
 
 	private String _configSuffix = "";
 	
+	private BasicCache<String, User> _userIdCache;
+	
 	private String getMessage = null;
 
 	public ShireServlet() {
@@ -94,7 +100,7 @@ public class ShireServlet extends HttpServlet {
 			remoteHost = req.getHeader("x-forwarded-for");
 		}
 
-		ShireCommand command = new ShireCommand();
+		ShireCommand command = new ShireCommand(_userIdCache);
 
 		command.setRemoteHost(remoteHost);
 		command.setCache(_cache);
@@ -151,6 +157,9 @@ public class ShireServlet extends HttpServlet {
 			_cache = (UserCache) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CACHE_KEY + _configSuffix);
 		}
 
+		if (getUserIdCache() == null) {
+			_userIdCache = Caches.newCache(UserLookup.USER_CACHE_NAME, null, 0);
+		}
 	}
 
 	private Cookie getCookie(final Cookie[] cookies, final String name) {
@@ -188,6 +197,14 @@ public class ShireServlet extends HttpServlet {
 
 	public final void setConfigSuffix(final String configSuffix) {
 		_configSuffix = configSuffix;
+	}
+
+	public final BasicCache<String, User> getUserIdCache() {
+		return _userIdCache;
+	}
+
+	public final void setUserIdCache(BasicCache<String, User> userIdCache) {
+		_userIdCache = userIdCache;
 	}
 
 }
