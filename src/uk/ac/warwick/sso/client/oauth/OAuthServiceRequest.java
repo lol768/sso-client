@@ -32,6 +32,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import uk.ac.warwick.sso.client.util.Xml;
+
 public abstract class OAuthServiceRequest {
     
     public static final String ERROR_KEY = "error";
@@ -60,11 +62,7 @@ public abstract class OAuthServiceRequest {
 
     public String toSignedXML(String algorithm, Key key, List<Certificate> certChain) {
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setValidating(false);
-            factory.setExpandEntityReferences(false);
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
+            DocumentBuilder builder = Xml.newDocumentBuilder();
             
             Document doc = builder.newDocument();
             Element oauthElement = doc.createElementNS(NS, "OAuth");
@@ -160,11 +158,7 @@ public abstract class OAuthServiceRequest {
             throw new IllegalArgumentException("Bad HTTP method or content type");
         
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setValidating(false);
-            factory.setExpandEntityReferences(false);
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
+            DocumentBuilder builder = Xml.newDocumentBuilder();
             
             Document doc = builder.parse(req.getInputStream());
             Element sigElement = (Element)doc.getElementsByTagNameNS(NS, "Signature").item(0);

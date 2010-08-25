@@ -7,7 +7,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
@@ -15,6 +14,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
+
 
 /**
  * A set of utilities for parsing well formed XML files.
@@ -27,11 +27,8 @@ public abstract class XMLParserUtils {
 	
 	public static Document parseXmlStream(InputStream stream) {
 		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder builder = factory.newDocumentBuilder();
-			Document document = builder.parse(stream);
-			
-			return document;
+			DocumentBuilder builder = Xml.newDocumentBuilder();
+			return builder.parse(stream);
 		} catch (Exception e) {
 			throw new IllegalArgumentException("Error parsing XML stream", e);
 		}

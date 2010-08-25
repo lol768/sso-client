@@ -19,6 +19,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import uk.ac.warwick.sso.client.util.Xml;
+
 import static uk.ac.warwick.sso.client.util.XMLParserUtils.*;
 
 public final class OAuthServiceResponse {
@@ -46,11 +48,7 @@ public final class OAuthServiceResponse {
 
     public String toXML() {
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setValidating(false);
-            factory.setExpandEntityReferences(false);
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
+            DocumentBuilder builder = Xml.newDocumentBuilder();
             
             Document doc = builder.newDocument();
             Element oauthElement = doc.createElementNS(NS, "OAuth");
@@ -102,11 +100,7 @@ public final class OAuthServiceResponse {
     
     public static OAuthServiceResponse fromXML(InputStream is) {        
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setValidating(false);
-            factory.setExpandEntityReferences(false);
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
+        	DocumentBuilder builder = Xml.newDocumentBuilder();
             
             Document doc = builder.parse(is);
             is.close();

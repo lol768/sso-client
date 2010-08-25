@@ -42,12 +42,16 @@ import org.xml.sax.SAXException;
 
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
+import uk.ac.warwick.sso.client.util.XMLParserUtils;
+import uk.ac.warwick.sso.client.util.Xml;
 import uk.ac.warwick.userlookup.HttpMethodWebService;
 import uk.ac.warwick.userlookup.HttpPool;
 
 public abstract class AbstractSAMLFetcher {
 
     private static final Log LOGGER = LogFactory.getLog(AbstractSAMLFetcher.class);
+
+	private static boolean setFeatureSupported = true;
     
     private Configuration _config;
 
@@ -139,18 +143,7 @@ public abstract class AbstractSAMLFetcher {
         // turn https response into a SAML document and get the attributes out
         SAMLResponse samlResp = null;
         try {
-            /**
-             * Replaced the XML.parserPool implementation with this because
-             * otherwise it breaks using a recent Xalan XML parser, as the
-             * SOAP response from SSO has a hack (not mine!!) which the parser
-             * doesn't like. So we turn off validation here, and it can ignore it.
-             * All we really care about is the block of SAML in the middle. 
-             */
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setValidating(false);
-            factory.setExpandEntityReferences(false);
-            factory.setNamespaceAware(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
+            DocumentBuilder builder = Xml.newDocumentBuilder();
             Document document = builder.parse(new InputSource(new StringReader(body)));
             
             Element firstChild = (Element) document.getDocumentElement().getFirstChild().getFirstChild();
