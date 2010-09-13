@@ -30,6 +30,9 @@ public final class Xml {
 		        	// setFeature() not available in xerces 2.6, which is the one that comes with JBoss 3.2.7
 		        	LOGGER.warn("Tried to disable external DTD loading but setFeature() is not available. You may need to upgrade Xerces.");
 		        	supportsSetFeature = false;
+		        } catch (NoSuchMethodError e) {
+		        	LOGGER.warn("Tried to disable external DTD loading but setFeature() is not available. You may need to upgrade Xerces.");
+		        	supportsSetFeature = false;
 		        } catch (ParserConfigurationException e) {
 		        	LOGGER.warn("");
 				}
