@@ -18,6 +18,7 @@ import uk.ac.warwick.userlookup.cache.Caches;
 import uk.ac.warwick.userlookup.cache.Entry;
 import uk.ac.warwick.userlookup.cache.EntryFactory;
 import uk.ac.warwick.userlookup.cache.EntryUpdateException;
+import uk.ac.warwick.userlookup.cache.ExpiryStrategy;
 import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService;
 
@@ -33,6 +34,8 @@ import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService;
  * Spring then you can create it as a bean and share it around.
  */
 public class UserLookup implements UserLookupInterface {
+
+	private static final int MILLIS_IN_SEC = 1000;
 
 	private static final String TOKEN_PREFIX = "token::";
 
@@ -50,6 +53,7 @@ public class UserLookup implements UserLookupInterface {
 	 * Default timeout in seconds for the userId cache, this can be large
 	 */
 	private static final int DEFAULT_USERID_CACHE_TIMEOUT = 7200;
+	private static final int MISSING_USERID_CACHE_TIMEOUT = 120;
 
 	/**
 	 * Default timeout in seconds for the token cache, this should be fairly short because of logging in/out issues
@@ -105,6 +109,8 @@ public class UserLookup implements UserLookupInterface {
 
 	// optional, will use a web-based default if not set.
 	private UserLookupBackend _backend;
+
+	private int userIdCacheTimeout = DEFAULT_USERID_CACHE_TIMEOUT;
 
 	public static UserLookup getInstance() {
 		if (INSTANCE == null) {
@@ -183,7 +189,18 @@ public class UserLookup implements UserLookupInterface {
 		}, DEFAULT_USERID_CACHE_TIMEOUT);
 		_userByUserIdCache.setMaxSize(DEFAULT_USERID_CACHE_SIZE);
 		_userByUserIdCache.setAsynchronousUpdateEnabled(true);
-
+		_userByUserIdCache.setExpiryStrategy(new ExpiryStrategy<String, User>() {
+			public boolean isExpired(Entry<String, User> entry) {
+				long expires;
+				if (entry.getValue().isFoundUser()) { 
+					expires = entry.getTimestamp() + userIdCacheTimeout*MILLIS_IN_SEC;
+				} else {
+					expires = entry.getTimestamp() + MISSING_USERID_CACHE_TIMEOUT*MILLIS_IN_SEC;
+				}
+				final long now = System.currentTimeMillis();
+				return expires <= now;
+			}
+		});
 		
 
 		if (UserLookup.getConfigProperty("userlookup.useridcachesize") != null) {
@@ -589,7 +606,8 @@ public class UserLookup implements UserLookupInterface {
 	 * @param userCacheSize
 	 */
 	public final void setUserIdCacheTimeout(final int userCacheTimeout) {
-		getUserByUserIdCache().setTimeout(userCacheTimeout);
+		//getUserByUserIdCache().setTimeout(userCacheTimeout);
+		userIdCacheTimeout  = userCacheTimeout;
 	}
 
 	public final GroupService getGroupService() {
