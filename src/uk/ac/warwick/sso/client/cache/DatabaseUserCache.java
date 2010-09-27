@@ -16,6 +16,7 @@ import java.util.Date;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -113,7 +114,13 @@ public class DatabaseUserCache implements UserCache {
 
 		parameterValues[2] = new java.sql.Date(new Date().getTime());
 
-		su.update(parameterValues);
+		try {
+			su.update(parameterValues);
+		} catch (DataIntegrityViolationException e) {
+			// DuplicateKeyException isn't introduced until Spring 3 so have to make
+			// do with DataIntegrityViolationException
+			LOGGER.warn("Insert failed as key ("+key+") may already exist");
+		}
 
 	}
 
