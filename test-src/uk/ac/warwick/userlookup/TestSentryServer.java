@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections.EnumerationUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
@@ -62,6 +64,8 @@ public class TestSentryServer extends AbstractHandler {
 	private UserResolver userResolver;
 
 	private boolean onlyIfFound;
+
+	private Server server;
 	
 	public void setResults(List<Map<String, String>> results) {
 		this.results = results;
@@ -183,6 +187,19 @@ public class TestSentryServer extends AbstractHandler {
 		runServer(port, this, callback);
 	}
 	
+	public void startup() throws Exception {
+		server = new Server(port);
+		server.setHandler(this);
+		server.start();
+		LOGGER.debug("Server started");
+	}
+	
+	public void shutdown() throws Exception {
+		LOGGER.debug("Server stopping");
+		server.stop();
+		server.destroy();
+	}
+	
 	public String getPath() {
 		return "http://127.0.0.1:"+port;
 	}
@@ -213,6 +230,17 @@ public class TestSentryServer extends AbstractHandler {
 			map.add(toMap(user));
 		}
 		setResults(map);
+	}
+	
+	public void willNotReturnUsers(String... ids) {
+		Iterator<Map<String, String>> it = results.iterator();
+		while (it.hasNext()) {
+			Map<String, String> next = it.next();
+			if (ArrayUtils.contains(ids, next.get("user"))) {
+				it.remove();				
+			}
+		}
+		onlyIfFound = true;
 	}
 	
 	public void willReturnUsersIfFound(User...users) {

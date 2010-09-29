@@ -144,7 +144,7 @@
     	<arg value="--format" />
       <arg value="html" />
     	<arg value="--out" />
-    	<arg value="build/test-results-html" />
+    	<arg value="build/test-results.html" />
     	
       <arg value="specs/features"/>
     </java>

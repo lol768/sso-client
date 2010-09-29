@@ -2,8 +2,9 @@
 StringArray = /(\[(?:"[^\"]*",\s*)*"[^\"]*"\])/
 ListOfIds = /(IDs (?:"[^\"]*", ?)*"[^\"]*")/
 
-Given /^there (?:is|exists) no user with ID "([^\"]*)"$/ do |id|
+Given /^there (?:is|exists) no(?: longer a)? user with ID "([^\"]*)"$/ do |id|
    # test sentry will default to not finding a user, so do nothing
+   sentry.willNotReturnUsers [id].to_java(java.lang.String)
 end
 
 Given /^there (?:is|exists) a user with ID "([^\"]*)"$/ do |id|
@@ -26,18 +27,20 @@ Given /^the following users exist:$/ do |table|
   sentry.search_results = table.hashes
 end
 
+When /^I wait for (\d+) seconds?$/ do |secs|
+  sleep secs.to_i
+end
+
 # Single step for calling any userLookup method - a Transform parses the arguments as JSON
 When i_call_a_method_on :userLookup do |invocation|
   method_name, args = invocation
-  with_sso_running do
-    @result = userlookup.send method_name, *args.compact
-  end
+  start_sso
+  @result = userlookup.send method_name, *args.compact
 end
 
 When /^I search for anything$/ do
-  with_sso_running do
-    @result = userlookup.find_users_with_filter "sn" => "Jones"
-  end
+  start_sso
+  @result = userlookup.find_users_with_filter "sn" => "Jones"
 end
 
 
@@ -66,6 +69,9 @@ Then /^the property (.+) should return (true|false)$/ do |property,bool|
   @result.send("#{gettername property}").to_s.should == bool
 end
 
+After do
+  stop_sso
+end
 
 # Transforms - converts a matched string into any other object
 

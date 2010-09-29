@@ -61,10 +61,32 @@ module WarwickHelper
     "is#{s.slice(0..0).upcase}#{s.slice(1..-1)}"
   end
   
+  def start_sso
+    unless @sso_running
+      @sso_running = true
+      sentry.startup
+    end
+  end
+  
+  def stop_sso
+    if @sso_running
+      @sso_running = false
+      sentry.shutdown
+    end
+  end
+  
   def with_sso_running
-    # run requires a Runnable, but JRuby will accept a block and make a Runnable proxy. Awesome!
-    sentry.run do
+    if @sso_running
       yield
+    else
+      begin
+        @sso_running = true
+        sentry.run do
+          yield
+        end
+      ensure
+        @sso_running = false
+      end
     end
   end
   
