@@ -47,8 +47,8 @@ public class ShireCommand {
 	public final Cookie process(final String saml64, final String target) throws SSOException {
 		try {
 			SAMLResponse samlResponse = null;
-			LOGGER.debug("TARGET:" + target);
-			LOGGER.debug("SAML64:" + saml64);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("TARGET:" + target);
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("SAML64:" + saml64);
 			if (target == null) {
 				LOGGER.error("Must have a TARGET");
 				throw new IllegalArgumentException("Must have a TARGET");
