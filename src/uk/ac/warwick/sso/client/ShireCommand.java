@@ -85,9 +85,9 @@ public class ShireCommand {
 	
 			LOGGER.info("Accepted Shire request for target:" + target);
 	
-			LOGGER.debug("SAML:" + samlResponse.toString());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("SAML:" + samlResponse.toString());
 			SAMLAssertion assertion = (SAMLAssertion) samlResponse.getAssertions().next();
-			LOGGER.debug("Assertion:" + assertion.toString());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Assertion:" + assertion.toString());
 	
 			String issuer = assertion.getIssuer();
 			if (!issuer.equals(getConfig().getString("origin.originid"))) {
@@ -96,12 +96,12 @@ public class ShireCommand {
 			}
 	
 			SAMLStatement statement = (SAMLStatement) assertion.getStatements().next();
-			LOGGER.debug("Statement:" + statement.toString());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Statement:" + statement.toString());
 			SAMLAuthenticationStatement authStatement = (SAMLAuthenticationStatement) statement;
-			LOGGER.debug("Auth Statement:" + authStatement.toString());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Auth Statement:" + authStatement.toString());
 			SAMLSubject subject = authStatement.getSubject();
-			LOGGER.debug("Subject name:" + subject.getName().toString());
-			LOGGER.debug("Subject name:" + subject.getName().getName());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Subject name:" + subject.getName().toString());
+			if (LOGGER.isDebugEnabled()) LOGGER.debug("Subject name:" + subject.getName().getName());
 	
 			User user = getUserFromAuthSubject(subject);
 	
