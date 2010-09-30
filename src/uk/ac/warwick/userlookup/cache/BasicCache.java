@@ -35,7 +35,9 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 	// Uses an unbounded queue, so when all threads are busy it will queue up
 	// waiting jobs and do them next
 	// SSO-830 static - all caches together will use one threadpool.
-	private static final ExecutorService threadPool = Executors.newFixedThreadPool(15);
+	private static final ExecutorService threadPool = Executors.newFixedThreadPool(
+			Integer.parseInt(UserLookup.getConfigProperty("ssoclient.cache.threadpool.size"))
+	);
 	
 	private final CacheStore<K,V> store;
 	

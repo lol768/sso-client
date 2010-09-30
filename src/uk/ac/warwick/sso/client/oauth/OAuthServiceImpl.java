@@ -1,5 +1,8 @@
 package uk.ac.warwick.sso.client.oauth;
 
+import static java.lang.Integer.*;
+import static uk.ac.warwick.userlookup.UserLookup.*;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -37,6 +40,7 @@ import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.sso.client.util.ImmediateFuture;
 import uk.ac.warwick.userlookup.HttpMethodWebService;
 import uk.ac.warwick.userlookup.HttpPool;
+import uk.ac.warwick.userlookup.UserLookup;
 import uk.ac.warwick.userlookup.cache.BasicCache;
 import uk.ac.warwick.userlookup.cache.Caches;
 import uk.ac.warwick.userlookup.cache.EntryUpdateException;
@@ -64,11 +68,11 @@ public final class OAuthServiceImpl implements OAuthService {
 
     private Protocol protocol;
     
-    // One hour timeout for consumers, one day for tokens (access/disabled tokens only)
+    // access/disabled tokens only
     private final BasicCache<String, OAuthConsumer> consumerCache
-        = Caches.newCache(CONSUMER_CACHE_NAME, new OAuthConsumerEntryFactory(), 60 * 60);
+        = Caches.newCache(CONSUMER_CACHE_NAME, new OAuthConsumerEntryFactory(), parseInt(getConfigProperty("ssoclient.oauth.cache.consumer.timeout.secs")));
     private final BasicCache<String, OAuthToken> tokenCache
-        = Caches.newCache(TOKEN_CACHE_NAME, new OAuthTokenEntryFactory(), 24 * 60 * 60);
+        = Caches.newCache(TOKEN_CACHE_NAME, new OAuthTokenEntryFactory(), parseInt(getConfigProperty("ssoclient.oauth.cache.token.timeout.secs")));
 
     protected OAuthServiceImpl() {
     }

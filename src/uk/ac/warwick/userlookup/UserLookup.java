@@ -1,5 +1,8 @@
 package uk.ac.warwick.userlookup;
 
+import static java.lang.Integer.*;
+
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -49,24 +52,25 @@ public class UserLookup implements UserLookupInterface {
 
 	public static String LDAP_DEPARTMENT_KEY = "ou";
 	
+	private static Properties configProperties;
+	
+	private static Object defaultPropertiesLock = new Object();
+	private static Properties defaultProperties;
+	
 	/**
 	 * Default timeout in seconds for the userId cache, this can be large
 	 */
-	private static final int DEFAULT_USERID_CACHE_TIMEOUT = 7200;
-	private static final int MISSING_USERID_CACHE_TIMEOUT = 120;
+	private static final int DEFAULT_USERID_CACHE_TIMEOUT = parseInt(getConfigProperty("ssoclient.cache.userid.timeout.secs"));
+	private static final int MISSING_USERID_CACHE_TIMEOUT = parseInt(getConfigProperty("ssoclient.cache.userid-missing.timeout.secs"));
 
 	/**
 	 * Default timeout in seconds for the token cache, this should be fairly short because of logging in/out issues
 	 */
-	private static final int DEFAULT_TOKEN_CACHE_TIMEOUT = 1800;
-
-	private static final int DEFAULT_USERID_CACHE_SIZE = 10000;
-
-	private static final int DEFAULT_TOKEN_CACHE_SIZE = 10000;
-
-	public static final int DEFAULT_CONNECTION_TIMEOUT = 10000;
-
-	public static final int DEFAULT_DATA_TIMEOUT = 10000;
+	private static final int DEFAULT_TOKEN_CACHE_TIMEOUT = parseInt(getConfigProperty("ssoclient.cache.token.timeout.secs"));
+	private static final int DEFAULT_USERID_CACHE_SIZE = parseInt(getConfigProperty("ssoclient.cache.userid.size"));
+	private static final int DEFAULT_TOKEN_CACHE_SIZE = parseInt(getConfigProperty("ssoclient.cache.token.size"));
+	public static final int DEFAULT_CONNECTION_TIMEOUT = parseInt(getConfigProperty("ssoclient.net.connection-timeout.millis"));
+	public static final int DEFAULT_DATA_TIMEOUT = parseInt(getConfigProperty("ssoclient.net.data-timeout.millis"));
 	
 	// Names of UserLookup caches, to use as reference to external cache stores like Ehcache.
 	public static final String USER_CACHE_NAME = "UserLookupCache";
@@ -79,8 +83,6 @@ public class UserLookup implements UserLookupInterface {
 
 
 	private static UserLookup INSTANCE;
-
-	private static Properties configProperties;
 	
 	private Cache<String,User> _userByTokenCache;
 
@@ -692,7 +694,24 @@ public class UserLookup implements UserLookupInterface {
 		configProperties = props;
 	}
 	
+	
 	public static String getConfigProperty(String propertyName) {
+		if (defaultProperties == null) {
+			synchronized(defaultPropertiesLock) {
+				if (defaultProperties == null) {
+					defaultProperties = new Properties();
+					try {
+						defaultProperties.load(UserLookup.class.getResourceAsStream("/default-ssoclient.properties"));
+					} catch (IOException e) {
+						throw new IllegalStateException("Error reading embedded properties file", e);
+					}
+				}
+			}
+		}
+		String def = defaultProperties.getProperty(propertyName);
+		if (def != null) {
+			return def;
+		}
 		if (configProperties != null) {
 			return configProperties.getProperty(propertyName);
 		}
@@ -700,12 +719,7 @@ public class UserLookup implements UserLookupInterface {
 	}
 	
 	public static String getConfigProperty(String propertyName, String def) {
-		String result;
-		if (configProperties != null) {
-			result = configProperties.getProperty(propertyName);
-		} else {
-			result = System.getProperty(propertyName);
-		}
+		String result = getConfigProperty(propertyName);
 		if (result == null) {
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("Property " + propertyName + " missing, using default of " + def);
 			result = def;

@@ -4,6 +4,9 @@
  */
 package uk.ac.warwick.sso.client.cache;
 
+import static java.lang.Integer.*;
+import static uk.ac.warwick.userlookup.UserLookup.*;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -27,6 +30,7 @@ import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 
 import uk.ac.warwick.sso.client.SSOToken;
+import uk.ac.warwick.userlookup.UserLookup;
 
 public class DatabaseUserCache implements UserCache {
 
@@ -34,7 +38,7 @@ public class DatabaseUserCache implements UserCache {
 
 	private DataSource _dataSource;
 
-	private static final int DEFAULT_TIME_OUT = 43200;
+	private static final int DEFAULT_TIME_OUT = parseInt(getConfigProperty("ssoclient.sessioncache.database.timeout.secs"));
 
 	private int _timeout = DEFAULT_TIME_OUT;
 

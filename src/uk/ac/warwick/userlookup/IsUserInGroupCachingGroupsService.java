@@ -17,7 +17,7 @@ import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
  */
 public final class IsUserInGroupCachingGroupsService extends GroupServiceAdapter {
     private static final String CACHE_TIMEOUT_SECS="userlookup.cache.isuseringroup.timeout";
-    private static final long DEFAULT_CACHE_TIMEOUT_SECS=60*10;
+    private static final long DEFAULT_CACHE_TIMEOUT_SECS=Long.parseLong(UserLookup.getConfigProperty("ssoclient.groupservice.cache.isuseringroup.timeout"));
 
     private Cache<Pair<String,String>,Boolean> cache;
 

@@ -9,6 +9,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -593,5 +594,7 @@ public final class SSOClientFilter implements Filter {
 	public void setDetectAnonymousOnCampusUsers(boolean detectAnonymousOnCampusUsers) {
 		this.detectAnonymousOnCampusUsers = detectAnonymousOnCampusUsers;
 	}
+	
+	
 
 }

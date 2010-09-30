@@ -7,9 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 
 class OnCampusServiceImpl implements OnCampusService {
 	private static final String LOCALHOST = "127.0.0.1";
-	private static final String WWWCACHE = "137.205.192.27"; 
-	private static final String[] MACHINE_RANGES = new String[] { "137.205.195.", "137.205.243.", "137.205.247." };
-	private static final String[] CAMPUS_RANGES = new String[] { "137." };
+	private static final String WWWCACHE = UserLookup.getConfigProperty("ssoclient.oncampus.wwwcache").trim();
+	private static final String[] MACHINE_RANGES = UserLookup.getConfigProperty("ssoclient.oncampus.machine.ranges").trim().split(",");
+	private static final String[] CAMPUS_RANGES = UserLookup.getConfigProperty("ssoclient.oncampus.ranges").trim().split(",");
 	private static final String X_FORWARDED_FOR = "X-FORWARDED-FOR";
 
 	public boolean isOnCampus(HttpServletRequest request) {

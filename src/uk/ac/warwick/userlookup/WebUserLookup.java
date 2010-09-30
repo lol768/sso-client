@@ -39,7 +39,7 @@ public class WebUserLookup implements UserLookupBackend {
 	 * the request timing out. It could still time out, but it's much
 	 * less likely.
 	 */
-	public static final int BATCH_USER_SIZE = 100;
+	public static final int BATCH_USER_SIZE = Integer.parseInt(UserLookup.getConfigProperty("ssoclient.userlookup.batch.size"));
 	
 	private static final int CHECK_TOKEN = 1;
 

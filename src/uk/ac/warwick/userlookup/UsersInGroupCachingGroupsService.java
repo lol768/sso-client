@@ -21,7 +21,7 @@ public final class UsersInGroupCachingGroupsService extends GroupServiceAdapter 
 
     private static final String CACHE_TIMEOUT_SECS="userlookup.cache.usercodesingroup.timeout";
 
-    private static final long DEFAULT_CACHE_TIMEOUT_SECS=60*10;
+    private static final long DEFAULT_CACHE_TIMEOUT_SECS=Long.parseLong(UserLookup.getConfigProperty("ssoclient.groupservice.cache.usersingroup.timeout"));
 
     private Cache<String,ArrayList<String>> _cache;
 

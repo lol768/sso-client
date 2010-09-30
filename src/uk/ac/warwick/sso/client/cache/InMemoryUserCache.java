@@ -4,6 +4,8 @@
  */
 package uk.ac.warwick.sso.client.cache;
 
+import static java.lang.Integer.*;
+import static uk.ac.warwick.userlookup.UserLookup.*;
 import uk.ac.warwick.sso.client.SSOToken;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
@@ -22,9 +24,9 @@ import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
  */
 public class InMemoryUserCache extends BasicCacheAdapter {
 
-	private static final int DEFAULT_MAX_ENTRIES = 50000;
+	private static final int DEFAULT_MAX_ENTRIES = parseInt(getConfigProperty("ssoclient.sessioncache.memory.max-size"));;
 
-	private static final int DEFAULT_TIME_OUT = 43200;
+	private static final int DEFAULT_TIME_OUT = parseInt(getConfigProperty("ssoclient.sessioncache.memory.timeout.secs"));
 
 	public InMemoryUserCache() {
 		super(newCache());
