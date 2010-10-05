@@ -188,7 +188,11 @@ public class TestSentryServer extends AbstractHandler {
 	}
 	
 	public void startup() throws Exception {
+		if (server != null) {
+			throw new IllegalStateException("server already created");
+		}
 		server = new Server(port);
+		server.setStopAtShutdown(true);
 		server.setHandler(this);
 		server.start();
 		LOGGER.debug("Server started");
@@ -198,6 +202,7 @@ public class TestSentryServer extends AbstractHandler {
 		LOGGER.debug("Server stopping");
 		server.stop();
 		server.destroy();
+		server = null;
 	}
 	
 	public String getPath() {

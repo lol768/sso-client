@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import uk.ac.warwick.userlookup.UserLookup;
 
@@ -36,8 +37,18 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 	// waiting jobs and do them next
 	// SSO-830 static - all caches together will use one threadpool.
 	private static final ExecutorService threadPool = Executors.newFixedThreadPool(
-			Integer.parseInt(UserLookup.getConfigProperty("ssoclient.cache.threadpool.size"))
+			Integer.parseInt(UserLookup.getConfigProperty("ssoclient.cache.threadpool.size")),
+			new DaemonThreadFactory()
 	);
+	
+	private static class DaemonThreadFactory implements ThreadFactory {
+		private static final ThreadFactory def = Executors.defaultThreadFactory();
+		public Thread newThread(Runnable r) {
+			Thread t = def.newThread(r);
+			t.setDaemon(true);
+			return t;
+		}
+	}
 	
 	private final CacheStore<K,V> store;
 	
