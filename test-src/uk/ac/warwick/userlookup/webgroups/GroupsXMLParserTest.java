@@ -1,7 +1,10 @@
 package uk.ac.warwick.userlookup.webgroups;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,9 +16,13 @@ import javax.xml.parsers.SAXParserFactory;
 
 import junit.framework.TestCase;
 
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.FileCopyUtils;
+import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.AttributesImpl;
 
 import uk.ac.warwick.userlookup.Group;
 import uk.ac.warwick.userlookup.webgroups.GroupsInfoXMLResponseHandler.GroupsInfoXMLParser;
@@ -34,6 +41,33 @@ public final class GroupsXMLParserTest extends TestCase {
 		Collection groups = xmlParser.getGroups();
 		assertTrue("should be empty", groups.isEmpty());
 	}
+	
+	public void testSso1003() throws Exception {
+		GroupsXMLParser xmlParser = new GroupsXMLParser();
+		
+		xmlParser.startDocument();
+		xmlParser.startElement("", "groups", "groups", null);
+		AttributesImpl groupAtts = new AttributesImpl();
+		groupAtts.addAttribute("", "name", "name", "", "in-amazing");
+		xmlParser.startElement("", "group", "group", groupAtts);
+		xmlParser.startElement("", "lastupdateddate", "lastupdateddate", null);
+		
+		String chars = "2008-10-12 06:29";
+		String chars2 = ":36";
+		
+		xmlParser.characters(chars.toCharArray(), 0, chars.length());
+		xmlParser.characters(chars2.toCharArray(), 0, chars2.length());
+		xmlParser.endElement("", "lastupdateddate", "lastupdateddate");
+		xmlParser.endElement("", "group", "group");
+		xmlParser.endElement("", "groups", "groups");
+		
+		List<Group> list = new ArrayList<Group>(xmlParser.getGroups());
+		Group group = list.get(0);
+		assertEquals("in-amazing", group.getName());
+		assertEquals(2008 - 1900, group.getLastUpdatedDate().getYear());
+	}
+	
+	
 
 	public void testFullGroups() throws Exception {
 		String firstTitle = "the title";
@@ -45,10 +79,10 @@ public final class GroupsXMLParserTest extends TestCase {
 				+ "<user userId=\"memberA\"></user>" + "<user userId=\"memberB\"></user>" + "</users>"
 				+ "<department>departmentA</department>" + "</group>" + "<group name=\"" + secondName + "\">" + "<title>"
 				+ secondTitle + "</title>" + "<owners>" + "<owner userId=\"ownerC\"></owner>" + "</owners>" + "<users>"
-				+ "<user userId=\"memberC\"></user>" + "</users>" + "<department>departmentB</department>" + "</group>"
+				+ "<user userId=\"memberC\"></user>" + "</users>" + "<department>departmentB</department>" + "<lastupdateddate>2010-10-12 06:29:42</lastupdateddate></group>"
 				+ "</groups>";
 		GroupsXMLParser xmlParser = new GroupsXMLParser();
-		doParse(xmlToParse, xmlParser);
+		doParse(new ByteArrayInputStream(xmlToParse.getBytes()), xmlParser);
 
 		List groups = new ArrayList(xmlParser.getGroups());
 		assertEquals("number of groups", 2, groups.size());
@@ -71,6 +105,7 @@ public final class GroupsXMLParserTest extends TestCase {
 		assertEquals("groupB members", 1, groupB.getUserCodes().size());
 		assertTrue("groupB, memberC", groupB.getUserCodes().contains("memberC"));
 		assertEquals("groupB, department", "departmentB", groupB.getDepartment());
+		assertEquals(29, groupB.getLastUpdatedDate().getMinutes());
 
 	}
 	
@@ -109,10 +144,16 @@ public final class GroupsXMLParserTest extends TestCase {
 
 	private void doParse(final String xmlToParse, final GroupsXMLParser xmlParser) throws FactoryConfigurationError,
 			ParserConfigurationException, SAXException, IOException {
+		doParse(new ByteArrayInputStream(xmlToParse.getBytes()), xmlParser);
+	}
+	
+	private void doParse(final InputStream is, final GroupsXMLParser xmlParser) throws FactoryConfigurationError,
+			ParserConfigurationException, SAXException, IOException {
 		SAXParserFactory factory = SAXParserFactory.newInstance();
+		factory.setFeature("http://xml.org/sax/features/validation", false);
 		SAXParser parser = factory.newSAXParser();
 		XMLReader reader = parser.getXMLReader();
 		reader.setContentHandler(xmlParser);
-		reader.parse(new InputSource(new ByteArrayInputStream(xmlToParse.getBytes())));
+		reader.parse(new InputSource(is));
 	}
 }
