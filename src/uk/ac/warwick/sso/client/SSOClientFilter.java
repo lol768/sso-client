@@ -74,6 +74,8 @@ public final class SSOClientFilter implements Filter {
 	private String _configSuffix = "";
 
 	private boolean detectAnonymousOnCampusUsers;
+	
+	private boolean redirectToRefreshSession = true;
 
 	public SSOClientFilter() {
 		super();
@@ -190,30 +192,32 @@ public final class SSOClientFilter implements Filter {
 			Cookie proxyTicketCookie = getCookie(cookies, PROXY_TICKET_COOKIE_NAME);
 
 			if (loginTicketCookie != null && serviceSpecificCookie == null) {
-				redirectToLogin(response, request, loginTicketCookie);
-				return;
-			}
-
-			if (proxyTicketCookie != null) {
-				user = getUserFromProxyTicket(proxyTicketCookie);
-			} else if (serviceSpecificCookie != null) {
-				LOGGER.debug("Found SSC (" + serviceSpecificCookie.getValue() + ")");
-
-				SSOToken token = new SSOToken(serviceSpecificCookie.getValue(), SSOToken.SSC_TICKET_TYPE);
-				UserCacheItem item = getCache().get(token);
-
-				if ((item == null || !item.getUser().isLoggedIn()) && loginTicketCookie != null) {
+				if (redirectToRefreshSession) {
 					redirectToLogin(response, request, loginTicketCookie);
-					// didn't find user, so cookie is invalid, destroy it!
-					destroySSC(response);
 					return;
-				} else if (item != null && item.getUser().isLoggedIn()) {
-					user = item.getUser();
-				} else {
-					// user has SSC but is not actually logged in
-					LOGGER.debug("Invalid SSC as user was not found in cache");
 				}
-
+			} else {
+				if (proxyTicketCookie != null) {
+					user = getUserFromProxyTicket(proxyTicketCookie);
+				} else if (serviceSpecificCookie != null) {
+					LOGGER.debug("Found SSC (" + serviceSpecificCookie.getValue() + ")");
+	
+					SSOToken token = new SSOToken(serviceSpecificCookie.getValue(), SSOToken.SSC_TICKET_TYPE);
+					UserCacheItem item = getCache().get(token);
+	
+					if (redirectToRefreshSession && (item == null || !item.getUser().isLoggedIn()) && loginTicketCookie != null) {
+						redirectToLogin(response, request, loginTicketCookie);
+						// didn't find user, so cookie is invalid, destroy it!
+						destroySSC(response);
+						return;
+					} else if (item != null && item.getUser().isLoggedIn()) {
+						user = item.getUser();
+					} else {
+						// user has SSC but is not actually logged in
+						LOGGER.debug("Invalid SSC as user was not found in cache");
+					}
+	
+				}
 			}
 		}
 		
@@ -595,6 +599,23 @@ public final class SSOClientFilter implements Filter {
 		this.detectAnonymousOnCampusUsers = detectAnonymousOnCampusUsers;
 	}
 	
-	
+
+	/**
+	 * If true (the default), then if the filter finds cookies relating to an existing session that is
+	 * no longer valid, it will redirect to Websignon to get those cookies refreshed. You may want to disable
+	 * this for places where you wish to know about a user who might be logged in, but don't ever want
+	 * SSOClient to automatically redirect the user agent away. In these cases, an AnonymousUser will
+	 * be returned instead.
+	 */
+	public boolean isRedirectToRefreshSession() {
+		return redirectToRefreshSession;
+	}
+
+	/**
+	 * @see #isRedirectToRefreshSession()
+	 */
+	public void setRedirectToRefreshSession(boolean redirectToRefreshSession) {
+		this.redirectToRefreshSession = redirectToRefreshSession;
+	}
 
 }
