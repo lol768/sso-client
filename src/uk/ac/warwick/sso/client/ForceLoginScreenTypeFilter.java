@@ -28,6 +28,9 @@ import org.apache.log4j.Logger;
  * If you have complex user agent needs then you can write your own filter and configure it
  * to set the attribute {@link #SSO_SCREEN_TYPE_KEY} to "mini" when you want it to show a mobile
  * login screen. You might do some user agent sniffing to detect this.
+ * <p>
+ * (ForceLoginScreenTypeFilter was a bad name as it suggests it's something to do with
+ * ForceLoginFilter, or related to forcing login, which it is not.)
  */
 public class ForceLoginScreenTypeFilter implements Filter {
 
