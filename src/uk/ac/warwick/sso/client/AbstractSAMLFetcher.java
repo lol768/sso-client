@@ -2,6 +2,7 @@ package uk.ac.warwick.sso.client;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.Key;
@@ -17,8 +18,14 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.httpclient.HttpClient;
@@ -42,7 +49,6 @@ import org.xml.sax.SAXException;
 
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
-import uk.ac.warwick.sso.client.util.XMLParserUtils;
 import uk.ac.warwick.sso.client.util.Xml;
 import uk.ac.warwick.userlookup.HttpMethodWebService;
 import uk.ac.warwick.userlookup.HttpPool;
@@ -78,6 +84,31 @@ public abstract class AbstractSAMLFetcher {
     protected SAMLResponse getSAMLResponse(final SAMLSubject subject) throws SSOException {
         return getSAMLResponse(subject, _config.getString("shire.providerid"));
     }
+    
+    /**
+     * Given a SAMLSubject and a resource, wraps it in a SAML attribute query request
+     * and signs it.
+     */
+    public String generateSAMLRequestXml(final SAMLSubject subject, final String resource) throws SSOException {
+    	SAMLRequest samlRequest = new SAMLRequest();
+        SAMLAttributeQuery query = new SAMLAttributeQuery();
+        query.setResource(resource);
+        try {
+            query.setSubject(subject);
+            samlRequest.setQuery(query);
+            signRequest(samlRequest);
+        } catch (SAMLException e) {
+            LOGGER.error("SAMLException setting up samlRequest", e);
+        }
+        StringBuilder xml = new StringBuilder("<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\""
+                + " xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">"
+                + "<soap:Body>");
+        
+        // SSO-1026 can't reproduce in a test, but on servers it uses soap1 NS without declaring it 
+        xml.append( samlRequest.toString().replace("soap1:", "soap:" ) );
+        xml.append( "</soap:Body></soap:Envelope>" );
+        return xml.toString();
+    }
 
     @SuppressWarnings("deprecation")
     protected SAMLResponse getSAMLResponse(final SAMLSubject subject, final String resource) throws SSOException {
@@ -105,22 +136,10 @@ public abstract class AbstractSAMLFetcher {
         method.addRequestHeader("User-Agent", HttpMethodWebService.getUserAgent(_version));
 
         method.addRequestHeader("Content-Type", "text/xml");
-        SAMLRequest samlRequest = new SAMLRequest();
-        SAMLAttributeQuery query = new SAMLAttributeQuery();
-        query.setResource(resource);
-        try {
-            query.setSubject(subject);
-            samlRequest.setQuery(query);
-            signRequest(samlRequest);
-        } catch (SAMLException e) {
-            LOGGER.error("SAMLException setting up samlRequest", e);
-        }
+        
+        String fullRequest = generateSAMLRequestXml(subject, resource);
 
-        String fullRequest = "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\""
-                + " xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">"
-                + "<soap:Body>";
-        fullRequest += samlRequest.toString();
-        fullRequest += "</soap:Body></soap:Envelope>";
+        
         method.setRequestBody(fullRequest);
         LOGGER.debug("SAMLRequest:" + fullRequest);
         String body;
@@ -165,7 +184,7 @@ public abstract class AbstractSAMLFetcher {
     
     protected abstract String getEndpointLocation();
 
-    private void signRequest(final SAMLRequest samlRequest) {
+    private void signRequest(final SAMLRequest samlRequest) throws SAMLException {
         String alias = ConfigHelper.getRequiredString(_config,"shire.keystore.shire-alias");
         List<Certificate> certChain = new ArrayList<Certificate>();
         certChain.add(getCertificate(alias));
@@ -185,7 +204,11 @@ public abstract class AbstractSAMLFetcher {
     private Key getKey(final String alias) {
         try {
             KeyStore keyStore = getKeyStore();
-        	Key key = keyStore.getKey(alias, _config.getString("shire.keystore.password").toCharArray());
+        	String string = _config.getString("shire.keystore.password");
+        	if (string == null) {
+        		throw new RuntimeException("No keystore password has been specified under shire.keystore.password");
+        	}
+			Key key = keyStore.getKey(alias, string.toCharArray());
         	if (key == null) {
         		StringBuilder sb = new StringBuilder("");
         		for (Enumeration<String> aliases = keyStore.aliases(); aliases.hasMoreElements();) {
@@ -218,7 +241,9 @@ public abstract class AbstractSAMLFetcher {
             }
             Certificate originCert = keyStore.getCertificate(alias);
             if (originCert == null) {
-            	throw new IllegalArgumentException("Couldn't find a certificate under alias '"+alias+"' in keystore");
+            	
+            	throw new IllegalArgumentException("Couldn't find a certificate under alias '"
+            			+alias+"' in keystore, aliases: " + toString(keyStore.aliases()));
             }
             return originCert;
         } catch (Exception e) {
@@ -227,6 +252,16 @@ public abstract class AbstractSAMLFetcher {
         }
 
     }
+
+	private String toString(Enumeration<String> enumer) {
+		StringBuilder sb = new StringBuilder("[");
+		while (enumer.hasMoreElements()) {
+			sb.append(enumer.nextElement());
+			sb.append(','); // Yeah trailing comma, big whoop.
+		}
+		sb.append("]");
+		return sb.toString();
+	}
 
     /**
      * @return

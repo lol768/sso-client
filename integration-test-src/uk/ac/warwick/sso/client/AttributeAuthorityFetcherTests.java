@@ -34,6 +34,8 @@ public class AttributeAuthorityFetcherTests extends TestCase {
 
 	public final void testFetcher() throws Exception {
 
+		// This test is rubbish because this overrides the getSAMLResponse method
+		// that usually does all the work. So we're not testing much.
 		MockAttributeAuthorityResponseFetcher2 fetcher = new MockAttributeAuthorityResponseFetcher2();
 
 		fetcher.setSAMLResponse(generateMockResponse());

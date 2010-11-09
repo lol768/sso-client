@@ -38,7 +38,7 @@ public class DecodingTests extends TestCase {
 		reader.close();
 		is.close();
 
-		SAMLResponse samlResponse = SAMLPOSTProfile.accept(content.getBytes(), "urn:moleman.warwick.ac.uk:blogbuilder:service",
+		SAMLResponse samlResponse = SAMLPOSTProfile.accept(content.getBytes("US-ASCII"), "urn:moleman.warwick.ac.uk:blogbuilder:service",
 				5, false);
 
 		try {
