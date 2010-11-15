@@ -29,6 +29,7 @@
 	<classpathentry kind="lib" path="external-libs/test/xalan-2.7.0.jar"/>
 	<classpathentry kind="lib" path="external-libs/xmlsec-1.4.3.jar"/>
 	<classpathentry kind="lib" path="external-libs/test/xerces-2.6.jar"/>
+	<classpathentry kind="lib" path="external-libs/opensaml.jar"/>
 	<classpathentry kind="src" path="test-src"/>
 	<classpathentry kind="lib" path="external-libs/commons-collections-3.1.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-digester.jar"/>
@@ -39,11 +40,6 @@
 	<classpathentry kind="lib" path="external-libs/spring-dao.jar"/>
 	<classpathentry kind="lib" path="external-libs/spring-jdbc.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-configuration-1.0.jar"/>
-	<classpathentry kind="lib" path="external-libs/opensaml.jar" sourcepath="/home/mat/Desktop/opensaml/java/src">
-		<attributes>
-			<attribute name="javadoc_location" value="file:/C:/apps/packages/opensaml/java/doc/api/"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="lib" path="external-libs/commons-httpclient-3.0.1.jar" sourcepath="/WindowsLiveClient/lib-src/httpcomponents-client-4.0-src.zip">
 		<attributes>
 			<attribute name="javadoc_location" value="file:/C:/apps/packages/commons-httpclient-3.0.1/docs/apidocs/"/>

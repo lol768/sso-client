@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<loadpath>
+	<pathentry path="" type="src"/>
+	<pathentry path="GEM_LIB/treetop-1.4.8/lib" type="var"/>
+	<pathentry path="GEM_LIB/builder-2.1.2/lib" type="var"/>
+</loadpath>

@@ -50,6 +50,8 @@ public class User implements Serializable, ExtraProperties {
 	private boolean verified = true;
 	
 	private boolean oauthUser;
+	
+	private boolean onCampus;
 
 	private Map<String, String> _extraProperties = new HashMap<String, String>();
 
@@ -483,4 +485,13 @@ public class User implements Serializable, ExtraProperties {
 	public void setOAuthUser(boolean isOAuthUser) {
 	    this.oauthUser = isOAuthUser;
 	}
+
+	public boolean isOnCampus() {
+		return onCampus;
+	}
+
+	public void setOnCampus(boolean onCampus) {
+		this.onCampus = onCampus;
+	}
+
 }

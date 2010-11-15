@@ -13,4 +13,7 @@ package uk.ac.warwick.userlookup;
 public class AnonymousOnCampusUser extends AnonymousUser {
 	private static final long serialVersionUID = 1L;
 
+	public AnonymousOnCampusUser() {
+		setOnCampus(true);
+	}
 }

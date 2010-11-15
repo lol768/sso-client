@@ -242,9 +242,12 @@ public final class SSOClientFilter implements Filter {
 	 * current code, but you can use instanceof to check if they're on campus.
 	 */
 	private User handleOnCampusUsers(User user, HttpServletRequest request) {
-		if (detectAnonymousOnCampusUsers && user instanceof AnonymousUser) {
+		if (detectAnonymousOnCampusUsers) {
 			if (getUserLookup().getOnCampusService().isOnCampus(request)) {
-				return new AnonymousOnCampusUser();
+				if (user instanceof AnonymousUser) {
+					return new AnonymousOnCampusUser();
+				}
+				user.setOnCampus(true);
 			}
 		}
 		return user;
