@@ -104,8 +104,8 @@ public abstract class AbstractSAMLFetcher {
                 + " xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">"
                 + "<soap:Body>");
         
-        // SSO-1026 can't reproduce in a test, but on servers it uses soap1 NS without declaring it 
-        xml.append( samlRequest.toString().replace("soap1:", "soap:" ) );
+        // SSO-1026 can't reproduce in a test, but on some servers it uses saml1 NS without declaring it 
+        xml.append( samlRequest.toString().replace("saml1:", "saml:" ) );
         xml.append( "</soap:Body></soap:Envelope>" );
         return xml.toString();
     }
