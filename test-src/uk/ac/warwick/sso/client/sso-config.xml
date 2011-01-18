@@ -56,17 +56,19 @@
 		<providerid>urn:myapp.warwick.ac.uk:myapp:service</providerid>
 		<keystore>
 			<!-- location of the java keystore -->
-			<location>file:myapp.warwick.ac.uk.keystore</location>
+			<location>classpath:/myapp.warwick.ac.uk.keystore</location>
 			<!-- password for that keystore -->
 			<password>changeit</password>
-			<shire-alias>myapp.warwick.ac.uk</shire-alias>
+			<shire-alias>moleman.warwick.ac.uk</shire-alias>
 		</keystore>
 	</shire>
 	<logout>
 		<location>http://myapp.warwick.ac.uk/myapp/logout</location>
 	</logout>
+  <!-- 
 	<cacertskeystore>
 			<location>file:/j2sdk1.4.2_02/jre/lib/security/cacerts</location>
 			<password>changeit</password>
 	</cacertskeystore>
+   -->
 </config>

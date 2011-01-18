@@ -27,7 +27,7 @@ public class MockAttributeAuthorityResponseFetcher implements AttributeAuthority
 		return _response;
 	}
 
-	public final void setConfig(final Configuration config) {
+	public final void setConfig(final SSOConfiguration config) {
 		// don't need a config;
 	}
 

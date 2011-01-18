@@ -16,6 +16,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.sql.DataSource;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.httpclient.protocol.Protocol;
@@ -59,7 +60,7 @@ public class SSOConfigLoader implements ServletContextListener {
 		loadSSOConfig(event.getServletContext());
 	}
 
-	public XMLConfiguration loadSSOConfig(final String ssoConfigLocation) {
+	public SSOConfiguration loadSSOConfig(final String ssoConfigLocation) {
 		if (ssoConfigLocation == null) {
 			String message = "Path to SSO config was null";
 			LOGGER.error(message);
@@ -81,17 +82,20 @@ public class SSOConfigLoader implements ServletContextListener {
 		
 		sanityCheck(config);
 		
-		if (shouldUseKeystore(config)) {
-			String websignonLoginUrl = ConfigHelper.getRequiredString(config,"origin.login.location");
-			setupHttpsProtocol(websignonLoginUrl, config.getString("shire.keystore.location"), config.getString("shire.keystore.password"), config
-					.getString("cacertskeystore.location"), config.getString("cacertskeystore.password"));
-		}
+//		if (shouldUseKeystore(config)) {
+//			String websignonLoginUrl = ConfigHelper.getRequiredString(config,"origin.login.location");
+//			setupHttpsProtocol(websignonLoginUrl, config.getString("shire.keystore.location"), config.getString("shire.keystore.password"), config
+//					.getString("cacertskeystore.location"), config.getString("cacertskeystore.password"));
+//		}
 		
-		return config;
+		// wrap it in SSOConfiguration
+		SSOConfiguration ssoConfiguration = new SSOConfiguration(config);
+		ssoConfiguration.getAuthenticationDetails(); // eagerly load keys and certs, get any errors out fast
+		return ssoConfiguration;
 
 	}
 
-	private void sanityCheck(XMLConfiguration config) {
+	private void sanityCheck(Configuration config) {
 		String mode = config.getString("mode");
 		String loginLocation = config.getString("origin.login.location");
 		if ("new".equals(mode) && loginLocation.contains("/slogin")) {
@@ -120,7 +124,7 @@ public class SSOConfigLoader implements ServletContextListener {
 
 				String ssoConfigLocation = servletContext.getInitParameter(paramName);
 
-				XMLConfiguration config = loadSSOConfig(ssoConfigLocation);
+				SSOConfiguration config = loadSSOConfig(ssoConfigLocation);
 
 				String configSuffix = paramName.replaceFirst("ssoclient.config", "");
 				LOGGER.info("Using suffix for config:" + configSuffix);
@@ -138,7 +142,7 @@ public class SSOConfigLoader implements ServletContextListener {
 		}
 	}
 
-	private UserCache getCache(XMLConfiguration config) {
+	private UserCache getCache(Configuration config) {
 
 		if (config.containsKey("cluster.enabled") && config.getBoolean("cluster.enabled")) {
 			final String dsName = config.getString("cluster.datasource");
@@ -180,24 +184,25 @@ public class SSOConfigLoader implements ServletContextListener {
 		return ds;
 	}
 
-	/**
-	 * Configures a new protocol, httpssso, which sends the client certificate out with the request.
-	 */
-	@SuppressWarnings("deprecation")
-	private void setupHttpsProtocol(final String websignonLoginUrl, final String shireKeystoreLoc, final String shireKeystorePass,
-			final String cacertsKeystoreLoc, final String cacertsKeystorePass) {
-		try {
-			//URL websignonUrl = new URL(websignonLoginUrl);
-			final int standardHttpsPort = 443;
-		
-			URL truststoreUrl = (cacertsKeystoreLoc == null)?null : new URL(cacertsKeystoreLoc);
-			Protocol authhttps = new Protocol(AttributeAuthorityResponseFetcher.ALTERNATE_PROTOCOL, new AuthSSLProtocolSocketFactory(new URL(shireKeystoreLoc),
-					shireKeystorePass, truststoreUrl, cacertsKeystorePass), standardHttpsPort);
-			Protocol.registerProtocol(AttributeAuthorityResponseFetcher.ALTERNATE_PROTOCOL, authhttps);
-		} catch (MalformedURLException e) {
-			throw new RuntimeException("Could not setup SSL protocols", e);
-		}
-	}
+//	/**
+//	 * Configures a new protocol, httpssso, which sends the client certificate out with the request.
+//	 */
+//	@SuppressWarnings("deprecation")
+//	private void setupHttpsProtocol(final String websignonLoginUrl, final String shireKeystoreLoc, final String shireKeystorePass,
+//			final String cacertsKeystoreLoc, final String cacertsKeystorePass) {
+//		try {
+//			//URL websignonUrl = new URL(websignonLoginUrl);
+//			final int standardHttpsPort = 443;
+//		
+//			URL truststoreUrl = (cacertsKeystoreLoc == null)?null : new URL(cacertsKeystoreLoc);
+//			Protocol authhttps = new Protocol(AttributeAuthorityResponseFetcher.ALTERNATE_PROTOCOL, new AuthSSLProtocolSocketFactory(
+//					getConfig().getAuthenticationDetails(), 
+//					truststoreUrl, cacertsKeystorePass), standardHttpsPort);
+//			Protocol.registerProtocol(AttributeAuthorityResponseFetcher.ALTERNATE_PROTOCOL, authhttps);
+//		} catch (MalformedURLException e) {
+//			throw new RuntimeException("Could not setup SSL protocols", e);
+//		}
+//	}
 
 	public final void contextDestroyed(final ServletContextEvent arg0) {
 		// do nothing

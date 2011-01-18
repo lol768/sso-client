@@ -17,6 +17,6 @@ public interface AttributeAuthorityResponseFetcher {
 
 	String getProxyTicket(SAMLSubject subject, String resource) throws SSOException;
 
-	void setConfig(Configuration config);
+	void setConfig(SSOConfiguration config);
 
 }

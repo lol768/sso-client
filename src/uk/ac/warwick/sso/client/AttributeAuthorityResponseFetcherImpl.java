@@ -23,7 +23,7 @@ public class AttributeAuthorityResponseFetcherImpl extends AbstractSAMLFetcher i
 		// default empty constructor
 	}
 
-	public AttributeAuthorityResponseFetcherImpl(final Configuration config) {
+	public AttributeAuthorityResponseFetcherImpl(final SSOConfiguration config) {
 		super(config);
 	}
 

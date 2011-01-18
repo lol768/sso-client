@@ -19,7 +19,7 @@ public class SSOProxyCookieHelper {
 
 	private AttributeAuthorityResponseFetcher _attributeAuthorityResponseFetcher;
 
-	private Configuration _config;
+	private SSOConfiguration _config;
 
 	/**
 	 * You do not need to set the config or attributeauthorityresponsefetcher, good defaults are used, but you can
@@ -110,14 +110,14 @@ public class SSOProxyCookieHelper {
 		_attributeAuthorityResponseFetcher = fetcher;
 	}
 
-	public final Configuration getConfig() {
+	public final SSOConfiguration getConfig() {
 		if (_config == null) {
 			return SSOConfiguration.getConfig();
 		}
 		return _config;
 	}
 
-	public final void setConfig(final Configuration config) {
+	public final void setConfig(final SSOConfiguration config) {
 		_config = config;
 	}
 

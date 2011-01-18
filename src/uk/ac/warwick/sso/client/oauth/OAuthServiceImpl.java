@@ -33,6 +33,7 @@ import org.apache.xml.security.signature.XMLSignature;
 
 import uk.ac.warwick.sso.client.ConfigHelper;
 import uk.ac.warwick.sso.client.SSOClientVersionLoader;
+import uk.ac.warwick.sso.client.SSOConfiguration;
 import uk.ac.warwick.sso.client.SSOException;
 import uk.ac.warwick.sso.client.oauth.OAuthToken.Type;
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
@@ -54,17 +55,9 @@ public final class OAuthServiceImpl implements OAuthService {
 
     private static final Log LOGGER = LogFactory.getLog(OAuthServiceImpl.class);
 
-    private Configuration _config;
+    private SSOConfiguration _config;
 
     private String _version;
-
-    private String keystoreLocation;
-
-    private String keystorePassword;
-
-    private String cacertsLocation;
-
-    private String cacertsPassword;
 
     private Protocol protocol;
     
@@ -77,15 +70,10 @@ public final class OAuthServiceImpl implements OAuthService {
     protected OAuthServiceImpl() {
     }
 
-    public OAuthServiceImpl(final Configuration config) {
+    public OAuthServiceImpl(final SSOConfiguration config) {
         org.apache.xml.security.Init.init();
         
         _config = config;
-        keystoreLocation = ConfigHelper.getRequiredString(_config,"shire.keystore.location");
-        keystorePassword = ConfigHelper.getRequiredString(_config,"shire.keystore.password");
-        // Optional - if missing, will use the default cacerts
-        cacertsLocation = _config.getString("cacertskeystore.location");
-        cacertsPassword = _config.getString("cacertskeystore.password");
         _version = SSOClientVersionLoader.getVersion();
     }
 
@@ -99,9 +87,7 @@ public final class OAuthServiceImpl implements OAuthService {
         try {
             url = new URL(location);
             if (protocol == null) {
-                URL truststoreUrl = cacertsLocation==null? null : new URL(cacertsLocation);
-				protocol = new Protocol("https", new AuthSSLProtocolSocketFactory(new URL(keystoreLocation), keystorePassword,
-                        truststoreUrl, cacertsPassword), standardHttpsPort);
+				protocol = new Protocol("https", new AuthSSLProtocolSocketFactory(getConfig().getAuthenticationDetails()), standardHttpsPort);
             }
         } catch (MalformedURLException e) {
             throw new SSOException(e);
@@ -259,11 +245,11 @@ public final class OAuthServiceImpl implements OAuthService {
         return ImmediateFuture.of(generateServiceProvider());
     }
 
-    public final Configuration getConfig() {
+    public final SSOConfiguration getConfig() {
         return _config;
     }
 
-    public final void setConfig(final Configuration config) {
+    public final void setConfig(final SSOConfiguration config) {
         _config = config;
     }
     

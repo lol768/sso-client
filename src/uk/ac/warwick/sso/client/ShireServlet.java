@@ -57,7 +57,7 @@ public class ShireServlet extends HttpServlet {
 
 	private static final Logger LOGGER = Logger.getLogger(ShireServlet.class);
 
-	private Configuration _config;
+	private SSOConfiguration _config;
 
 	private UserCache _cache;
 
@@ -150,7 +150,7 @@ public class ShireServlet extends HttpServlet {
 		}
 
 		if (getConfig() == null) {
-			_config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
+			_config = (SSOConfiguration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
 		}
 
 		if (getCache() == null) {
@@ -183,11 +183,11 @@ public class ShireServlet extends HttpServlet {
 		_cache = cache;
 	}
 
-	public final Configuration getConfig() {
+	public final SSOConfiguration getConfig() {
 		return _config;
 	}
 
-	public final void setConfig(final Configuration config) {
+	public final void setConfig(final SSOConfiguration config) {
 		_config = config;
 	}
 

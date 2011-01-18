@@ -45,7 +45,7 @@ public class ShireServletTest extends TestCase {
 		new SSOConfigLoader().loadSSOConfig(context);
 		Object config = context.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY);
 		
-		servlet.setConfig((Configuration) config);
+		servlet.setConfig(new SSOConfiguration((Configuration) config));
 
 		request = new MockHttpServletRequest();
 		response = new MockHttpServletResponse();

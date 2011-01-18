@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import junit.framework.TestCase;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
@@ -52,18 +53,23 @@ public class AttributeAuthorityFetcherTests extends TestCase {
 
 	public final void testSelfSignedSSL() throws Exception {
 
-		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
+		SSOConfiguration config = newConfig();
 		String url = "https://test-ext-users.warwick.ac.uk/extusers/authenticate.spr?username=&password=";
 
 		testSSL(config, url,HttpServletResponse.SC_FORBIDDEN);
 
 	}
 
+	private SSOConfiguration newConfig() throws ConfigurationException {
+		SSOConfiguration config = new SSOConfiguration(new XMLConfiguration(getClass().getResource("sso-config.xml")));
+		return config;
+	}
+
 	
 
 	public final void testRealSSL() throws Exception {
 		
-		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
+		SSOConfiguration config = newConfig();
 		String url = "https://secure.wbs.ac.uk/itsauth/authenticate.cfm";
 
 		testSSL(config, url,HttpServletResponse.SC_FORBIDDEN);
@@ -72,7 +78,7 @@ public class AttributeAuthorityFetcherTests extends TestCase {
 	
 	public final void testClientAuthSSL() throws Exception {
 		
-		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
+		SSOConfiguration config = newConfig();
 		String url = "https://moleman.warwick.ac.uk/origin/aa";
 
 		testSSL(config, url,500);
@@ -130,21 +136,15 @@ public class AttributeAuthorityFetcherTests extends TestCase {
 	 * @param config
 	 * @param url
 	 */
-	private void testSSL(Configuration config, String url,int expectedStatus) {
+	private void testSSL(SSOConfiguration config, String url,int expectedStatus) {
 		final int standardHttpsPort = 443;
-		try {
-			 Protocol authhttps = new Protocol("https", 
-					 new AuthSSLProtocolSocketFactory(
-							 new URL(ConfigHelper.getRequiredString(config,"shire.keystore.location")), 
-							 ConfigHelper.getRequiredString(config,"shire.keystore.password"), 
-							 new URL(ConfigHelper.getRequiredString(config,"cacertskeystore.location")), 
-							 ConfigHelper.getRequiredString(config,"cacertskeystore.password")),
-			 standardHttpsPort);
+		
+		 Protocol authhttps = new Protocol("https", 
+				 new AuthSSLProtocolSocketFactory(config.getAuthenticationDetails()),
+		 standardHttpsPort);
 
-			Protocol.registerProtocol("https", authhttps);
-		} catch (MalformedURLException e) {
-			throw new RuntimeException("Could not setup SSL protocols", e);
-		}
+		Protocol.registerProtocol("https", authhttps);
+		
 
 		HttpClient client = new HttpClient();
 		PostMethod method = new PostMethod(url);

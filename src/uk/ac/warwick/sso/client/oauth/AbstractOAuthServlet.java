@@ -30,6 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import uk.ac.warwick.sso.client.SSOConfigLoader;
+import uk.ac.warwick.sso.client.SSOConfiguration;
 import uk.ac.warwick.sso.client.oauth.OAuthToken.Type;
 import uk.ac.warwick.sso.client.tags.SSOLinkGenerator;
 import uk.ac.warwick.userlookup.User;
@@ -85,7 +86,7 @@ public abstract class AbstractOAuthServlet extends HttpServlet {
     
     private OAuthValidator _validator = new SimpleOAuthValidator();
 
-    private Configuration _config;
+    private SSOConfiguration _config;
     
     private OAuthService _service;
 
@@ -207,7 +208,7 @@ public abstract class AbstractOAuthServlet extends HttpServlet {
         }
 
         if (getConfig() == null) {
-            _config = (Configuration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
+            _config = (SSOConfiguration) ctx.getServletContext().getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
         }
         
         if (getOAuthService() == null) {
@@ -223,11 +224,11 @@ public abstract class AbstractOAuthServlet extends HttpServlet {
         _configSuffix = configSuffix;
     }
 
-    public final Configuration getConfig() {
+    public final SSOConfiguration getConfig() {
         return _config;
     }
 
-    public final void setConfig(final Configuration config) {
+    public final void setConfig(final SSOConfiguration config) {
         _config = config;
     }
 

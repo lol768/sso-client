@@ -7,7 +7,6 @@ package uk.ac.warwick.sso.client;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 

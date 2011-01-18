@@ -65,7 +65,7 @@ public final class HttpMethodWebService {
 	        if (version != null) {
 	            sb.append(" ").append(version);
 	        }
-	        Configuration config = SSOConfiguration.getConfig();
+	        SSOConfiguration config = SSOConfiguration.getConfig();
 			if (config != null) {
 				String providerId = config.getString("shire.providerid");
 				if (providerId != null) {

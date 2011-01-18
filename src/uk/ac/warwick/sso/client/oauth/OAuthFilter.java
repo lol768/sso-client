@@ -57,7 +57,7 @@ public final class OAuthFilter implements Filter {
 
     private String _configSuffix = "";
 
-    private Configuration _config;
+    private SSOConfiguration _config;
 
     private OAuthService _service;
 
@@ -149,7 +149,7 @@ public final class OAuthFilter implements Filter {
         // config is already loaded, probably through spring injection
         if (_config == null) {
             ServletContext servletContext = ctx.getServletContext();
-            _config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
+            _config = (SSOConfiguration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
 
             if (_config == null) {
                 // try to load the sso config for instances where the Listener
@@ -158,7 +158,7 @@ public final class OAuthFilter implements Filter {
                         + _configSuffix + "; attempting to load sso config");
                 SSOConfigLoader loader = new SSOConfigLoader();
                 loader.loadSSOConfig(servletContext);
-                _config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
+                _config = (SSOConfiguration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
             }
 
             if (_config == null) {
@@ -178,14 +178,14 @@ public final class OAuthFilter implements Filter {
         // nothing to do
     }
 
-    public Configuration getConfig() {
+    public SSOConfiguration getConfig() {
         if (_config == null) {
             _config = SSOConfiguration.getConfig();
         }
         return _config;
     }
 
-    public void setConfig(final Configuration config) {
+    public void setConfig(final SSOConfiguration config) {
         _config = config;
     }
 

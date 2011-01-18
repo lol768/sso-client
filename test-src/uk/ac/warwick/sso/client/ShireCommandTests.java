@@ -39,7 +39,7 @@ public class ShireCommandTests extends TestCase {
 		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
 
 		MockAttributeAuthorityResponseFetcher fetcher = new MockAttributeAuthorityResponseFetcher();
-		fetcher.setConfig(config);
+		fetcher.setConfig(new SSOConfiguration(config));
 
 		SAMLResponse resp = generateMockResponse();
 		fetcher.setResponse(resp);

@@ -63,7 +63,7 @@ public final class SSOClientFilter implements Filter {
 
 	private static final Logger LOGGER = Logger.getLogger(SSOClientFilter.class);
 
-	private Configuration _config;
+	private SSOConfiguration _config;
 
 	private AttributeAuthorityResponseFetcher _aaFetcher;
 
@@ -89,7 +89,7 @@ public final class SSOClientFilter implements Filter {
 		// config is already loaded, probably through spring injection
 		if (_config == null) {
 			ServletContext servletContext = ctx.getServletContext();
-			_config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
+			_config = (SSOConfiguration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
 
 			if (_config == null) {
 				// try to load the sso config for instances where the Listener cannot be used (e.g. JRun)
@@ -97,7 +97,7 @@ public final class SSOClientFilter implements Filter {
 						+ _configSuffix + "; attempting to load sso config");
 				SSOConfigLoader loader = new SSOConfigLoader();
 				loader.loadSSOConfig(servletContext);
-				_config = (Configuration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
+				_config = (SSOConfiguration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
 			}
 
 			if (_config == null) {
@@ -582,7 +582,7 @@ public final class SSOClientFilter implements Filter {
 		return _config;
 	}
 
-	public void setConfig(final Configuration config) {
+	public void setConfig(final SSOConfiguration config) {
 		_config = config;
 	}
 

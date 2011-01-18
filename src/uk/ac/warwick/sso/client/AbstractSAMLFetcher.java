@@ -59,25 +59,16 @@ public abstract class AbstractSAMLFetcher {
 
 	private static boolean setFeatureSupported = true;
     
-    private Configuration _config;
+    private SSOConfiguration _config;
 
     private String _version;
-
-    private String keystoreLocation;
-    private String keystorePassword;
-    private String cacertsLocation;
-    private String cacertsPassword;
     
     private Protocol protocol;
     
     protected AbstractSAMLFetcher() {}
     
-    protected AbstractSAMLFetcher(Configuration config) {
+    protected AbstractSAMLFetcher(SSOConfiguration config) {
         _config = config;
-        keystoreLocation = _config.getString("shire.keystore.location");
-        keystorePassword = _config.getString("shire.keystore.password");
-        cacertsLocation = _config.getString("cacertskeystore.location");
-        cacertsPassword = _config.getString("cacertskeystore.password");
         _version = SSOClientVersionLoader.getVersion();
     }
 
@@ -120,9 +111,7 @@ public abstract class AbstractSAMLFetcher {
         try {
             url = new URL(location);
             if (protocol == null) {
-                protocol = new Protocol("https", new AuthSSLProtocolSocketFactory(
-                        new URL(keystoreLocation),
-                        keystorePassword, ((cacertsLocation==null)?null:new URL(cacertsLocation)), cacertsPassword), standardHttpsPort);
+				protocol = new Protocol("https", new AuthSSLProtocolSocketFactory(getConfig().getAuthenticationDetails()), standardHttpsPort);
             }
         } catch (MalformedURLException e) {
             throw new SSOException(e);
@@ -185,103 +174,19 @@ public abstract class AbstractSAMLFetcher {
     protected abstract String getEndpointLocation();
 
     private void signRequest(final SAMLRequest samlRequest) throws SAMLException {
-        String alias = ConfigHelper.getRequiredString(_config,"shire.keystore.shire-alias");
         List<Certificate> certChain = new ArrayList<Certificate>();
-        certChain.add(getCertificate(alias));
+        
+        KeyAuthentication authenticationDetails = getConfig().getAuthenticationDetails();
+        
+        certChain.add(authenticationDetails.getCertificate());
         try {
-            samlRequest.sign(XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1, getKey(alias), certChain);
+            samlRequest.sign(XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1, authenticationDetails.getKey(), certChain);
         } catch (SAMLException e) {
             LOGGER.error("Could not sign SAML request", e);
             throw new RuntimeException("Could not sign SAML request", e);
         }
     }
 
-    /**
-     * Finds a Key entry in the given alias of the keystore.
-     * An exception is thrown if the alias isn't found in the keystore,
-     * or if the keystore couldn't be loaded.
-     */
-    private Key getKey(final String alias) {
-        try {
-            KeyStore keyStore = getKeyStore();
-        	String string = _config.getString("shire.keystore.password");
-        	if (string == null) {
-        		throw new RuntimeException("No keystore password has been specified under shire.keystore.password");
-        	}
-			Key key = keyStore.getKey(alias, string.toCharArray());
-        	if (key == null) {
-        		StringBuilder sb = new StringBuilder("");
-        		for (Enumeration<String> aliases = keyStore.aliases(); aliases.hasMoreElements();) {
-        			String a = aliases.nextElement();
-        			sb.append(" ").append(a);
-        		}
-        		throw new RuntimeException("Key with alias "+alias+" was not found in the keystore. Aliases in keystore:"+sb.toString());
-        	}
-        	return key;
-        } catch (Exception e) {
-            throw new RuntimeException("Could not load key from keystore", e);
-        }
-
-    }
-
-    /**
-     * @return
-     * @throws KeyStoreException
-     * @throws NoSuchAlgorithmException
-     * @throws CertificateException
-     * @throws IOException
-     * @throws MalformedURLException
-     */
-    private Certificate getCertificate(final String alias) {
-
-        try {
-            KeyStore keyStore = getKeyStore();
-            if (alias == null) {
-            	throw new IllegalArgumentException("Tried to request a null alias from a keystore");
-            }
-            Certificate originCert = keyStore.getCertificate(alias);
-            if (originCert == null) {
-            	
-            	throw new IllegalArgumentException("Couldn't find a certificate under alias '"
-            			+alias+"' in keystore, aliases: " + toString(keyStore.aliases()));
-            }
-            return originCert;
-        } catch (Exception e) {
-            LOGGER.error("Could not load keystore", e);
-            throw new RuntimeException("Could not load keystore", e);
-        }
-
-    }
-
-	private String toString(Enumeration<String> enumer) {
-		StringBuilder sb = new StringBuilder("[");
-		while (enumer.hasMoreElements()) {
-			sb.append(enumer.nextElement());
-			sb.append(','); // Yeah trailing comma, big whoop.
-		}
-		sb.append("]");
-		return sb.toString();
-	}
-
-    /**
-     * @return
-     * @throws KeyStoreException
-     * @throws NoSuchAlgorithmException
-     * @throws CertificateException
-     * @throws IOException
-     * @throws MalformedURLException
-     */
-    private KeyStore getKeyStore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
-    	try {
-    		URL uri = new URL(_config.getString("shire.keystore.location"));
-    		String password = _config.getString("shire.keystore.password");
-    		KeyStoreHelper helper = new KeyStoreHelper();
-            KeyStore keyStore = helper.createKeyStore(uri, password);
-            return keyStore;
-    	} catch (MalformedURLException e) {
-    		throw new IllegalArgumentException("shire.keystore.location could not be parsed as a URI", e);
-    	}
-    }
 
     protected String getValueFromAttribute(final String key, final Properties attributes) {
 
@@ -317,11 +222,11 @@ public abstract class AbstractSAMLFetcher {
         return attributes;
     }
 
-    public final Configuration getConfig() {
+    public final SSOConfiguration getConfig() {
         return _config;
     }
 
-    public final void setConfig(final Configuration config) {
+    public final void setConfig(final SSOConfiguration config) {
         _config = config;
     }
 

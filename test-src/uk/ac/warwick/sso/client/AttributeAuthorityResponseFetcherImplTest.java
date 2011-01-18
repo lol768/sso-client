@@ -36,7 +36,7 @@ public class AttributeAuthorityResponseFetcherImplTest {
 		config.setProperty("shire.keystore.location", keystoreUrl);
 		config.setProperty("shire.keystore.shire-alias", "moleman.warwick.ac.uk");
 		config.setProperty("shire.keystore.password", "changeit");
-		aaf.setConfig(config);
+		aaf.setConfig(new SSOConfiguration(config));
 		
 		String xml = aaf.generateSAMLRequestXml(subject, "resourcename");
 		

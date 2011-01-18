@@ -10,7 +10,7 @@ import org.opensaml.SAMLSubject;
 
 public class MockAttributeAuthorityResponseFetcher2 extends AttributeAuthorityResponseFetcherImpl {
 
-	public MockAttributeAuthorityResponseFetcher2(Configuration config) {
+	public MockAttributeAuthorityResponseFetcher2(SSOConfiguration config) {
 		super(config);
 		// TODO Auto-generated constructor stub
 	}

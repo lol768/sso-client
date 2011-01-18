@@ -27,7 +27,7 @@ public class SSOProxyCookieHelperTests extends TestCase {
 	public final void testProxyCookie() throws Exception {
 		
 		SSOProxyCookieHelper helper = new SSOProxyCookieHelper();
-		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
+		SSOConfiguration config = new SSOConfiguration( new XMLConfiguration(getClass().getResource("sso-config.xml")) );
 		
 		MockAttributeAuthorityResponseFetcher fetcher = new MockAttributeAuthorityResponseFetcher();
 		fetcher.setConfig(config);
@@ -49,7 +49,8 @@ public class SSOProxyCookieHelperTests extends TestCase {
 	public final void testProxyCookieNoSuchTarget() throws Exception {
 		
 		SSOProxyCookieHelper helper = new SSOProxyCookieHelper();
-		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
+		SSOConfiguration config = new SSOConfiguration(new XMLConfiguration(getClass().getResource("sso-config.xml")));
+	
 		
 		MockAttributeAuthorityResponseFetcher fetcher = new MockAttributeAuthorityResponseFetcher();
 		fetcher.setConfig(config);
