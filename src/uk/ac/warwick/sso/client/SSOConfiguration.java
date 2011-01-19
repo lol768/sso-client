@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -31,7 +30,6 @@ import java.util.Collection;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang.CharSet;
 
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.sso.client.ssl.PKCS1EncodedKeySpec;
@@ -44,7 +42,6 @@ import uk.ac.warwick.sso.client.ssl.PKCS1EncodedKeySpec;
  * TODO bust all the Key/cert setup code into another class?
  */
 public class SSOConfiguration extends CompositeConfiguration {
-	
 	/*
 	 * PKCS#1 RSAPrivateKey** (PEM header: BEGIN RSA PRIVATE KEY)
      * PKCS#8 PrivateKeyInfo* (PEM header: BEGIN PRIVATE KEY)
@@ -55,6 +52,8 @@ public class SSOConfiguration extends CompositeConfiguration {
 	private static final String PKCS8_FOOTER = "-----END PRIVATE KEY-----";
 	
 	private static final ThreadLocal<SSOConfiguration> THREAD_LOCAL = new ThreadLocal<SSOConfiguration>();
+	
+	private static final Certificate[] CERT_ARRAY = new Certificate[0];
 	
 	private KeyAuthentication authenticationDetails;
 	
@@ -79,6 +78,12 @@ public class SSOConfiguration extends CompositeConfiguration {
 
 		try {
 			if (keystoreLocation != null) {
+				if (keystorePassword == null) {
+					throw new IllegalArgumentException("shire.keystore.location was specified but shire.keystore.password wasn't");
+				}
+				if (keystoreAlias == null) {
+					throw new IllegalArgumentException("shire.keystore.location was specified but shire.keystore.shire-alias wasn't");
+				}
 				try {
 					KeyStore keystore = helper.createKeyStore(new URL(resolveClasspathUrl(keystoreLocation)), keystorePassword);
 					Entry entry = keystore.getEntry(keystoreAlias, new PasswordProtection(keystorePassword.toCharArray()));
@@ -142,7 +147,7 @@ public class SSOConfiguration extends CompositeConfiguration {
 					throw new IllegalArgumentException("Unrecognised key format, must be RSA PEM key in PKCS1 or PKCS8");
 				}
 				
-				certificateChain = certificates.toArray(new Certificate[0]);
+				certificateChain = certificates.toArray(CERT_ARRAY);
 			}
 		} catch (NoSuchAlgorithmException e) {
 			throw new IllegalStateException(e);
