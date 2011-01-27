@@ -25,7 +25,7 @@ final class GroupByNameCachingGroupsService extends GroupServiceAdapter {
     public GroupByNameCachingGroupsService(final GroupService theGroupService) {
         super(theGroupService);
         _cache = Caches.newCache(UserLookup.GROUP_CACHE_NAME, new SingularEntryFactory<String, Group>() {
-			public Group create(final String key) throws EntryUpdateException {
+			public Group create(final String key, Object data) throws EntryUpdateException {
 				try {
 					return getDecorated().getGroupByName(key);
 				} catch (GroupNotFoundException e) {

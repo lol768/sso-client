@@ -24,6 +24,8 @@ public class SSOConfigurationTest {
 		Certificate cert = authenticationDetails.getCertificate();
 		cert.verify( cert.getPublicKey() ); // verify is self-signed
 		
+		assertEquals(3, authenticationDetails.getCertificates().length);
+		
 		// test programmatic keystore
 		KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
 		ks.load(null, null);

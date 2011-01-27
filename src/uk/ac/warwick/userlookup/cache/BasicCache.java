@@ -64,6 +64,10 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 			return expires <= now;
 		};
 	};
+	
+	public BasicCache(CacheStore<K,V> cacheStore, long timeoutSeconds) {
+		this(cacheStore, null, timeoutSeconds);
+	}
 
 	public BasicCache(CacheStore<K,V> cacheStore, EntryFactory<K,V> factory, long timeoutSeconds) {
 		this._entryFactory = factory;
@@ -108,22 +112,32 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 	 * the EntryFactory and place it in, and that is returned.
 	 * <p>
 	 * 
+	 * IF you aren't using an EntryFactory, then null is returned if an entry
+	 * is missing or expired. 
 	 */
-	public V get(final K key) throws EntryUpdateException {
+	public V get(final K key, final Object data) throws EntryUpdateException {
 		Entry<K,V> entry = store.get(key);
 		boolean expired = ( entry != null && isExpired(entry) );
 		if (entry != null && !expired) {
 			broadcastHit(key, entry);
-		} else {
+		} else if (_entryFactory != null) {
 			if (entry == null || !asynchronousUpdateEnabled) {
-				entry = updateEntry(new KeyEntry<K,V>(key, entry));
+				entry = updateEntry(new KeyEntry<K,V>(key, entry, data));
 			} else {
 				// Entry is just expired. Return the stale version
 				// now and update in the background
-				threadPool.execute(UpdateEntryTask.task(this, new KeyEntry<K,V>(key, entry)));
+				threadPool.execute(UpdateEntryTask.task(this, new KeyEntry<K,V>(key, entry, data)));
 			}
+		} else {
+			return null;
 		}
 		return entry.getValue();
+	}
+	
+	
+
+	public V get(K key) throws EntryUpdateException {
+		return get(key, null);
 	}
 	
 	/**
@@ -139,6 +153,9 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 	 * do it all now and get fresh data for every key.
 	 */
 	public Map<K,V> get(List<K> keys) throws EntryUpdateException {
+		if (_entryFactory == null) {
+			throw new UnsupportedOperationException("Batch lookups only supported when a suitable EntryFactory is used");
+		}
 		if (!_entryFactory.isSupportsMultiLookups()) {
 			throw new UnsupportedOperationException("The given EntryFactory does not support batch lookups");
 		}
@@ -149,11 +166,11 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 		for (K key : keys) {
 			Entry<K,V> entry = store.get(key);
 			if (entry == null || (!asynchronousUpdateEnabled && isExpired(entry))) {
-				missing.add(new KeyEntry<K,V>(key, entry));
+				missing.add(new KeyEntry<K,V>(key, entry, null));
 			} else {
 				results.put(key, entry.getValue());
 				if (isExpired(entry)) {
-					expired.add(new KeyEntry<K,V>(key, entry));
+					expired.add(new KeyEntry<K,V>(key, entry, null));
 				}
 			}
 		}
@@ -185,6 +202,7 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 
 	/**
 	 * Updates the given key with a value from the factory and places it in the cache.
+	 * @param data 
 	 * 
 	 * @param key Key to lookup from
 	 * @param existingEntry Entry currently in the map. May be null if it doesn't exist
@@ -204,7 +222,7 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 				entry.setUpdating(true);
 			}
 			try {
-				V newValue = _entryFactory.create(key);
+				V newValue = _entryFactory.create(key, kEntry.data);
 				entry = newEntry(key, newValue);
 				if (_entryFactory.shouldBeCached(newValue)) {
 					store.put(entry);
@@ -307,14 +325,17 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 	 */
 	static class KeyEntry<K extends Serializable,V extends Serializable> {
 		public final K key;
+		public final Object data;
 		public final Entry<K,V> entry;
-		public KeyEntry(K k, Entry<K,V> e) {
+		public KeyEntry(K k, Entry<K,V> e, Object d) {
 			key = k;
 			entry = e;
+			data = d;
 		}
 	}
 
 	public void shutdown() {
 		store.shutdown();
 	}
+
 }

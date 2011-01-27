@@ -9,7 +9,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.springframework.util.Assert;
 
 /**
- * 
+ * Salted hash used for client-side caching of passwords.
  */
 abstract class SaltedDigest {
 

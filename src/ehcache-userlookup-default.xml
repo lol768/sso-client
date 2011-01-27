@@ -42,6 +42,16 @@ are "on" and "off".  The default is "autodetect".
             memoryStoreEvictionPolicy="LRU"
             />
 
+    <cache name="BasicAuthCache"
+           maxElementsInMemory="2000"
+           eternal="false"
+           timeToIdleSeconds="100"
+           timeToLiveSeconds="300"
+           overflowToDisk="false"
+           diskPersistent="false"
+           memoryStoreEvictionPolicy="LFU"
+            />
+
     <cache name="UserLookupCache"
            maxElementsInMemory="2000"
            maxElementsOnDisk="100000"

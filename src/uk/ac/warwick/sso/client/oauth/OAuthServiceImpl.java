@@ -255,7 +255,7 @@ public final class OAuthServiceImpl implements OAuthService {
     
     private class OAuthConsumerEntryFactory extends SingularEntryFactory<String, OAuthConsumer> {
 
-        public OAuthConsumer create(String consumerKey) throws EntryUpdateException {
+        public OAuthConsumer create(String consumerKey, Object data) throws EntryUpdateException {
             try {
                 OAuthServiceRequest request = new OAuthServiceRequest.GetConsumerRequest(consumerKey, _config.getString("shire.providerid"));
 
@@ -301,7 +301,7 @@ public final class OAuthServiceImpl implements OAuthService {
     
     private class OAuthTokenEntryFactory extends SingularEntryFactory<String, OAuthToken> {
 
-        public OAuthToken create(String tokenString) throws EntryUpdateException {
+        public OAuthToken create(String tokenString, Object data) throws EntryUpdateException {
             try {
                 OAuthServiceRequest request = new OAuthServiceRequest.GetTokenRequest(tokenString, _config.getString("shire.providerid"));
     

@@ -5,11 +5,11 @@
 package uk.ac.warwick.sso.client;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map.Entry;
-import java.util.Properties;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -35,8 +35,13 @@ import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
 import uk.ac.warwick.userlookup.AnonymousOnCampusUser;
 import uk.ac.warwick.userlookup.AnonymousUser;
 import uk.ac.warwick.userlookup.User;
+import uk.ac.warwick.userlookup.UserLookupException;
 import uk.ac.warwick.userlookup.UserLookupFactory;
 import uk.ac.warwick.userlookup.UserLookupInterface;
+import uk.ac.warwick.userlookup.cache.Cache;
+import uk.ac.warwick.userlookup.cache.Caches;
+import uk.ac.warwick.userlookup.cache.EntryUpdateException;
+import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
 
 /**
  * SSOClientFilter is responsible for checking cookies for an existing session,
@@ -52,6 +57,8 @@ import uk.ac.warwick.userlookup.UserLookupInterface;
  * fetch the current User object from the appropriate request attribute.
  */
 public final class SSOClientFilter implements Filter {
+
+	private static final int BASIC_AUTH_CACHE_TIME_SECONDS = 300;
 
 	private static final String WARWICK_SSO = "WarwickSSO";
 
@@ -70,6 +77,8 @@ public final class SSOClientFilter implements Filter {
 	private UserCache _cache;
 
 	private UserLookupInterface _userLookup;
+	
+	private Cache<String, UserAndHash> _basicAuthCache;
 
 	private String _configSuffix = "";
 
@@ -484,19 +493,93 @@ public final class SSOClientFilter implements Filter {
 		auth64 = auth64.substring(authStartPos);
 		BASE64Decoder decoder = new BASE64Decoder();
 		String auth = new String(decoder.decodeBuffer(auth64.trim()));
-		// LOGGER.debug("Doing BASIC auth:" + auth);
+		
 		if (auth.indexOf(":") == -1) {
 			LOGGER.debug("Returning anon user as auth was invalid: " + auth);
 			return new AnonymousUser();
 		}
 		try {
-			String userName = auth.split(":")[0];
-			String password = auth.split(":")[1];
-			return getUserLookup().getUserByIdAndPassNonLoggingIn(userName, password);
+			// self-populating cache makes the actual request to wsos. see #getBasicAuthCache
+			String[] split = auth.split(":");
+			if (split.length != 2) {
+				throw new IllegalArgumentException("Malformed auth string - wrong number of colons.");
+			}
+			String userName = split[0];
+			String password = split[1];
+			
+			UserAndHash userAndHash = getBasicAuthCache().get(userName, password);
+			User user = userAndHash.getUser();
+			String hash = userAndHash.getHash();
+			
+			if (hash != null && !SaltedDigest.matches(hash, password)) {
+				// entry was previously valid, but pass doesn't match.
+				getBasicAuthCache().remove(userName);
+				userAndHash = getBasicAuthCache().get(userName, password);
+				user = userAndHash.getUser();
+				// don't need to check pass hash because it's just been generated based on a response.
+			}
+			
+			return user;
+			
 		} catch (Exception e) {
+			LOGGER.warn("Exception making basic auth request - using anonymous user", e);
 			return new AnonymousUser();
 		}
 
+	}
+
+	private User authUserWithCache(String userName, String password)
+			throws EntryUpdateException {
+		UserAndHash userAndHash = getBasicAuthCache().get(userName);
+		User user = userAndHash.getUser();
+		String hash = userAndHash.getHash();
+		
+		if (hash == null || !SaltedDigest.matches(hash, password)) {
+			user = null;
+		}
+		return user;
+	}
+
+	private Cache<String, UserAndHash> getBasicAuthCache() {
+		if (_basicAuthCache == null) {
+			_basicAuthCache = Caches.newCache("BasicAuthCache", new SingularEntryFactory<String, UserAndHash>() {
+				public UserAndHash create(String userName, Object data) throws EntryUpdateException {
+					String password = (String) data;
+					try {
+						User user = getUserLookup().getUserByIdAndPassNonLoggingIn(userName, password);
+						String hash = null;
+						if (user.isFoundUser()) {
+							hash = SaltedDigest.generate(password);
+						}
+						return new UserAndHash(user, hash);
+					} catch (UserLookupException e) {
+						throw new EntryUpdateException(e);
+					}
+				}
+				// only cache fully sucessful requests
+				public boolean shouldBeCached(UserAndHash uah) {
+					return uah.getUser().isFoundUser();
+				}
+			}, BASIC_AUTH_CACHE_TIME_SECONDS);
+		}
+		return _basicAuthCache;
+	}
+	
+	static class UserAndHash implements Serializable {
+		private static final long serialVersionUID = 4707495652163070391L;
+		private final User user;
+		private final String hash;
+		public UserAndHash(User user, String hash) {
+			super();
+			this.user = user;
+			this.hash = hash;
+		}
+		public User getUser() {
+			return user;
+		}
+		public String getHash() {
+			return hash;
+		}
 	}
 
 	/**

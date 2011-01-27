@@ -14,6 +14,9 @@ import java.util.Map;
 public interface Cache<K extends Serializable,V extends Serializable> {
 	
 	V get(final K key) throws EntryUpdateException;
+	
+	V get(final K key, Object data) throws EntryUpdateException;
+	
 	Map<K,V> get(final List<K> keys) throws EntryUpdateException;
 	
 	/**

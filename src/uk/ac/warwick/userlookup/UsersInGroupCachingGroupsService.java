@@ -28,7 +28,7 @@ public final class UsersInGroupCachingGroupsService extends GroupServiceAdapter 
     public UsersInGroupCachingGroupsService(final GroupService theGroupService) {
         super(theGroupService);
         _cache = Caches.newCache(UserLookup.GROUP_MEMBER_CACHE_NAME, new SingularEntryFactory<String, ArrayList<String>>() {
-			public ArrayList<String> create(final String group) throws EntryUpdateException {
+			public ArrayList<String> create(final String group, final Object data) throws EntryUpdateException {
 				try {
 					return SerializeUtils.arrayList(getDecorated().getUserCodesInGroup(group));
 				} catch (GroupServiceException e) {

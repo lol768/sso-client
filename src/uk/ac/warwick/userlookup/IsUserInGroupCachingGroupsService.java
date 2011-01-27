@@ -24,7 +24,7 @@ public final class IsUserInGroupCachingGroupsService extends GroupServiceAdapter
     public IsUserInGroupCachingGroupsService(final GroupService theGroupService) {
         super(theGroupService);
         cache = Caches.newCache(UserLookup.IN_GROUP_CACHE_NAME, new SingularEntryFactory<Pair<String,String>, Boolean>() {
-			public Boolean create(Pair<String,String> key) throws EntryUpdateException {
+			public Boolean create(Pair<String,String> key, Object data) throws EntryUpdateException {
 				// we munged the two arguments into a key - now to get them out.
 				// It might be better to extend the Cache API to allow secondary data to
 				// be passed to cache.get(), which will get sent here.

@@ -14,7 +14,12 @@ import java.util.Map;
  * declared, you can put RuntimeException here.
  */
 public interface EntryFactory<K extends Serializable,V extends Serializable> {
-	V create(K key) throws EntryUpdateException;
+	
+	/**
+	 * @param key Cache key to generate a value for
+	 * @param data Optional data from the get() request that won't be stored but may be useful in generating the value.
+	 */
+	V create(K key, Object data) throws EntryUpdateException;
 	
 	/**
 	 * If supported. If not supported, this should throw

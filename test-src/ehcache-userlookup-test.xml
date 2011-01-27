@@ -22,6 +22,14 @@
            eternal="true"
            memoryStoreEvictionPolicy="FIFO"
             />
+            
+    <cache name="BasicAuthCache"
+           maxElementsInMemory="4"
+           overflowToDisk="false"
+           eternal="true"
+           memoryStoreEvictionPolicy="FIFO"
+            />
+            
     
     <!-- 
     <cache name="UserLookupCache"

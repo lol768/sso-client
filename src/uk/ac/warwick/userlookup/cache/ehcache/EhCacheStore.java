@@ -15,7 +15,7 @@ import uk.ac.warwick.userlookup.cache.CacheStatistics;
 import uk.ac.warwick.userlookup.cache.CacheStore;
 import uk.ac.warwick.userlookup.cache.Entry;
 
-/**embeds an image from 
+/**
  * Cache implementation which uses EhCache, of course.
  */
 public final class EhCacheStore<K extends Serializable,V extends Serializable> implements CacheStore<K, V> {

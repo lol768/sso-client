@@ -126,7 +126,7 @@ public class UserLookup implements UserLookupInterface {
 		_onCampusService = new OnCampusServiceImpl();
 		
 		_userByTokenCache = Caches.newCache(USER_CACHE_NAME, new SingularEntryFactory<String, User>() {
-			public User create(String key) throws EntryUpdateException {
+			public User create(String key, Object data) throws EntryUpdateException {
 				try {
 					if (key.startsWith(TOKEN_PREFIX)) {
 						return getSpecificUserLookupType().getUserByToken(key.substring(TOKEN_PREFIX.length()));
@@ -160,7 +160,7 @@ public class UserLookup implements UserLookupInterface {
 		});
 		
 		_userByUserIdCache = Caches.newCache(USER_CACHE_NAME, new EntryFactory<String, User>() {
-			public User create(String key) throws EntryUpdateException {
+			public User create(String key, Object data) throws EntryUpdateException {
 				try {
 					return getSpecificUserLookupType().getUserById(key);
 				} catch (UserLookupException e) {

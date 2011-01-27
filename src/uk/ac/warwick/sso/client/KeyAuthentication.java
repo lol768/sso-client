@@ -1,6 +1,5 @@
 package uk.ac.warwick.sso.client;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.PrivateKey;
 import java.security.KeyStore.PrivateKeyEntry;

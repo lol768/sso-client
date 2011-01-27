@@ -1,5 +1,6 @@
 package uk.ac.warwick.userlookup.cache;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,6 +20,8 @@ public class BasicCacheTest extends TestCase {
 	BasicCache<String, String> slowCache;
 	private BrokenEntryFactory slowFactory;
 	
+	private BasicCache<String, String> noFactoryCache;
+	
 	public void testGetMissingValue() throws Exception {
 		assertEquals("Value for dog", cache.get("dog"));
 		assertEquals("Value for cat", cache.get("cat"));
@@ -26,6 +29,12 @@ public class BasicCacheTest extends TestCase {
 		// getting the same key twice will return the actual same object,
 		// not just equal objects
 		assertSame(cache.get("frog"), cache.get("frog"));
+	}
+	
+	public void testNoFactory() throws Exception {
+		noFactoryCache.put(new Entry<String, String>("cat", "meow"));
+		assertNull(noFactoryCache.get("dog"));
+		assertEquals("meow", noFactoryCache.get("cat"));
 	}
 	
 	public void testSlowConcurrentLookups() throws Exception {
@@ -133,7 +142,7 @@ public class BasicCacheTest extends TestCase {
 		EhCacheUtils.setUp();
 		cache = Caches.newCache(UserLookup.USER_CACHE_NAME, new SingularEntryFactory<String, String>() {
 			private Random r = new Random();
-			public String create(String key) {
+			public String create(String key, Object data) {
 				return new String("Value for " + key);
 			}
 			public boolean shouldBeCached(String val) {
@@ -143,6 +152,8 @@ public class BasicCacheTest extends TestCase {
 		
 		slowFactory = new BrokenEntryFactory();
 		slowCache = Caches.newCache(UserLookup.USER_CACHE_NAME, slowFactory, 100);
+		
+		noFactoryCache = Caches.newCache(UserLookup.USER_CACHE_NAME, null, 100);
 	}
 	
 	@Override
@@ -165,7 +176,7 @@ public class BasicCacheTest extends TestCase {
 		// if a key is in here it'll return straight away.
 		private Set<String> fastRequests = new HashSet<String>();
 		
-		public synchronized String create(String key) {
+		public synchronized String create(String key, Object data) {
 			if (!fastRequests.contains(key)) {
 				while (blocking) {
 					try {
@@ -201,7 +212,7 @@ public class BasicCacheTest extends TestCase {
 				throws EntryUpdateException {
 			Map<String,String> response = new HashMap<String, String>();
 			for (String key : keys) {
-				response.put(key, create(key));
+				response.put(key, create(key, null));
 			}
 			return response;
 		}
