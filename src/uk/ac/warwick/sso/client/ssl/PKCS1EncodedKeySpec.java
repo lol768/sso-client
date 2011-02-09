@@ -27,7 +27,7 @@ package uk.ac.warwick.sso.client.ssl;
  ****************************************************************************
  * 
  * @author:     zhang
- * @version:    $Revision: 1.1 $
+ * @version:    $Revision: 1.2 $
  * @created:    Apr 24, 2009
  *
  * Description: A KeySpec for PKCS#1 encoded RSA private key
@@ -36,12 +36,9 @@ package uk.ac.warwick.sso.client.ssl;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.math.BigInteger;
-import java.security.spec.RSAPrivateCrtKeySpec;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.security.spec.RSAPrivateCrtKeySpec;
 
 
 /**

@@ -15,7 +15,6 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.Future;
 
 import net.oauth.OAuth;
@@ -23,7 +22,6 @@ import net.oauth.OAuthConsumer;
 import net.oauth.OAuthServiceProvider;
 import net.oauth.signature.RSA_SHA1;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.protocol.Protocol;
@@ -41,13 +39,12 @@ import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.sso.client.util.ImmediateFuture;
 import uk.ac.warwick.userlookup.HttpMethodWebService;
 import uk.ac.warwick.userlookup.HttpPool;
-import uk.ac.warwick.userlookup.UserLookup;
 import uk.ac.warwick.userlookup.cache.BasicCache;
 import uk.ac.warwick.userlookup.cache.Caches;
 import uk.ac.warwick.userlookup.cache.EntryUpdateException;
 import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
 
-public final class OAuthServiceImpl implements OAuthService {
+public final class OAuthServiceImpl implements TrustedOAuthService {
     
     public static final String CONSUMER_CACHE_NAME = "OAuthConsumerCache";
     
@@ -78,7 +75,7 @@ public final class OAuthServiceImpl implements OAuthService {
     }
 
     @SuppressWarnings("deprecation")
-    protected Map<String, String> getResponse(OAuthServiceRequest request) throws SSOException {
+    private Map<String, String> getResponse(OAuthServiceRequest request) throws SSOException {
         String location = getConfig().getString("oauth.service.location");
 
         final int standardHttpsPort = 443;
@@ -194,14 +191,6 @@ public final class OAuthServiceImpl implements OAuthService {
         return keyStore;
     }
 
-    public Future<OAuthToken> generateRequestToken(OAuthToken token) {
-        token.setToken(UUID.randomUUID().toString());
-        token.setTokenSecret(UUID.randomUUID().toString());
-
-        // Store the token on websignon
-        return store(token);
-    }
-
     public Future<OAuthToken> store(OAuthToken token) {
         try {
             OAuthServiceRequest request = new OAuthServiceRequest.SaveTokenRequest(token, _config.getString("shire.providerid"));
@@ -239,10 +228,6 @@ public final class OAuthServiceImpl implements OAuthService {
     private OAuthServiceProvider generateServiceProvider() {
         return new OAuthServiceProvider(getConfig().getString("oauth.requesttoken.location"), getConfig().getString(
                 "oauth.authorise.location"), getConfig().getString("oauth.accesstoken.location"));
-    }
-
-    public Future<OAuthServiceProvider> getServiceProvider() {
-        return ImmediateFuture.of(generateServiceProvider());
     }
 
     public final SSOConfiguration getConfig() {

@@ -7,12 +7,9 @@ package uk.ac.warwick.sso.client.cache;
 import static java.lang.Integer.*;
 import static uk.ac.warwick.userlookup.UserLookup.*;
 import uk.ac.warwick.sso.client.SSOToken;
-import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
 import uk.ac.warwick.userlookup.cache.BasicCache;
-import uk.ac.warwick.userlookup.cache.CacheListener;
 import uk.ac.warwick.userlookup.cache.Caches;
-import uk.ac.warwick.userlookup.cache.Entry;
 import uk.ac.warwick.userlookup.cache.EntryUpdateException;
 import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
 

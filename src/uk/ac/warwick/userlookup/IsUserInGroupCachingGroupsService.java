@@ -6,7 +6,6 @@ import uk.ac.warwick.userlookup.cache.Caches;
 import uk.ac.warwick.userlookup.cache.EntryUpdateException;
 import uk.ac.warwick.userlookup.cache.Pair;
 import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
-import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceAdapter;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 

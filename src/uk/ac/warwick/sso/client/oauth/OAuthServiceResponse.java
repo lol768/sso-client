@@ -1,17 +1,17 @@
 package uk.ac.warwick.sso.client.oauth;
 
-import java.io.ByteArrayOutputStream;
+import static uk.ac.warwick.sso.client.util.XMLParserUtils.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.Map.Entry;
+import java.util.TimeZone;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.xml.security.utils.XMLUtils;
 import org.w3c.dom.Document;
@@ -20,8 +20,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import uk.ac.warwick.sso.client.util.Xml;
-
-import static uk.ac.warwick.sso.client.util.XMLParserUtils.*;
 
 public final class OAuthServiceResponse {
 

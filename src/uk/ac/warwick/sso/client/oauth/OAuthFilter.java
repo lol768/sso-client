@@ -18,7 +18,6 @@ import net.oauth.OAuthMessage;
 import net.oauth.OAuthProblemException;
 import net.oauth.server.OAuthServlet;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 
 import uk.ac.warwick.sso.client.SSOClientFilter;

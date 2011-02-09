@@ -7,7 +7,6 @@ import java.net.URL;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;

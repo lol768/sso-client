@@ -30,7 +30,6 @@ import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 
 import uk.ac.warwick.sso.client.SSOToken;
-import uk.ac.warwick.userlookup.UserLookup;
 
 public class DatabaseUserCache implements UserCache {
 
