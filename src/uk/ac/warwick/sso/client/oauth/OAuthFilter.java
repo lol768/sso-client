@@ -78,7 +78,6 @@ public final class OAuthFilter implements Filter {
         SSOLinkGenerator generator = new SSOLinkGenerator();
         generator.setConfig(getConfig());
         generator.setRequest(request);
-
         String requestedUrl = generator.getTarget();
 
         OAuthMessage message = OAuthServlet.getMessage(request, requestedUrl);

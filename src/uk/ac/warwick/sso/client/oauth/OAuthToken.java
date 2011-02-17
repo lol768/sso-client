@@ -5,7 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class OAuthToken implements Serializable {
+public final class OAuthToken implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 5925205291368946976L;
 
@@ -35,6 +35,7 @@ public final class OAuthToken implements Serializable {
 
     private String userId;
 
+    // scope
     private String service;
     
     private Date expiresAt;
@@ -146,6 +147,14 @@ public final class OAuthToken implements Serializable {
     public boolean isExpired() {
         Date currentDate = new Date();
         return currentDate.compareTo(this.getExpiresAt()) > 0;
+    }
+    
+    @Override
+    public OAuthToken clone() throws CloneNotSupportedException {
+    	OAuthToken clone = (OAuthToken) super.clone();
+    	clone.expiresAt = (Date) expiresAt.clone();
+    	clone.issueTime = (Date) issueTime.clone();
+		return clone;
     }
     
     public Map<String, String> toMap() {
