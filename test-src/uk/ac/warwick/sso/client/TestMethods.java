@@ -3,6 +3,9 @@ package uk.ac.warwick.sso.client;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -84,5 +87,19 @@ public class TestMethods {
 			}
 			
 		};
+	}
+	
+	public static byte[] read(InputStream is) throws IOException {
+		try {
+			ByteArrayOutputStream os = new ByteArrayOutputStream();
+			byte[] buf = new byte[1024*8];
+			int read = 0;
+			while ((read = is.read(buf)) > -1) {
+				os.write(buf, 0, read);
+			}
+			return os.toByteArray();
+		} finally {
+			is.close();
+		}
 	}
 }

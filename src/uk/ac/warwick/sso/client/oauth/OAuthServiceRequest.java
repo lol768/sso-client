@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 
+import javax.security.auth.x500.X500Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 
@@ -53,6 +54,8 @@ public abstract class OAuthServiceRequest {
     private final String verb;
 
     private final String resource;
+    
+    private boolean subjectNameMatched;
 
     public OAuthServiceRequest(String verb, String resource) {
         this.verb = verb;
@@ -152,7 +155,7 @@ public abstract class OAuthServiceRequest {
         args.appendChild(argument);
     }
     
-    public static OAuthServiceRequest fromHttpServletRequest(HttpServletRequest req, Key key) {
+    public static OAuthServiceRequest fromHttpServletRequest(HttpServletRequest req, X509Certificate cert, X500Principal expectedSubject) {
         if (!req.getMethod().equals("POST") || !req.getContentType().startsWith("text/xml"))
             throw new IllegalArgumentException("Bad HTTP method or content type");
         
@@ -164,13 +167,17 @@ public abstract class OAuthServiceRequest {
             
             XMLSignature sig = new XMLSignature((Element)sigElement.getFirstChild(), null);
             
-            if (key == null) {
+            if (cert == null) {
                 LOGGER.warn("Checking against passed key in signature rather than client cert");
-                key = sig.getKeyInfo().getPublicKey();
+                cert = sig.getKeyInfo().getX509Certificate();
             }
             
-            if (!sig.checkSignatureValue(key)) {
+            if (!sig.checkSignatureValue(cert.getPublicKey())) {
                 throw new IllegalArgumentException("Invalid signature");
+            }
+            
+            if (!cert.getSubjectX500Principal().equals(expectedSubject)) {
+            	LOGGER.error("Signature cert doesn't match subject DN in metadata. Expected=\""+ expectedSubject+ "\" Actual=\""+cert.getSubjectX500Principal()+"\"");
             }
             
             byte[] signedContent = sig.getSignedInfo().getSignedContentItem(0);
@@ -188,11 +195,7 @@ public abstract class OAuthServiceRequest {
             long issuedL = issued.getTime();
             
             // check that the difference in MS is acceptable
-            long difference = nowL - issuedL;
-            if (difference < 0) {
-                difference = -difference;
-            }
-            
+            long difference = Math.abs( nowL - issuedL );
             if (difference > FIVE_MINUTES_IN_MS) {
                 throw new IllegalArgumentException("Request expired - difference was " + difference + "ms");
             }
@@ -327,6 +330,14 @@ public abstract class OAuthServiceRequest {
             return new SaveTokenRequest(OAuthToken.fromMap(arguments), resource);
         }
         
+    }
+    
+    public void setSubjectNameMatched() {
+    	subjectNameMatched = true;
+    }
+    
+    public boolean getSubjectNameMatched() {
+    	return subjectNameMatched;
     }
 
 }
