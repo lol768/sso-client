@@ -10,9 +10,11 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -56,7 +58,7 @@ public final class OAuthServiceImpl implements TrustedOAuthService {
 
     private String _version;
 
-    private Protocol protocol;
+    //private Protocol protocol;
     
     // access/disabled tokens only
     private final BasicCache<String, OAuthConsumer> consumerCache
@@ -78,21 +80,19 @@ public final class OAuthServiceImpl implements TrustedOAuthService {
     private Map<String, String> getResponse(OAuthServiceRequest request) throws SSOException {
         String location = getConfig().getString("oauth.service.location");
 
-        final int standardHttpsPort = 443;
-
         URL url;
         try {
             url = new URL(location);
-            if (protocol == null) {
-				protocol = new Protocol("https", new AuthSSLProtocolSocketFactory(getConfig().getAuthenticationDetails()), standardHttpsPort);
-            }
+//            if (protocol == null) {
+//				protocol = new Protocol("https", new AuthSSLProtocolSocketFactory(getConfig().getAuthenticationDetails()), standardHttpsPort);
+//            }
         } catch (MalformedURLException e) {
             throw new SSOException(e);
         }
 
         LOGGER.info("Connecting to " + location);
         HttpClient client = HttpPool.getHttpClient();
-        client.getHostConfiguration().setHost(url.getHost(), url.getPort(), protocol);
+        client.getHostConfiguration().setHost(url.getHost(), url.getPort());
         PostMethod method = new PostMethod(url.getPath());
 
         method.addRequestHeader("User-Agent", HttpMethodWebService.getUserAgent(_version));
@@ -132,63 +132,10 @@ public final class OAuthServiceImpl implements TrustedOAuthService {
     }
 
     private String signedRequest(final OAuthServiceRequest request) {
-        String alias = ConfigHelper.getRequiredString(_config,"shire.keystore.shire-alias");
-        List<Certificate> certChain = new ArrayList<Certificate>();
-        certChain.add(getCertificate(alias));
+        List<Certificate> certChain = Arrays.asList( _config.getAuthenticationDetails().getCertificates() );
+        PrivateKey key = _config.getAuthenticationDetails().getKey();
         
-        return request.toSignedXML(XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1, getKey(alias), certChain);
-    }
-
-    private Key getKey(final String alias) {
-
-        try {
-            KeyStore keyStore = getKeyStore();
-            Key key = keyStore.getKey(alias, _config.getString("shire.keystore.password").toCharArray());
-            if (key == null) {
-        		throw new RuntimeException("Key with alias "+alias+" was not found in the keystore");
-        	}
-            return key;
-        } catch (Exception e) {
-            LOGGER.error("Could not load keystore", e);
-            throw new RuntimeException("Could not load keystore", e);
-        }
-
-    }
-
-    /**
-     * @return
-     * @throws KeyStoreException
-     * @throws NoSuchAlgorithmException
-     * @throws CertificateException
-     * @throws IOException
-     * @throws MalformedURLException
-     */
-    private Certificate getCertificate(final String alias) {
-
-        try {
-            KeyStore keyStore = getKeyStore();
-            Certificate originCert = keyStore.getCertificate(alias);
-            return originCert;
-        } catch (Exception e) {
-            LOGGER.error("Could not create keystore", e);
-            throw new RuntimeException("Could not create keystore", e);
-        }
-
-    }
-
-    /**
-     * @return
-     * @throws KeyStoreException
-     * @throws NoSuchAlgorithmException
-     * @throws CertificateException
-     * @throws IOException
-     * @throws MalformedURLException
-     */
-    private KeyStore getKeyStore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
-        KeyStoreHelper helper = new KeyStoreHelper();
-        KeyStore keyStore = helper.createKeyStore(new URL(ConfigHelper.getRequiredString(_config,"shire.keystore.location")), 
-        		ConfigHelper.getRequiredString(_config,"shire.keystore.password"));
-        return keyStore;
+        return request.toSignedXML(XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1, key, certChain);
     }
 
     public Future<OAuthToken> store(OAuthToken token) {

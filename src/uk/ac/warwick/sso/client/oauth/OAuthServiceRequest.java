@@ -1,5 +1,6 @@
 package uk.ac.warwick.sso.client.oauth;
 
+import static java.util.Arrays.*;
 import static uk.ac.warwick.sso.client.util.XMLParserUtils.*;
 
 import java.io.ByteArrayInputStream;
@@ -8,6 +9,8 @@ import java.security.Key;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,8 +26,11 @@ import javax.xml.parsers.DocumentBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.c14n.Canonicalizer;
+import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.keys.KeyInfo;
 import org.apache.xml.security.keys.content.X509Data;
+import org.apache.xml.security.keys.content.x509.XMLX509Certificate;
+import org.apache.xml.security.keys.keyresolver.KeyResolverException;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.utils.XMLUtils;
 import org.w3c.dom.Document;
@@ -155,34 +161,24 @@ public abstract class OAuthServiceRequest {
         args.appendChild(argument);
     }
     
-    public static OAuthServiceRequest fromHttpServletRequest(HttpServletRequest req, X509Certificate cert, X500Principal expectedSubject) {
-        if (!req.getMethod().equals("POST") || !req.getContentType().startsWith("text/xml"))
+    public static OAuthServiceRequest fromHttpServletRequest(HttpServletRequest request, OAuthServiceRequestSecurityRule securityRule) {
+        if (!request.getMethod().equals("POST") || !request.getContentType().startsWith("text/xml"))
             throw new IllegalArgumentException("Bad HTTP method or content type");
         
         try {
             DocumentBuilder builder = Xml.newDocumentBuilder();
             
-            Document doc = builder.parse(req.getInputStream());
+            Document doc = builder.parse(request.getInputStream());
             Element sigElement = (Element)doc.getElementsByTagNameNS(NS, "Signature").item(0);
             
-            XMLSignature sig = new XMLSignature((Element)sigElement.getFirstChild(), null);
-            
-            if (cert == null) {
-                LOGGER.warn("Checking against passed key in signature rather than client cert");
-                cert = sig.getKeyInfo().getX509Certificate();
-            }
-            
-            if (!sig.checkSignatureValue(cert.getPublicKey())) {
-                throw new IllegalArgumentException("Invalid signature");
-            }
-            
-            if (!cert.getSubjectX500Principal().equals(expectedSubject)) {
-            	LOGGER.error("Signature cert doesn't match subject DN in metadata. Expected=\""+ expectedSubject+ "\" Actual=\""+cert.getSubjectX500Principal()+"\"");
-            }
-            
+            XMLSignature sig = new XMLSignature((Element)sigElement.getFirstChild(), null);            
             byte[] signedContent = sig.getSignedInfo().getSignedContentItem(0);
             
             Element element = builder.parse(new ByteArrayInputStream(signedContent)).getDocumentElement();
+            
+            List<X509Certificate> cert = extractCertificates(request, sig);
+            
+            securityRule.run(request, cert, sig, element);
             
             String issuedString = element.getAttribute("Issued");
             
@@ -227,6 +223,42 @@ public abstract class OAuthServiceRequest {
             throw new IllegalArgumentException("Couldn't parse XML", e);
         }
     }
+
+	private static List<X509Certificate> extractCertificates(
+			HttpServletRequest request, XMLSignature sig)
+			throws KeyResolverException {
+		List<X509Certificate> cert = null;
+		
+		if (request.getAttribute("javax.servlet.request.X509Certificate") != null) {
+		    X509Certificate[] x509Certificates = (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
+		    if (x509Certificates.length > 0) {
+		    	LOGGER.debug("Found certificates in request " + x509Certificates[0].getSubjectDN().getName());
+		    }
+		    cert = asList(x509Certificates);
+		} else {
+		    LOGGER.info("OAuthServiceController receiving request without SSL certs");
+		}
+		
+		if (cert == null) {
+		    LOGGER.info("Checking against passed key in signature rather than client cert");
+		    cert = new ArrayList<X509Certificate>();
+		    final KeyInfo keyInfo = sig.getKeyInfo();
+		    try {
+			    if (keyInfo.lengthX509Data() > 0) { // should only be one X509Data element, containing the chain
+			    	X509Data x509Data = keyInfo.itemX509Data(0);
+			    	final int l = x509Data.lengthCertificate();
+			    	for (int i=0; i<l; i++) {
+			    		XMLX509Certificate c = x509Data.itemCertificate(i);
+			    		cert.add( c.getX509Certificate() );
+			    	}
+			    }
+		    } catch (XMLSecurityException e) {
+				LOGGER.error("Error building certificates from XML signature", e);
+			}
+		}
+		
+		return cert;
+	}
 
     public final String getVerb() {
         return verb;
