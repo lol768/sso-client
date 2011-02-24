@@ -114,6 +114,7 @@ public abstract class OAuthServiceRequest {
             X509Data x509 = new X509Data(doc);
 
             if (certChain != null) {
+            	if (LOGGER.isDebugEnabled()) LOGGER.debug("Found " + certChain.size() + " X509 Certificates to add to signature");
                 int count = 0;
                 Iterator<Certificate> i = certChain.iterator();
                 while (i.hasNext()) {
@@ -122,8 +123,10 @@ public abstract class OAuthServiceRequest {
                         if (!i.hasNext() && count > 0) {
                             // Last (but not only) cert in chain. Only add if
                             // it's not self-signed.
-                            if (((X509Certificate) cert).getSubjectDN().equals(((X509Certificate) cert).getIssuerDN()))
+                            if (((X509Certificate) cert).getSubjectDN().equals(((X509Certificate) cert).getIssuerDN())) {
+                            	if (LOGGER.isDebugEnabled()) LOGGER.debug("Skipping self-signed cert at end of chain");
                                 break;
+                            }
                         }
                         x509.addCertificate((X509Certificate) cert);
                     }
@@ -133,6 +136,7 @@ public abstract class OAuthServiceRequest {
             
             if (x509.lengthCertificate()>0)
             {
+            	if (LOGGER.isDebugEnabled()) LOGGER.debug("Adding a list of " + x509.lengthCertificate() + " X509 Certificates to signature");
                 KeyInfo keyinfo = new KeyInfo(doc);
                 keyinfo.add(x509);
                 sig.getElement().appendChild(keyinfo.getElement());

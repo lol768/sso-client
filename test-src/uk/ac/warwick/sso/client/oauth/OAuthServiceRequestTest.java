@@ -16,6 +16,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.security.auth.x500.X500Principal;
@@ -75,7 +76,7 @@ public class OAuthServiceRequestTest {
 	@Test public void certificateSubjectVerify() throws Exception {
 		// First create a signed request, then save it to String
 		X509Certificate cert = readCert();
-		MockHttpServletRequest request = createHttpRequest(cert);
+		MockHttpServletRequest request = createHttpRequest(createSignedRequest(cert));
 		final X500Principal expectedSubject = new X500Principal("CN=oauthclient.warwick.ac.uk, O=The University of Warwick, L=Coventry, C=GB");
 		
 		OAuthServiceRequestSecurityRuleChain chain = securityRuleChain(expectedSubject);
@@ -92,7 +93,7 @@ public class OAuthServiceRequestTest {
 	@Test public void certificateSubjectVerifyMismatch() throws Exception {
 		// First create a signed request, then save it to String
 		X509Certificate cert = readCert();
-		MockHttpServletRequest request = createHttpRequest(cert);
+		MockHttpServletRequest request = createHttpRequest(createSignedRequest(cert));
 		X500Principal expectedSubject = new X500Principal("CN=oauthclient.warwick.ac.uk, O=Warwick University, L=Coventry, C=GB");
 		
 		OAuthServiceRequestSecurityRuleChain chain = securityRuleChain(expectedSubject);
@@ -102,12 +103,23 @@ public class OAuthServiceRequestTest {
 		
 		assertTrue(subjectMismatch);
 	}
+	
+	@Test public void manyCerts() throws Exception {
+		X509Certificate cert = readCert();
+		// 4 cert chain
+		String xml = createSignedRequest(Arrays.<Certificate>asList(cert,cert,cert,cert));
+		MockHttpServletRequest request = createHttpRequest(xml);
+		OAuthServiceRequest serviceRequest = OAuthServiceRequest.fromHttpServletRequest(request, new OAuthServiceRequestSecurityRule() {
+			public void run(HttpServletRequest req, List<X509Certificate> cert, XMLSignature signature, Element signedContent) {
+				// Expect 3 because it's coded to ignore a self-signed cert that comes last (assuming it's a root)
+				assertEquals(3, cert.size());
+			}
+		});
+	}
 
-	private MockHttpServletRequest createHttpRequest(X509Certificate cert)
+	private MockHttpServletRequest createHttpRequest(String signedXML)
 			throws UnsupportedEncodingException, IOException,
 			InvalidKeySpecException, NoSuchAlgorithmException {
-		String signedXML = createSignedRequest(cert);
-		
 		FileCopyUtils.copy(new StringReader(signedXML), new FileWriter(new File("/tmp/request.xml")));
 		
 		MockHttpServletRequest request = new MockHttpServletRequest();
@@ -117,12 +129,16 @@ public class OAuthServiceRequestTest {
 		return request;
 	}
 
-	private String createSignedRequest(X509Certificate cert)
+	private String createSignedRequest(Certificate cert) throws UnsupportedEncodingException, InvalidKeySpecException, NoSuchAlgorithmException, IOException {
+		return createSignedRequest(Collections.singletonList(cert));
+	}
+
+	private String createSignedRequest(List<Certificate> certs)
 			throws UnsupportedEncodingException, IOException,
 			InvalidKeySpecException, NoSuchAlgorithmException {
 		PrivateKey privateKey = KeyAndCertUtils.decodeRSAPrivateKey( getClass().getResourceAsStream("/resources/certs/oauthclient.pk8key") );
 		OAuthServiceRequest r = new OAuthServiceRequest.GetTokenRequest("abc123", RESOURCE_NAME);
-		String signedXML = r.toSignedXML(XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1, privateKey, Arrays.<Certificate>asList(cert));
+		String signedXML = r.toSignedXML(XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1, privateKey, certs);
 		return signedXML;
 	}
 

@@ -80,20 +80,9 @@ public final class OAuthServiceImpl implements TrustedOAuthService {
     private Map<String, String> getResponse(OAuthServiceRequest request) throws SSOException {
         String location = getConfig().getString("oauth.service.location");
 
-        URL url;
-        try {
-            url = new URL(location);
-//            if (protocol == null) {
-//				protocol = new Protocol("https", new AuthSSLProtocolSocketFactory(getConfig().getAuthenticationDetails()), standardHttpsPort);
-//            }
-        } catch (MalformedURLException e) {
-            throw new SSOException(e);
-        }
-
         LOGGER.info("Connecting to " + location);
         HttpClient client = HttpPool.getHttpClient();
-        client.getHostConfiguration().setHost(url.getHost(), url.getPort());
-        PostMethod method = new PostMethod(url.getPath());
+        PostMethod method = new PostMethod(location);
 
         method.addRequestHeader("User-Agent", HttpMethodWebService.getUserAgent(_version));
 

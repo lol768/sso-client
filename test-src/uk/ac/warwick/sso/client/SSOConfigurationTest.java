@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.security.KeyStore;
 import java.security.KeyStore.PasswordProtection;
 import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.junit.Test;
@@ -43,5 +44,21 @@ public class SSOConfigurationTest {
 		
 		Certificate cert = authenticationDetails.getCertificate();
 		cert.verify( cert.getPublicKey() ); // verify is self-signed
+	}
+	
+	/**
+	 * Keystore with a proper chain (though the CA and intermediate are fake, it's a proper chain)
+	 * @throws Exception
+	 */
+	@Test public void loadCredsFromJksKeystore() throws Exception {
+		SSOConfiguration config = new SSOConfiguration(new PropertiesConfiguration(getClass().getResource("/resources/certs/oauthclient-signed.properties")));
+		KeyAuthentication authenticationDetails = config.getAuthenticationDetails();
+		
+		X509Certificate[] certs = (X509Certificate[]) authenticationDetails.getCertificates();
+		assertEquals(3, certs.length);
+		
+		certs[0].verify(certs[1].getPublicKey());
+		certs[1].verify(certs[2].getPublicKey());
+		certs[2].verify(certs[2].getPublicKey());
 	}
 }
