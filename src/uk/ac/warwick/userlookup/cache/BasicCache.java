@@ -267,6 +267,7 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 			final V value = created.getValue();
 			final Entry<K, V> entry = new Entry<K, V>(key, value);
 			if (_entryFactory.shouldBeCached(value)) {
+				entry.setSecondsToLive( _entryFactory.secondsToLive(value) );
 				store.put(entry);
 			}
 			result.put(key, entry);

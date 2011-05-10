@@ -224,6 +224,10 @@ public class BasicCacheTest extends TestCase {
 		public boolean shouldBeCached(String val) {
 			return true;
 		}
+
+		public int secondsToLive(String val) {
+			return -1; // always eternal
+		}
 	}
 
 }

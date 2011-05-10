@@ -15,6 +15,10 @@ public class Entry<K extends Serializable, V extends Serializable> implements Se
 	private final long created = System.currentTimeMillis();
 	private transient volatile boolean updating;
 	
+	// Default is eternity, meaning the cachestore will never expire items from its store;
+	// it will rely on the cache to detect stale items and update them (a)syncrhonously.
+	private int timeToLive = EntryFactory.TIME_TO_LIVE_ETERNITY; 
+	
 	public Entry(K k, V val) {
 		this.key = k;
 		this.value = val;
@@ -48,5 +52,13 @@ public class Entry<K extends Serializable, V extends Serializable> implements Se
 			return key.equals(e.key) && e.value == value;
 		}
 		return false;
+	}
+
+	public int getTimeToLive() {
+		return timeToLive;
+	}
+
+	public void setSecondsToLive(int timeToLive) {
+		this.timeToLive = timeToLive;
 	}
 }

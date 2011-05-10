@@ -141,7 +141,14 @@ public class UserLookup implements UserLookupInterface {
 			public boolean shouldBeCached(User val) {
 				return val.isVerified();
 			}
-		
+			@Override
+			public int secondsToLive(User val) {
+				if (val.isFoundUser()) {
+					return TIME_TO_LIVE_ETERNITY;
+				} else {
+					return MISSING_USERID_CACHE_TIMEOUT * 2; // twice the stale time
+				}
+			}
 		}, DEFAULT_TOKEN_CACHE_TIMEOUT);
 		_userByTokenCache.setMaxSize(DEFAULT_TOKEN_CACHE_SIZE);
 		_userByTokenCache.setAsynchronousUpdateEnabled(false);
@@ -187,6 +194,13 @@ public class UserLookup implements UserLookupInterface {
 			}
 			public boolean shouldBeCached(User val) {
 				return val.isVerified();
+			}
+			public int secondsToLive(User val) {
+				if (val.isFoundUser()) {
+					return TIME_TO_LIVE_ETERNITY;
+				} else {
+					return MISSING_USERID_CACHE_TIMEOUT * 2; // twice the stale time
+				}
 			}
 		}, DEFAULT_USERID_CACHE_TIMEOUT);
 		_userByUserIdCache.setMaxSize(DEFAULT_USERID_CACHE_SIZE);

@@ -15,6 +15,8 @@ import java.util.Map;
  */
 public interface EntryFactory<K extends Serializable,V extends Serializable> {
 	
+	int TIME_TO_LIVE_ETERNITY = -1;
+	
 	/**
 	 * @param key Cache key to generate a value for
 	 * @param data Optional data from the get() request that won't be stored but may be useful in generating the value.
@@ -45,4 +47,16 @@ public interface EntryFactory<K extends Serializable,V extends Serializable> {
 	 * such as an UnverifiedUser.
 	 */
 	boolean shouldBeCached(V val);
+	
+	/**
+	 * Return how many seconds this entry should be cached for. Note that after
+	 * this time the entry is eligible to be REMOVED from cache, i.e. you won't
+	 * have a stale copy to do asynchronous updates. You only want to set a time
+	 * to live if you want the cache system to be allowed to completely sweep away
+	 * this entry after this time.
+	 * 
+	 * Return -1 to never totally expire the value from cache. It will still do
+	 * asyncrhonous updates when stale, using the separate expiry time.
+	 */
+	int secondsToLive(V val);
 }

@@ -14,6 +14,7 @@ import uk.ac.warwick.userlookup.UserLookup;
 import uk.ac.warwick.userlookup.cache.CacheStatistics;
 import uk.ac.warwick.userlookup.cache.CacheStore;
 import uk.ac.warwick.userlookup.cache.Entry;
+import uk.ac.warwick.userlookup.cache.EntryFactory;
 
 /**
  * Cache implementation which uses EhCache, of course.
@@ -121,7 +122,13 @@ public final class EhCacheStore<K extends Serializable,V extends Serializable> i
 	}
 	
 	public void put(Entry<K,V> entry) {
-		cache.put(new Element(entry.getKey(), entry));
+		Element element = new Element(entry.getKey(), entry);
+		if (entry.getTimeToLive() == EntryFactory.TIME_TO_LIVE_ETERNITY) {
+			element.setEternal(true);
+		} else {
+			element.setTimeToLive(entry.getTimeToLive());
+		}
+		cache.put(element);
 	}
 	
 	public boolean remove(K key) {
