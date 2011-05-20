@@ -19,8 +19,13 @@ public class Entry<K extends Serializable, V extends Serializable> implements Se
 	// it will rely on the cache to detect stale items and update them (a)syncrhonously.
 	private int timeToLive = EntryFactory.TIME_TO_LIVE_ETERNITY; 
 	
-	public Entry(K k, V val) {
-		this.key = k;
+	public Entry(K k, V val) {		
+		if (k instanceof String) {
+			// This will fail if K is a subclass of String.
+			this.key = (K) new String((String)k);
+		} else {
+			this.key = k;
+		}
 		this.value = val;
 	}
 	

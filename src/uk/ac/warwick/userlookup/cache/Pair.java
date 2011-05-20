@@ -18,8 +18,13 @@ public final class Pair<A extends Serializable,B extends Serializable> implement
 		return second;
 	}
 	
+	/**
+	 * Creates a new pair of strings. It will create new String objects in order to
+	 * make sure that the passed in String objects don't reference a large
+	 * char[] array. (SSO-1145)
+	 */
 	public static Pair<String,String> of(String a, String b) {
-		return new Pair<String,String>(a, b);
+		return new Pair<String,String>(new String(a), new String(b));
 	}
 	
 	public String toString() {
