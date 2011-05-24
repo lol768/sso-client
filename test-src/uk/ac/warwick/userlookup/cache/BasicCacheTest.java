@@ -1,6 +1,5 @@
 package uk.ac.warwick.userlookup.cache;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,7 +11,6 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 import uk.ac.warwick.userlookup.UserLookup;
-import uk.ac.warwick.userlookup.cache.ehcache.EhCacheStore;
 
 public class BasicCacheTest extends TestCase {
 

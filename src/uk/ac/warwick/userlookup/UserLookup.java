@@ -524,10 +524,24 @@ public class UserLookup implements UserLookupInterface {
 			throws UserLookupException {
 		List<User> list = new SSOUserLookup(getSsosUrl(), _apiKey).findUsersWithFilter(filterValues, returnDisabledUsers);
 		// SSO-1147 don't put these low-detail User objects in cache.
+//		final Cache<String, User> cache = getUserByUserIdCache();
+//		for (User user : list) {
+//			if (user.isFoundUser()) {
+//				String userId = user.getUserId();
+//				if (userId != null && !"".equals(userId.trim())) {
+//					cache.put(new Entry<String,User>(userId, user));
+//				}
+//			}
+//		}
 		return list;
 	}
 	
 	public final String getSsosUrl() {
+		// A default is used deeper down
+//		if (_ssosUrl == null) {
+//			LOGGER.error("About to throw an exception because we don't have the SSO URL");
+//			throw new IllegalStateException("No URL to SSO has been specified. Either specify the userlookup.ssosUrl system property, or call userLookup.setSsosUrl(...)");
+//		}
 		return _ssosUrl;
 	}
 
