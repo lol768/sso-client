@@ -42,8 +42,24 @@ public class DatabaseUserCache implements UserCache {
 	private int _timeout = DEFAULT_TIME_OUT;
 
 	private String _keyName = "key";
+	
+	private boolean _databaseEnabled = true;
+	
+	// A delegate user cache to be used when a database is in read-only mode
+	private final UserCache _delegate;
+	
+	public DatabaseUserCache() {
+		this(new InMemoryUserCache());
+	}
+	
+	public DatabaseUserCache(UserCache delegate) {
+		this._delegate = delegate;
+	}
 
 	public final UserCacheItem get(final SSOToken key) {
+		if (!_databaseEnabled) {
+			return _delegate.get(key);
+		}
 
 		LOGGER.debug("Getting item from database cache " + key.toString());
 
@@ -87,6 +103,10 @@ public class DatabaseUserCache implements UserCache {
 	}
 
 	public final void put(final SSOToken key, final UserCacheItem value) {
+		if (!_databaseEnabled) {
+			_delegate.put(key, value);
+			return;
+		}
 
 		LOGGER.debug("Putting item into database cache under key " + key.toString());
 
@@ -128,12 +148,17 @@ public class DatabaseUserCache implements UserCache {
 	}
 
 	public final void remove(final SSOToken key) {
+		if (!_databaseEnabled) {
+			_delegate.remove(key);
+			return;
+		}
 
 		LOGGER.debug("Removing item from database cache " + key.toString());
 
-		SqlUpdate su = new SqlUpdate(getDataSource(), "DELETE FROM objectcache WHERE " + _keyName + " = '" + key.toString() + "'");
+		SqlUpdate su = new SqlUpdate(getDataSource(), "DELETE FROM objectcache WHERE " + _keyName + " = ?");
+		su.declareParameter(new SqlParameter(_keyName, Types.VARCHAR));
 		su.compile();
-		int results = su.update();
+		int results = su.update(new Object[] { key.toString() });
 
 		if (results == 0) {
 			LOGGER.debug("No item found in database to remove under key " + key.toString());
@@ -168,6 +193,14 @@ public class DatabaseUserCache implements UserCache {
 
 	public final void setKeyName(String keyName) {
 		_keyName = keyName;
+	}
+
+	public final boolean isDatabaseEnabled() {
+		return _databaseEnabled;
+	}
+
+	public final void setDatabaseEnabled(boolean databaseEnabled) {
+		this._databaseEnabled = databaseEnabled;
 	}
 
 }

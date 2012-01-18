@@ -34,7 +34,7 @@ public class InMemoryUserCache extends BasicCacheAdapter {
 		// that UserLookup uses for storing users.
 		
 		// Create a new BasicCache. The EntryFactory always returns null, because SSOClient doesn't expect
-		// asyncronous updates or self-population. It will receive the null and generate a new value.		
+		// asynchronous updates or self-population. It will receive the null and generate a new value.		
 		final BasicCache<SSOToken, UserCacheItem> newCache = Caches.newCache(UserLookup.USER_CACHE_NAME, new SingularEntryFactory<SSOToken, UserCacheItem>() {
 			public UserCacheItem create(SSOToken item, Object data) throws EntryUpdateException {
 				return null;
