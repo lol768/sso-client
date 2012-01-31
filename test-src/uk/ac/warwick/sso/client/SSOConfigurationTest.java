@@ -7,6 +7,7 @@ import java.security.KeyStore.PasswordProtection;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 
+import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.junit.Test;
 
@@ -60,5 +61,16 @@ public class SSOConfigurationTest {
 		certs[0].verify(certs[1].getPublicKey());
 		certs[1].verify(certs[2].getPublicKey());
 		certs[2].verify(certs[2].getPublicKey());
+	}
+	
+	@Test public void defaultValues() throws Exception {
+		BaseConfiguration configuration = new BaseConfiguration();
+		configuration.addProperty("mode", "new");		
+		SSOConfiguration config = new SSOConfiguration(configuration);
+		
+		assertEquals(config.getString("origin.originid"), "urn:mace:eduserv.org.uk:athens:provider:warwick.ac.uk");
+		assertEquals(config.getString("origin.login.location"), "https://websignon.warwick.ac.uk/origin/hs");
+		assertEquals(config.getString("origin.logout.location"), "https://websignon.warwick.ac.uk/origin/logout");
+		assertEquals(config.getString("origin.attributeauthority.location"), "https://websignon.warwick.ac.uk/origin/aa");
 	}
 }

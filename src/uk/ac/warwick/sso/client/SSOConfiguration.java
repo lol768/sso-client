@@ -24,6 +24,8 @@ import java.util.Collection;
 
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 
 import uk.ac.warwick.sso.client.internal.KeyAndCertUtils;
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
@@ -41,10 +43,31 @@ public class SSOConfiguration extends CompositeConfiguration {
 	
 	private static final Certificate[] CERT_ARRAY = new Certificate[0];
 	
+	private static final String LOGIN_LOCATION_KEY = "origin.login.location";
+	
 	private KeyAuthentication authenticationDetails;
 	
 	public SSOConfiguration(Configuration delegate){
 		addConfiguration(delegate);
+		addDefaultConfiguration();
+		
+		String loginLocation = getString(LOGIN_LOCATION_KEY);
+		if (loginLocation == null) {
+			String mode = getString("mode");
+			if ("new".equals(mode)) {
+				addProperty(LOGIN_LOCATION_KEY, "https://websignon.warwick.ac.uk/origin/hs");
+			} else if ("old".equals(mode)) {
+				addProperty(LOGIN_LOCATION_KEY, "https://websignon.warwick.ac.uk/origin/slogin");
+			}
+		}
+	}
+	
+	void addDefaultConfiguration() {
+		try {
+			addConfiguration( new PropertiesConfiguration(SSOConfiguration.class.getResource("/default-ssoclient.properties")) );
+		} catch (ConfigurationException e) {
+			
+		}
 	}
 	
 	/**
