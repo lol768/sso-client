@@ -80,8 +80,6 @@ public class SSOConfigLoader implements ServletContextListener {
 			throw new RuntimeException("Could not setup configuration", e);
 		}
 		
-		sanityCheck(config);
-		
 //		if (shouldUseKeystore(config)) {
 //			String websignonLoginUrl = ConfigHelper.getRequiredString(config,"origin.login.location");
 //			setupHttpsProtocol(websignonLoginUrl, config.getString("shire.keystore.location"), config.getString("shire.keystore.password"), config
@@ -90,6 +88,7 @@ public class SSOConfigLoader implements ServletContextListener {
 		
 		// wrap it in SSOConfiguration
 		SSOConfiguration ssoConfiguration = new SSOConfiguration(config);
+		sanityCheck(ssoConfiguration);
 		ssoConfiguration.getAuthenticationDetails(); // eagerly load keys and certs, get any errors out fast
 		return ssoConfiguration;
 
