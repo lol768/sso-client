@@ -129,10 +129,7 @@ public class SSOConfigLoader implements ServletContextListener {
 				String configSuffix = paramName.replaceFirst("ssoclient.config", "");
 				LOGGER.info("Using suffix for config:" + configSuffix);
 
-				servletContext.setAttribute(SSO_CONFIG_KEY + configSuffix, config);
-
-				UserCache cache = getCache(config);
-				servletContext.setAttribute(SSO_CACHE_KEY + configSuffix, cache);
+				storeConfig(servletContext, configSuffix, config);
 
 			}
 		}
@@ -140,6 +137,13 @@ public class SSOConfigLoader implements ServletContextListener {
 		if (!foundConfigs) {
 			throw new IllegalStateException("SSOConfigLoader found no ssoclient.config* element in the web.xml");
 		}
+	}
+
+	public void storeConfig(ServletContext servletContext,
+			String configSuffix, SSOConfiguration config) {
+		servletContext.setAttribute(SSO_CONFIG_KEY + configSuffix, config);
+		UserCache cache = getCache(config);
+		servletContext.setAttribute(SSO_CACHE_KEY + configSuffix, cache);
 	}
 
 	private UserCache getCache(Configuration config) {

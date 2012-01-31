@@ -86,6 +86,8 @@ public final class SSOClientFilter implements Filter {
 	
 	private boolean redirectToRefreshSession = true;
 
+	private String _configLocation;
+
 	public SSOClientFilter() {
 		super();
 	}
@@ -105,8 +107,15 @@ public final class SSOClientFilter implements Filter {
 				LOGGER.warn("Could not find sso config in servlet context attribute " + SSOConfigLoader.SSO_CONFIG_KEY
 						+ _configSuffix + "; attempting to load sso config");
 				SSOConfigLoader loader = new SSOConfigLoader();
-				loader.loadSSOConfig(servletContext);
-				_config = (SSOConfiguration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
+				if (_configLocation != null) {
+					LOGGER.info("Loading from location " + _configLocation);
+					_config = loader.loadSSOConfig(_configLocation);
+					loader.storeConfig(servletContext, _configSuffix, _config);
+				} else {
+					loader.loadSSOConfig(servletContext);
+					_config = (SSOConfiguration) servletContext.getAttribute(SSOConfigLoader.SSO_CONFIG_KEY + _configSuffix);
+				}
+				
 			}
 
 			if (_config == null) {
@@ -667,6 +676,10 @@ public final class SSOClientFilter implements Filter {
 
 	public void setConfig(final SSOConfiguration config) {
 		_config = config;
+	}
+	
+	public void setConfigLocation(final String path) {
+		this._configLocation = path;
 	}
 
 	public String getConfigSuffix() {

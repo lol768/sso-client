@@ -30,6 +30,7 @@
 	<classpathentry kind="lib" path="external-libs/xmlsec-1.4.3.jar"/>
 	<classpathentry kind="lib" path="external-libs/test/xerces-2.6.jar"/>
 	<classpathentry kind="lib" path="external-libs/opensaml.jar"/>
+	<classpathentry kind="lib" path="external-libs/spring-webmvc.jar"/>
 	<classpathentry kind="src" path="test-src"/>
 	<classpathentry kind="lib" path="external-libs/commons-collections-3.1.jar"/>
 	<classpathentry kind="lib" path="external-libs/commons-digester.jar"/>
