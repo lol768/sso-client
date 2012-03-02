@@ -40,10 +40,6 @@ public class SSOLoginLinkGenerator extends SSOLinkGenerator {
 			throw new RuntimeException(e.getMessage());
 		}
 
-		if (getRequest().getAttribute(ForceLoginScreenTypeFilter.SSO_SCREEN_TYPE_KEY) != null) {
-			linkUrl += "&screenType=" + getRequest().getAttribute(ForceLoginScreenTypeFilter.SSO_SCREEN_TYPE_KEY);
-		}
-
 		return linkUrl;
 
 	}
