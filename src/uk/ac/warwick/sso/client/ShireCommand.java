@@ -23,7 +23,7 @@ import org.opensaml.SAMLSubject;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.cache.UserCacheItem;
 import uk.ac.warwick.userlookup.User;
-import uk.ac.warwick.userlookup.cache.BasicCache;
+import uk.ac.warwick.userlookup.cache.Cache;
 import uk.ac.warwick.userlookup.cache.Entry;
 
 public class ShireCommand {
@@ -38,9 +38,9 @@ public class ShireCommand {
 
 	private UserCache _cache;
 	
-	private final BasicCache<String, User> _userIdCache;
+	private final Cache<String, User> _userIdCache;
 	
-	public ShireCommand(BasicCache<String, User> userIdCache) {
+	public ShireCommand(Cache<String, User> userIdCache) {
 		this._userIdCache = userIdCache;
 	}
 
@@ -139,7 +139,7 @@ public class ShireCommand {
 	
 	
 
-	private Cookie setupSSC(final User user) {
+	public Cookie setupSSC(final User user) {
 		SSOToken token = new SSOToken((String) user.getExtraProperty(SSOToken.SSC_TICKET_TYPE), SSOToken.SSC_TICKET_TYPE);
 		user.setIsLoggedIn(true);
 		UserCacheItem item = new UserCacheItem(user, new Date().getTime(), token);

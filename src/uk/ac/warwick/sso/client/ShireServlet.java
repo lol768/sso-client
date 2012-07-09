@@ -84,6 +84,19 @@ public class ShireServlet extends HttpServlet {
 	protected final void doPost(final HttpServletRequest req, final HttpServletResponse res) throws ServletException, IOException {
 		process(req, res);
 	}
+	
+	public ShireCommand createShireCommand(String remoteAddress) {
+	    ShireCommand command = new ShireCommand(_userIdCache);
+
+        command.setRemoteHost(remoteAddress);
+        command.setCache(_cache);
+
+        AttributeAuthorityResponseFetcher fetcher = new AttributeAuthorityResponseFetcherImpl(_config);
+        command.setAaFetcher(fetcher);
+        command.setConfig(_config);
+        
+        return command;
+	}
 
 	/**
 	 * @param req
@@ -100,14 +113,7 @@ public class ShireServlet extends HttpServlet {
 			remoteHost = req.getHeader("x-forwarded-for");
 		}
 
-		ShireCommand command = new ShireCommand(_userIdCache);
-
-		command.setRemoteHost(remoteHost);
-		command.setCache(_cache);
-
-		AttributeAuthorityResponseFetcher fetcher = new AttributeAuthorityResponseFetcherImpl(_config);
-		command.setAaFetcher(fetcher);
-		command.setConfig(_config);
+		ShireCommand command = createShireCommand(remoteHost);
 		Cookie cookie = null;
 		try {
 			cookie = command.process(saml64, target);

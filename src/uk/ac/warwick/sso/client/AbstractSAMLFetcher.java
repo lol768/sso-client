@@ -188,7 +188,7 @@ public abstract class AbstractSAMLFetcher {
     }
 
 
-    protected String getValueFromAttribute(final String key, final Properties attributes) {
+    protected static String getValueFromAttribute(final String key, final Properties attributes) {
 
         if (attributes == null || attributes.get(key) == null) {
             return null;

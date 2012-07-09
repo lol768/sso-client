@@ -51,7 +51,7 @@ public class AttributeAuthorityResponseFetcherImpl extends AbstractSAMLFetcher i
 	 * @param samlResp
 	 * @return
 	 */
-	private User createUserFromAttributes(final Properties attributes) {
+	public static User createUserFromAttributes(final Properties attributes) {
 		User user = new User();
 		user.setUserId(getValueFromAttribute("cn", attributes));
 		user.setLastName(getValueFromAttribute("sn", attributes));
