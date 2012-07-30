@@ -40,6 +40,16 @@ class OnCampusServiceImpl implements OnCampusService {
 		return onCampus;
 	}
 	
+	public boolean isOnCampus(String remoteAddr) {
+	    if (isWwwcache(remoteAddr)) { //direct from wwwcache. win!
+            return true;
+        } else if (!isLocalhost(remoteAddr) && !isCampus(remoteAddr)) { //direct from offcampus. lose!
+            return false;
+        }
+	    
+	    return isWwwcache(remoteAddr) || (!isCampusServer(remoteAddr) && isCampus(remoteAddr));
+	}
+	
 	/**
 	 * Return a list of the IP chain, with the nearest IP at the start.
 	 * If the remoteAddr was not localhost, it is added to the start of

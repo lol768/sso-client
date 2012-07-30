@@ -4,4 +4,5 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface OnCampusService {
 	boolean isOnCampus(HttpServletRequest request);
+	boolean isOnCampus(String remoteAddr);
 }
