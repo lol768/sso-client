@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>uk.ac.warwick</groupId>
+		<artifactId>warwick</artifactId>
+		<version>4</version>
+	</parent>
+
+	<groupId>uk.ac.warwick.sso</groupId>
+	<artifactId>sso-client</artifactId>
+	<version>1.90-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>SSO Client</name>
+	<description>
+		Java client library for connecting to Web sign-on
+	</description>
+	<url>http://www2.warwick.ac.uk/services/its/servicessupport/web/sign-on/development/getstarted/java</url>
+
+	<!-- I N C E P T I O N -->
+	<inceptionYear>2005</inceptionYear>
+
+	<properties>
+		<org.springframework.version>3.1.0.RELEASE</org.springframework.version>
+		<jetty.version>7.0.1.v20091125</jetty.version>
+	</properties>
+
+	<!-- Need to add the local repository in order to get the parent pom -->
+	<repositories>
+		<repository>
+			<id>nexus</id>
+			<name>Internal Nexus Repository</name>
+			<url>http://mvn.elab.warwick.ac.uk/nexus/content/groups/public</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<!-- ====================================================================== -->
+	<!-- S C M -->
+	<!-- ====================================================================== -->
+	<scm>
+		<developerConnection>scm:git:ssh://git@repo.elab.warwick.ac.uk/SSO/sso-client.git</developerConnection>
+		<url>https://repo.elab.warwick.ac.uk/projects/SSO/repos/sso-client/browse</url>
+	</scm>
+
+	<!-- ====================================================================== -->
+	<!-- I S S U E M A N A G E M E N T -->
+	<!-- ====================================================================== -->
+	<issueManagement>
+		<system>jira</system>
+		<url>https://bugs.elab.warwick.ac.uk/browse/SSO</url>
+	</issueManagement>
+
+	<!-- ====================================================================== -->
+	<!-- C I M A N A G E M E N T -->
+	<!-- ====================================================================== -->
+	<ciManagement>
+		<system>Bamboo</system>
+		<url>http://build.elab.warwick.ac.uk/browse/SSO-CLIENT</url>
+	</ciManagement>
+
+	<profiles>
+		<profile>
+			<id>deploy</id>
+			<build>
+				<defaultGoal>deploy</defaultGoal>
+				<plugins>
+					<plugin>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>2.1.2</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<attach>false</attach>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>dist</id>
+			<build>
+				<defaultGoal>package</defaultGoal>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<configuration>
+							<outputDirectory>${project.basedir}/dist</outputDirectory>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>artifacts</id>
+			<build>
+				<defaultGoal>package</defaultGoal>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>clean-artifacts-dir</id>
+								<phase>prepare-package</phase>
+								<configuration>
+									<target>
+										<delete dir="${project.basedir}/dist/artifacts" />
+										<mkdir dir="${project.basedir}/dist/artifacts" />
+										<mkdir dir="${project.basedir}/dist/artifacts/feature-spec" />
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>copy-feature-spec</id>
+								<phase>prepare-package</phase>
+								<configuration>
+									<target>
+										<fileset id="public.api.fileset" dir="${project.basedir}/src/main/java">
+											<patternset includes="**/package.java" />
+											<patternset includes="**/*User.java" />
+											<patternset includes="**/UserLookup.java" />
+											<patternset includes="**/UserLookupFactory.java" />
+											<patternset includes="**/UserLookupInterface.java" />
+											<patternset includes="**/Group.java" />
+											<patternset includes="**/GroupService.java" />
+
+											<patternset includes="**/oauth/OAuthFilter.java" />
+											<patternset includes="**/oauth/OAuthService.java" />
+											<patternset includes="**/oauth/OAuthServiceImpl.java" />
+											<patternset includes="**/oauth/OAuthToken.java" />
+											<patternset includes="**/client/tags/*" />
+											<patternset includes="**/client/*Filter.java" />
+											<patternset includes="**/client/*Servlet.java" />
+											<patternset includes="**/*Exception.java" />
+										</fileset>
+
+										<copy todir="${project.basedir}/dist/artifacts/feature-spec">
+											<fileset dir="${project.basedir}/src/test/features"
+												includes="*.feature" />
+										</copy>
+
+										<zip
+											destfile="${project.basedir}/dist/artifacts/${project.artifactId}-${project.version}-api-src.zip">
+											<fileset refid="public.api.fileset" />
+										</zip>
+
+										<copy file="${project.build.directory}/feature-spec.html"
+											todir="${project.basedir}/dist/artifacts" />
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>cucumber-html</id>
+								<phase>test</phase>
+								<configuration>
+									<target>
+										<java classname="org.jruby.Main" fork="true" failonerror="true">
+											<classpath refid="maven.test.classpath" />
+
+											<arg value="-I" />
+											<arg value="${project.basedir}/cucumber/lib" />
+											<arg value="${project.basedir}/cucumber/bin/cucumber" />
+
+											<!-- don't actually run the tests, just format the features up 
+												nice -->
+											<arg value="--dry-run" />
+
+											<arg value="--format" />
+											<arg value="html" />
+											<arg value="--out" />
+											<arg value="${project.build.directory}/feature-spec.html" />
+
+											<arg value="${project.basedir}/src/test/features" />
+										</java>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<configuration>
+							<outputDirectory>${project.basedir}/dist/artifacts</outputDirectory>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.9</version>
+						<executions>
+							<execution>
+								<id>api-javadoc</id>
+								<phase>package</phase>
+								<goals>
+									<goal>javadoc</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<reportOutputDirectory>${project.basedir}/dist/artifacts/javadoc</reportOutputDirectory>
+							<windowtitle>SSO Client API</windowtitle>
+							<destDir>./</destDir>
+							<sourceFileIncludes>
+								<sourceFileInclude>**/package.java</sourceFileInclude>
+								<sourceFileInclude>**/*User.java</sourceFileInclude>
+								<sourceFileInclude>**/UserLookup.java</sourceFileInclude>
+								<sourceFileInclude>**/UserLookupFactory.java</sourceFileInclude>
+								<sourceFileInclude>**/UserLookupInterface.java</sourceFileInclude>
+								<sourceFileInclude>**/Group.java</sourceFileInclude>
+								<sourceFileInclude>**/GroupService.java</sourceFileInclude>
+
+								<sourceFileInclude>**/oauth/OAuthFilter.java</sourceFileInclude>
+								<sourceFileInclude>**/oauth/OAuthService.java</sourceFileInclude>
+								<sourceFileInclude>**/oauth/OAuthServiceImpl.java</sourceFileInclude>
+								<sourceFileInclude>**/oauth/OAuthToken.java</sourceFileInclude>
+								<sourceFileInclude>**/client/tags/*</sourceFileInclude>
+								<sourceFileInclude>**/client/*Filter.java</sourceFileInclude>
+								<sourceFileInclude>**/client/*Servlet.java</sourceFileInclude>
+								<sourceFileInclude>**/*Exception.java</sourceFileInclude>
+							</sourceFileIncludes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>cucumber</id>
+
+			<build>
+				<defaultGoal>integration-test</defaultGoal>
+
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>cucumber</id>
+								<phase>integration-test</phase>
+								<configuration>
+									<target>
+										<java classname="org.jruby.Main" fork="true" failonerror="true">
+											<sysproperty key="log4j.disable" value="ERROR" />
+											<classpath refid="maven.test.classpath" />
+
+											<arg value="-I" />
+											<arg value="${project.basedir}/cucumber/lib" />
+											<arg value="${project.basedir}/cucumber/bin/cucumber" />
+
+											<arg value="--format" />
+											<arg value="pretty" />
+
+											<arg value="--format" />
+											<arg value="junit" />
+
+											<arg value="--out" />
+											<arg value="${project.build.directory}/test-results" />
+
+											<arg value="--format" />
+											<arg value="html" />
+											
+											<arg value="--out" />
+											<arg value="${project.build.directory}/test-results.html" />
+
+											<arg value="${project.basedir}/src/test/features" />
+										</java>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<!-- ====================================================================== -->
+	<!-- B U I L D -->
+	<!-- ====================================================================== -->
+	<build>
+		<defaultGoal>install</defaultGoal>
+
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>src/main/java</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>src/test/java</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</testResource>
+		</testResources>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<optimize>true</optimize>
+					<debug>true</debug>
+					<showDeprecation>true</showDeprecation>
+					<showWarnings>true</showWarnings>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+	<!-- ====================================================================== -->
+	<!-- D E P E N D E N C I E S -->
+	<!-- ====================================================================== -->
+	<dependencies>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet.jsp</groupId>
+			<artifactId>javax.servlet.jsp-api</artifactId>
+			<version>2.2.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>xfire</groupId>
+			<artifactId>opensaml</artifactId>
+			<version>1.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.santuario</groupId>
+			<artifactId>xmlsec</artifactId>
+			<version>1.4.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>standard</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-httpclient</groupId>
+			<artifactId>commons-httpclient</artifactId>
+			<version>3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>${org.springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+			<version>${org.springframework.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.oauth.core</groupId>
+			<artifactId>oauth</artifactId>
+			<version>20090825</version>
+		</dependency>
+		<dependency>
+			<groupId>net.oauth.core</groupId>
+			<artifactId>oauth-provider</artifactId>
+			<version>20090531</version>
+		</dependency>
+		<dependency>
+			<groupId>net.oauth.core</groupId>
+			<artifactId>oauth-httpclient3</artifactId>
+			<version>20090617</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sf.ehcache</groupId>
+			<artifactId>ehcache-core</artifactId>
+			<version>1.7.0</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jmock</groupId>
+			<artifactId>jmock-junit4</artifactId>
+			<version>2.5.1</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>${jetty.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-http</artifactId>
+			<version>${jetty.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-io</artifactId>
+			<version>${jetty.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-continuation</artifactId>
+			<version>${jetty.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-websocket</artifactId>
+			<version>${jetty.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-util</artifactId>
+			<version>${jetty.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${org.springframework.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>jmock</groupId>
+			<artifactId>jmock-cglib</artifactId>
+			<version>1.2.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>xalan</groupId>
+			<artifactId>xalan</artifactId>
+			<version>2.7.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
+			<version>2.6.0</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.jruby</groupId>
+			<artifactId>jruby-complete</artifactId>
+			<version>1.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>info.cukes</groupId>
+			<artifactId>cucumber-deps</artifactId>
+			<version>1.0.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/cucumber/cucumber-deps.jar</systemPath>
+		</dependency>
+	</dependencies>
+</project>
