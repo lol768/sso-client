@@ -11,7 +11,7 @@
 
 	<groupId>uk.ac.warwick.sso</groupId>
 	<artifactId>sso-client</artifactId>
-	<version>1.90</version>
+	<version>20130423</version>
 	<packaging>jar</packaging>
 
 	<name>SSO Client</name>
