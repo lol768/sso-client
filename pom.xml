@@ -11,7 +11,7 @@
 
 	<groupId>uk.ac.warwick.sso</groupId>
 	<artifactId>sso-client</artifactId>
-	<version>20130423</version>
+	<version>1.91-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>SSO Client</name>
@@ -70,37 +70,20 @@
 
 	<profiles>
 		<profile>
-			<id>deploy</id>
-			<build>
-				<defaultGoal>deploy</defaultGoal>
-				<plugins>
-					<plugin>
-						<artifactId>maven-source-plugin</artifactId>
-						<version>2.1.2</version>
-						<executions>
-							<execution>
-								<id>attach-sources</id>
-								<goals>
-									<goal>jar</goal>
-								</goals>
-							</execution>
-						</executions>
-						<configuration>
-							<attach>false</attach>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-
-		<profile>
 			<id>dist</id>
 			<build>
-				<defaultGoal>package</defaultGoal>
+				<defaultGoal>install</defaultGoal>
 				<plugins>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-jar-plugin</artifactId>
+						<configuration>
+							<outputDirectory>${project.basedir}/dist</outputDirectory>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
 						<configuration>
 							<outputDirectory>${project.basedir}/dist</outputDirectory>
 						</configuration>
