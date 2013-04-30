@@ -2,6 +2,9 @@ package uk.ac.warwick.userlookup;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import uk.ac.warwick.userlookup.cache.Cache;
 
 /**
  * Adapter for UserLookupInterface to allow you to override behaviour without
@@ -15,6 +18,10 @@ public abstract class UserLookupAdapter implements UserLookupInterface {
 		this.delegate = userLookup;
 	}
 	
+	public Map<String, Set<Cache<?, ?>>> getCaches() {
+		return delegate.getCaches();
+	}
+
 	public void clearCaches() {
 		delegate.clearCaches();
 	}
