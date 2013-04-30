@@ -1,18 +1,15 @@
 package uk.ac.warwick.userlookup;
 
-import uk.ac.warwick.userlookup.cache.Cache;
-import uk.ac.warwick.userlookup.cache.CacheListener;
 import uk.ac.warwick.userlookup.cache.Caches;
 import uk.ac.warwick.userlookup.cache.EntryUpdateException;
 import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
-import uk.ac.warwick.userlookup.webgroups.GroupServiceAdapter;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
 /**
  * Decorator which will cache Groups by name from the GroupService.
  */
-final class GroupByNameCachingGroupsService extends GroupServiceAdapter {
+final class GroupByNameCachingGroupsService extends CacheingGroupServiceAdapter<String, Group> {
 
     public static final long DEFAULT_TIMEOUT_SECS = 18000;
 
@@ -20,11 +17,9 @@ final class GroupByNameCachingGroupsService extends GroupServiceAdapter {
 
     private static final long DEFAULT_CACHE_TIMEOUT_SECS=Long.parseLong(UserLookup.getConfigProperty("ssoclient.groupservice.cache.groupbyname.timeout"));
 
-    private Cache<String,Group> _cache;
-
     public GroupByNameCachingGroupsService(final GroupService theGroupService) {
         super(theGroupService);
-        _cache = Caches.newCache(UserLookup.GROUP_CACHE_NAME, new SingularEntryFactory<String, Group>() {
+        setCache(Caches.newCache(UserLookup.GROUP_CACHE_NAME, new SingularEntryFactory<String, Group>() {
 			public Group create(final String key, Object data) throws EntryUpdateException {
 				try {
 					return getDecorated().getGroupByName(key);
@@ -37,20 +32,16 @@ final class GroupByNameCachingGroupsService extends GroupServiceAdapter {
 			public boolean shouldBeCached(Group val) {
 				return true;
 			}
-		}, determineCacheTimeOut());
+		}, determineCacheTimeOut()));
     }
 
     private long determineCacheTimeOut() {
         return Long.valueOf(UserLookup.getConfigProperty(CACHE_TIMEOUT_SECS, DEFAULT_CACHE_TIMEOUT_SECS + "")).longValue();
     }
 
-    public void addCacheListener(final CacheListener<String,Group> listener) {
-        _cache.addCacheListener(listener);
-    }
-
     public Group getGroupByName(final String name) throws GroupNotFoundException, GroupServiceException {
         try {
-			return _cache.get(name);
+			return getCache().get(name);
 		} catch (EntryUpdateException e) {
 			if (e.getCause() instanceof GroupNotFoundException) {
 				throw (GroupNotFoundException)e.getCause();

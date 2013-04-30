@@ -3,13 +3,10 @@ package uk.ac.warwick.userlookup;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.ac.warwick.userlookup.cache.Cache;
-import uk.ac.warwick.userlookup.cache.CacheListener;
 import uk.ac.warwick.userlookup.cache.Caches;
 import uk.ac.warwick.userlookup.cache.EntryUpdateException;
 import uk.ac.warwick.userlookup.cache.SerializeUtils;
 import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
-import uk.ac.warwick.userlookup.webgroups.GroupServiceAdapter;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
 /**
@@ -17,7 +14,7 @@ import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
  * 
  * @author cusyac
  */
-final class GroupsNamesForUserCachingGroupsService extends GroupServiceAdapter {
+final class GroupsNamesForUserCachingGroupsService extends CacheingGroupServiceAdapter<String, ArrayList<String>> {
 
 	public static final long DEFAULT_TIMEOUT_SECS = 18000;
 
@@ -25,11 +22,9 @@ final class GroupsNamesForUserCachingGroupsService extends GroupServiceAdapter {
 
 	private static final long DEFAULT_CACHE_TIMEOUT_SECS = Long.parseLong(UserLookup.getConfigProperty("ssoclient.groupservice.cache.groupsforuser.timeout"));
 
-	private Cache<String, ArrayList<String>> _cache;
-
 	public GroupsNamesForUserCachingGroupsService(final GroupService theGroupService) {
 		super(theGroupService);
-		_cache = Caches.newCache(UserLookup.USER_GROUPS_CACHE_NAME, new SingularEntryFactory<String, ArrayList<String>>() {
+		setCache(Caches.newCache(UserLookup.USER_GROUPS_CACHE_NAME, new SingularEntryFactory<String, ArrayList<String>>() {
 			public ArrayList<String> create(final String key, Object data) throws EntryUpdateException {
 				try {
 					return SerializeUtils.arrayList(getDecorated().getGroupsNamesForUser(key));
@@ -40,20 +35,16 @@ final class GroupsNamesForUserCachingGroupsService extends GroupServiceAdapter {
 			public boolean shouldBeCached(ArrayList<String> val) {
 				return true;
 			}
-		}, determineCacheTimeOut());
+		}, determineCacheTimeOut()));
 	}
 
 	private long determineCacheTimeOut() {
 		return Long.valueOf(UserLookup.getConfigProperty(CACHE_TIMEOUT_SECS, DEFAULT_CACHE_TIMEOUT_SECS + "")).longValue();
 	}
 
-	public void addCacheListener(final CacheListener<String, ArrayList<String>> listener) {
-		_cache.addCacheListener(listener);
-	}
-
 	public List<String> getGroupsNamesForUser(final String userId) throws GroupServiceException {
 		try {
-			return _cache.get(userId);
+			return getCache().get(userId);
 		} catch (EntryUpdateException e) {
 			if (e.getCause() instanceof GroupServiceException) {
 				throw (GroupServiceException)e.getCause();

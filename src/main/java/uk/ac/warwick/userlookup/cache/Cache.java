@@ -37,6 +37,8 @@ public interface Cache<K extends Serializable,V extends Serializable> {
 
 	void setAsynchronousUpdateEnabled(boolean b);
 	
+	String getStoreName();
+	
 	boolean remove(K key);
 	boolean clear();
 	boolean contains(K key);

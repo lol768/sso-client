@@ -96,6 +96,10 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 		this.store.setMaxSize(cacheSize);
 	}
 	
+	public String getStoreName() {
+		return this.store.getName();
+	}
+
 	/**
 	 * Set the cache entry timeout in seconds.
 	 * This has no effect if you have overridden the ExpiryStrategy using 

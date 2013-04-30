@@ -80,6 +80,10 @@ public final class EhCacheStore<K extends Serializable,V extends Serializable> i
 		init();
 	}
 
+	public String getName() {
+		return this.cacheName;
+	}
+
 	/**
 	 * If no property is set, the OS tmp dir is used for disk cache.
 	 * 

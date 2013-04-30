@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -666,6 +667,12 @@ public class UserLookup implements UserLookupInterface {
 
 	public final void setVersion(String version) {
 		_version = version;
+	}
+	
+	public final Map<String, Set<Cache<?, ?>>> getCaches() {
+		Map<String, Set<Cache<?, ?>>> caches = new HashMap<String, Set<Cache<?,?>>>();
+		
+		return Collections.unmodifiableMap(caches);
 	}
 
 	public final void clearCaches() {

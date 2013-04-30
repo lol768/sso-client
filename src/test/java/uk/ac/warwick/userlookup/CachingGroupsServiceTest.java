@@ -2,8 +2,11 @@ package uk.ac.warwick.userlookup;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import junit.framework.TestCase;
+import uk.ac.warwick.userlookup.cache.Cache;
 import uk.ac.warwick.userlookup.cache.CacheListener;
 import uk.ac.warwick.userlookup.cache.Entry;
 import uk.ac.warwick.userlookup.cache.Pair;
@@ -67,6 +70,18 @@ public final class CachingGroupsServiceTest extends TestCase {
 					throws GroupNotFoundException {
 				// TODO Auto-generated method stub
 				return null;
+			}
+
+			@Override
+			public Map<String, Set<Cache<?, ?>>> getCaches() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public void clearCaches() {
+				// TODO Auto-generated method stub
+				
 			}
 		};
 
@@ -133,6 +148,18 @@ public final class CachingGroupsServiceTest extends TestCase {
 					throws GroupNotFoundException {
 				// TODO Auto-generated method stub
 				return null;
+			}
+
+			@Override
+			public Map<String, Set<Cache<?, ?>>> getCaches() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public void clearCaches() {
+				// TODO Auto-generated method stub
+				
 			}
 		};
 		IsUserInGroupCachingGroupsService cachingService = new IsUserInGroupCachingGroupsService(decorated);
@@ -201,6 +228,18 @@ public final class CachingGroupsServiceTest extends TestCase {
 			public GroupInfo getGroupInfo(String name)
 					throws GroupNotFoundException {
 				return null;
+			}
+
+			@Override
+			public Map<String, Set<Cache<?, ?>>> getCaches() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public void clearCaches() {
+				// TODO Auto-generated method stub
+				
 			}
 		};
 

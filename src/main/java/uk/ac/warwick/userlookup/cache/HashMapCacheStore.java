@@ -51,6 +51,10 @@ public final class HashMapCacheStore<K extends Serializable,V extends Serializab
 		}
 	}
 
+	public String getName() {
+		return this.name;
+	}
+
 	private Map get(final String cacheName) {
 		WeakReference<Map> weakReference = maps.get(cacheName);
 		if (weakReference != null) {

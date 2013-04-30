@@ -1,12 +1,9 @@
 package uk.ac.warwick.userlookup;
 
-import uk.ac.warwick.userlookup.cache.Cache;
-import uk.ac.warwick.userlookup.cache.CacheListener;
 import uk.ac.warwick.userlookup.cache.Caches;
 import uk.ac.warwick.userlookup.cache.EntryUpdateException;
 import uk.ac.warwick.userlookup.cache.Pair;
 import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
-import uk.ac.warwick.userlookup.webgroups.GroupServiceAdapter;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
 /**
@@ -14,15 +11,13 @@ import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
  *
  * @author xusqac
  */
-public final class IsUserInGroupCachingGroupsService extends GroupServiceAdapter {
+public final class IsUserInGroupCachingGroupsService extends CacheingGroupServiceAdapter<Pair<String, String>, Boolean> {
     private static final String CACHE_TIMEOUT_SECS="userlookup.cache.isuseringroup.timeout";
     private static final long DEFAULT_CACHE_TIMEOUT_SECS=Long.parseLong(UserLookup.getConfigProperty("ssoclient.groupservice.cache.isuseringroup.timeout"));
 
-    private Cache<Pair<String,String>,Boolean> cache;
-
     public IsUserInGroupCachingGroupsService(final GroupService theGroupService) {
         super(theGroupService);
-        cache = Caches.newCache(UserLookup.IN_GROUP_CACHE_NAME, new SingularEntryFactory<Pair<String,String>, Boolean>() {
+        setCache(Caches.newCache(UserLookup.IN_GROUP_CACHE_NAME, new SingularEntryFactory<Pair<String,String>, Boolean>() {
 			public Boolean create(Pair<String,String> key, Object data) throws EntryUpdateException {
 				// we munged the two arguments into a key - now to get them out.
 				// It might be better to extend the Cache API to allow secondary data to
@@ -38,20 +33,16 @@ public final class IsUserInGroupCachingGroupsService extends GroupServiceAdapter
 			public boolean shouldBeCached(Boolean val) {
 				return true;
 			}
-		}, determineCacheTimeOut());
+		}, determineCacheTimeOut()));
     }
 
     private long determineCacheTimeOut() {
         return Long.valueOf(UserLookup.getConfigProperty(CACHE_TIMEOUT_SECS, DEFAULT_CACHE_TIMEOUT_SECS + "")).longValue();
     }
 
-    public void addCacheListener(final CacheListener<Pair<String,String>, Boolean> listener) {
-        cache.addCacheListener(listener);
-    }
-
     public boolean isUserInGroup(final String userId, final String group) throws GroupServiceException {
     	try {
-			return cache.get(Pair.of(userId, group));
+			return getCache().get(Pair.of(userId, group));
 		} catch (EntryUpdateException e) {
 			if (e.getCause() instanceof GroupServiceException){
 				throw (GroupServiceException)e.getCause();

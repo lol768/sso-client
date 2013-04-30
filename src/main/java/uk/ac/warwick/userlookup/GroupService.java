@@ -18,7 +18,7 @@ import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
  * <p>
  * Usually you will access this class via via {@link UserLookup#getGroupService()}.
  */
-public interface GroupService extends WebService {
+public interface GroupService extends WebService, CacheingService {
 
 	public static final List<Group> PROBLEM_FINDING_GROUPS = Collections.unmodifiableList(Collections.<Group>emptyList());
 	public static final Group PROBLEM_FINDING_GROUP = new GroupImpl();
