@@ -39,15 +39,22 @@ public abstract class CacheingGroupServiceAdapter<K extends Serializable,V exten
 	@Override
 	public Map<String, Set<Cache<?, ?>>> getCaches() {
 		Map<String, Set<Cache<?, ?>>> caches = new HashMap<String, Set<Cache<?, ?>>>();
+		boolean addedCache = false;
 		for (Map.Entry<String, Set<Cache<?, ?>>> otherCacheEntry: super.getCaches().entrySet()) {
 			if (otherCacheEntry.getKey().equals(cache.getStoreName())) {
 				Set<Cache<?, ?>> theseCaches = new HashSet<Cache<?, ?>>();
 				theseCaches.addAll(otherCacheEntry.getValue());
 				theseCaches.add(cache);
+				addedCache = true;
 				caches.put(otherCacheEntry.getKey(), Collections.unmodifiableSet(theseCaches));
 			} else {
 				caches.put(otherCacheEntry.getKey(), otherCacheEntry.getValue());
 			}
+		}
+		if (!addedCache) {
+			Set<Cache<?, ?>> thisCache = new HashSet<Cache<?, ?>>();
+			thisCache.add(cache);
+			caches.put(cache.getStoreName(), Collections.unmodifiableSet(thisCache));
 		}
 		
 		return Collections.unmodifiableMap(caches);

@@ -2,10 +2,7 @@ package uk.ac.warwick.userlookup;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import uk.ac.warwick.userlookup.cache.Cache;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceAdapter;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
@@ -131,11 +128,4 @@ public final class GroupAliasAwareGroupService extends GroupServiceAdapter imple
         
 		return getDecorated().getUserCodesInGroup(group);
     }
-
-	public Map<String, Set<Cache<?, ?>>> getCaches() {
-		return Collections.emptyMap();
-	}
-
-	public void clearCaches() {
-	}
 }
