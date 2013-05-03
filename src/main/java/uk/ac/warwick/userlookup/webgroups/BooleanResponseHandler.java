@@ -5,13 +5,14 @@ import java.io.InputStream;
 
 import org.apache.log4j.Logger;
 
+import uk.ac.warwick.userlookup.ClearGroupResponseHandler;
 import uk.ac.warwick.userlookup.ResultAwareWebServiceResponseHandler;
 import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
 
 /**
  * <p>Implementation which expects a stream whose first character is either "t" or "f".</p>
  */
-final class BooleanResponseHandler implements ResultAwareWebServiceResponseHandler<Boolean> {
+final class BooleanResponseHandler extends ClearGroupResponseHandler implements ResultAwareWebServiceResponseHandler<Boolean> {
 	private static final Logger LOGGER = Logger.getLogger(BooleanResponseHandler.class);
 	private boolean _result;
 

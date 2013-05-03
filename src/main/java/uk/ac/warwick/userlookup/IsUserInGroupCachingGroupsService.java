@@ -1,5 +1,6 @@
 package uk.ac.warwick.userlookup;
 
+import uk.ac.warwick.userlookup.cache.Cache;
 import uk.ac.warwick.userlookup.cache.Caches;
 import uk.ac.warwick.userlookup.cache.EntryUpdateException;
 import uk.ac.warwick.userlookup.cache.Pair;
@@ -14,8 +15,11 @@ import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 public final class IsUserInGroupCachingGroupsService extends CacheingGroupServiceAdapter<Pair<String, String>, Boolean> {
     private static final String CACHE_TIMEOUT_SECS="userlookup.cache.isuseringroup.timeout";
     private static final long DEFAULT_CACHE_TIMEOUT_SECS=Long.parseLong(UserLookup.getConfigProperty("ssoclient.groupservice.cache.isuseringroup.timeout"));
+    
+    private Cache<String, Group> groupCache;
 
-    public IsUserInGroupCachingGroupsService(final GroupService theGroupService) {
+    @SuppressWarnings("unchecked")
+	public IsUserInGroupCachingGroupsService(final GroupService theGroupService) {
         super(theGroupService);
         setCache(Caches.newCache(UserLookup.IN_GROUP_CACHE_NAME, new SingularEntryFactory<Pair<String,String>, Boolean>() {
 			public Boolean create(Pair<String,String> key, Object data) throws EntryUpdateException {
@@ -34,6 +38,7 @@ public final class IsUserInGroupCachingGroupsService extends CacheingGroupServic
 				return true;
 			}
 		}, determineCacheTimeOut()));
+        setGroupCache((Cache<String, Group>) theGroupService.getCaches().get(UserLookup.GROUP_CACHE_NAME).iterator().next());
     }
 
     private long determineCacheTimeOut() {
@@ -42,7 +47,14 @@ public final class IsUserInGroupCachingGroupsService extends CacheingGroupServic
 
     public boolean isUserInGroup(final String userId, final String group) throws GroupServiceException {
     	try {
-			return getCache().get(Pair.of(userId, group));
+    		// SSO-1372
+    		if (getGroupCache().contains(group)) {
+    			return getCache().get(Pair.of(userId, group));
+    		} else {
+    			getGroupCache().get(group);
+    			getCache().remove(Pair.of(userId, group));
+    			return getCache().get(Pair.of(userId, group));
+    		}
 		} catch (EntryUpdateException e) {
 			if (e.getCause() instanceof GroupServiceException){
 				throw (GroupServiceException)e.getCause();
@@ -51,5 +63,13 @@ public final class IsUserInGroupCachingGroupsService extends CacheingGroupServic
 			}
 		}
     }
+
+	public Cache<String, Group> getGroupCache() {
+		return groupCache;
+	}
+
+	public void setGroupCache(Cache<String, Group> groupCache) {
+		this.groupCache = groupCache;
+	}
 
 }
