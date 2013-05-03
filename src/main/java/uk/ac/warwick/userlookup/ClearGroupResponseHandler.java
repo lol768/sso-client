@@ -16,12 +16,11 @@ import uk.ac.warwick.userlookup.cache.Cache;
 public abstract class ClearGroupResponseHandler implements
 		WebServiceResponseHandler {
 
-	private final String CLEAR_WEB_GROUP_HEADER = "Clear-Web-Group";
+	private final static String CLEAR_WEB_GROUP_HEADER = "Clear-Web-Group";
 	private static Map<String, Date> lastCleared = new HashMap<String, Date>();
-
+	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	public void processClearGroupHeader(HttpMethod method) {
+	public static void staticProcessClearGroupHeader(HttpMethod method) {
 		Header header = method.getResponseHeader(CLEAR_WEB_GROUP_HEADER);
 		if (header != null) {
 			Set<String> groupsToClear = new HashSet<String>();
@@ -67,6 +66,11 @@ public abstract class ClearGroupResponseHandler implements
 			}
 		}
 
+	}
+
+	@Override
+	public void processClearGroupHeader(HttpMethod method) {
+		ClearGroupResponseHandler.staticProcessClearGroupHeader(method);
 	}
 
 }
