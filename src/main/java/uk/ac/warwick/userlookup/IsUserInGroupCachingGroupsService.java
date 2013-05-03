@@ -48,13 +48,11 @@ public final class IsUserInGroupCachingGroupsService extends CacheingGroupServic
     public boolean isUserInGroup(final String userId, final String group) throws GroupServiceException {
     	try {
     		// SSO-1372
-    		if (getGroupCache().contains(group)) {
-    			return getCache().get(Pair.of(userId, group));
-    		} else {
+    		if (!getGroupCache().contains(group)) {
     			getGroupCache().get(group);
     			getCache().remove(Pair.of(userId, group));
-    			return getCache().get(Pair.of(userId, group));
     		}
+    		return getCache().get(Pair.of(userId, group));
 		} catch (EntryUpdateException e) {
 			if (e.getCause() instanceof GroupServiceException){
 				throw (GroupServiceException)e.getCause();

@@ -1,5 +1,6 @@
 package uk.ac.warwick.userlookup;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,6 +18,7 @@ public abstract class ClearGroupResponseHandler implements
 		WebServiceResponseHandler {
 
 	private final static String CLEAR_WEB_GROUP_HEADER = "Clear-Web-Group";
+	private final static int OLD_CACHE_TIME_IN_MINUTES = -30;
 	private static Map<String, Date> lastCleared = new HashMap<String, Date>();
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -43,6 +45,7 @@ public abstract class ClearGroupResponseHandler implements
 			}
 
 			if (groupsToClear.size() > 0) {
+				clearOutOldEntries();
 				Set<Cache<?, ?>> groupMemberCacheSet = UserLookup.getInstance()
 						.getGroupService().getCaches()
 						.get(UserLookup.GROUP_MEMBER_CACHE_NAME);
@@ -71,6 +74,22 @@ public abstract class ClearGroupResponseHandler implements
 	@Override
 	public void processClearGroupHeader(HttpMethod method) {
 		ClearGroupResponseHandler.staticProcessClearGroupHeader(method);
+	}
+	
+	private static void clearOutOldEntries() {
+		Set<String> groupsToRemove = new HashSet<String>();
+		Calendar expiry = Calendar.getInstance();
+		expiry.setTime(new Date());
+		expiry.add(Calendar.MINUTE, OLD_CACHE_TIME_IN_MINUTES);
+		Date expiryDate = expiry.getTime();
+		for (Map.Entry<String, Date> pair : lastCleared.entrySet()) {
+			if (pair.getValue().before(expiryDate)) {
+				groupsToRemove.add(pair.getKey());
+			}
+		}
+		for (String group : groupsToRemove) {
+			lastCleared.remove(group);
+		}
 	}
 
 }
