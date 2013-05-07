@@ -781,4 +781,8 @@ public class UserLookup implements UserLookupInterface {
 		}
 		_groupServiceBackend = groupServiceBackend;
 	}
+	
+	public final void requestClearWebGroup(final String groupName) throws UserLookupException {
+		getSpecificUserLookupType().requestClearWebGroup(groupName);
+	}
 }

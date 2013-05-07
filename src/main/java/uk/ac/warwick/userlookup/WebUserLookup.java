@@ -56,6 +56,8 @@ public class WebUserLookup implements UserLookupBackend {
 	private static final int USERS_IDS = 5;
 
 	private static final int USER_ID_OK = 4;
+	
+	private static final int CLEAR_GROUP = 6;
 
 	private String _ssosUrl;
 	
@@ -367,5 +369,13 @@ public class WebUserLookup implements UserLookupBackend {
 		return true;
 	}
 	
-
+	public final void requestClearWebGroup(final String groupName) throws UserLookupException {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("requestClearWebGroup: " + groupName);
+		}
+		Map<String,Object> params = new HashMap<String,Object>();
+		params.put("requestType", new Integer(CLEAR_GROUP).toString());
+		params.put("group", groupName);
+		doSSO(params);
+	}
 }

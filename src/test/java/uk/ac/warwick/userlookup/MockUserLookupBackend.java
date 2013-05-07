@@ -88,5 +88,7 @@ public class MockUserLookupBackend implements UserLookupBackend {
 	}
 
 	public void signOut(String token) throws UserLookupException {}
+	
+	public void requestClearWebGroup(String groupName) throws UserLookupException {}
 
 }
