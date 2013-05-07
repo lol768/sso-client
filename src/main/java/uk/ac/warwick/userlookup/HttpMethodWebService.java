@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -105,6 +106,7 @@ public final class HttpMethodWebService {
 			}
 			
 			responseHandler.processResults(method.getResponseBodyAsStream());
+			responseHandler.processClearGroupHeader(method);
 
 		} catch (IOException e) {
 			// Could be ProtocolException or IOException but I don't care which
@@ -136,6 +138,7 @@ public final class HttpMethodWebService {
 	public interface WebServiceResponseHandler {
 
 		void processResults(InputStream fromServer) throws HandlerException;
+		void processClearGroupHeader(HttpMethod method);
 	}
 
 	public static class WebServiceException extends Exception {

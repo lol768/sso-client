@@ -640,9 +640,13 @@ public class UserLookup implements UserLookupInterface {
 					_groupServiceBackend.setTimeoutConfig(new WebServiceTimeoutConfig(getHttpConnectionTimeout(), getHttpDataTimeout()));
 				}
 				// cache the groups
-				_groupService = new GroupAliasAwareGroupService(new GroupNameCheckerGroupService(
-						new IsUserInGroupCachingGroupsService(new GroupByNameCachingGroupsService(
-								new UsersInGroupCachingGroupsService(new GroupsNamesForUserCachingGroupsService(_groupServiceBackend))))),
+				_groupService = 
+						new GroupAliasAwareGroupService(
+						new GroupNameCheckerGroupService(
+						new IsUserInGroupCachingGroupsService(
+						new GroupByNameCachingGroupsService(
+						new UsersInGroupCachingGroupsService(
+						new GroupsNamesForUserCachingGroupsService(_groupServiceBackend))))),
 						this);
 
 			} else {

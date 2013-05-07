@@ -293,7 +293,8 @@ public class WebUserLookup implements UserLookupBackend {
 		return new AnonymousUser();
 	}
 	
-	final static class WebServiceResponseHandlerImplementation implements
+	final static class WebServiceResponseHandlerImplementation extends 
+			ClearGroupResponseHandler implements
 			HttpMethodWebService.WebServiceResponseHandler {
 		private final Map<String,String> resultSet;
 		
@@ -321,7 +322,8 @@ public class WebUserLookup implements UserLookupBackend {
 		public Map<String,String> getResults() { return resultSet; }
 	}
 	
-	final static class WebServiceResponseHandlerListImplementation implements
+	final static class WebServiceResponseHandlerListImplementation extends
+			ClearGroupResponseHandler implements
 			HttpMethodWebService.WebServiceResponseHandler {
 		private final List<Map<String,String>> resultSet;
 		

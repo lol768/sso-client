@@ -50,6 +50,7 @@ import org.xml.sax.SAXException;
 import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.sso.client.util.Xml;
+import uk.ac.warwick.userlookup.ClearGroupResponseHandler;
 import uk.ac.warwick.userlookup.HttpMethodWebService;
 import uk.ac.warwick.userlookup.HttpPool;
 
@@ -135,6 +136,7 @@ public abstract class AbstractSAMLFetcher {
         try {
             client.executeMethod(method);
             body = method.getResponseBodyAsString();
+            ClearGroupResponseHandler.staticProcessClearGroupHeader(method);
         } catch (IOException e) {
             LOGGER.error(location + " request failed at client.executeMethod", e);
             throw new SSOException(location + " request failed at client.executeMethod", e);

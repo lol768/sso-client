@@ -1,11 +1,17 @@
 package uk.ac.warwick.userlookup;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import junit.framework.TestCase;
+
+import org.jmock.Expectations;
+import org.jmock.Mockery;
+
 import uk.ac.warwick.userlookup.cache.Cache;
 import uk.ac.warwick.userlookup.cache.CacheListener;
 import uk.ac.warwick.userlookup.cache.Entry;
@@ -14,12 +20,17 @@ import uk.ac.warwick.userlookup.webgroups.GroupInfo;
 import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
 
 public final class CachingGroupsServiceTest extends TestCase {
+	
+	private Mockery m = new Mockery();
 
+	@SuppressWarnings("unchecked")
 	public void testDelegates() throws Exception{
 		final String testUserId = "user";
 		final String testGroupName = "group";
 		final Group testGroup = new GroupImpl();
 		final WebServiceTimeoutConfig testConfig = new WebServiceTimeoutConfig();
+		
+		final Cache<String, Group> cache = m.mock(Cache.class);
 
 		GroupService decorated = new GroupService() {
 
@@ -74,8 +85,11 @@ public final class CachingGroupsServiceTest extends TestCase {
 
 			@Override
 			public Map<String, Set<Cache<?, ?>>> getCaches() {
-				// TODO Auto-generated method stub
-				return null;
+				final Set<Cache<?, ?>> cacheSet = new HashSet<Cache<?, ?>>();
+				cacheSet.add(cache);
+				final Map<String, Set<Cache<?, ?>>> caches = new HashMap<String, Set<Cache<?, ?>>>();
+				caches.put(UserLookup.GROUP_CACHE_NAME, Collections.unmodifiableSet(cacheSet));
+				return caches;
 			}
 
 			@Override
@@ -84,6 +98,11 @@ public final class CachingGroupsServiceTest extends TestCase {
 				
 			}
 		};
+		
+		m.checking(new Expectations() {{
+			one(cache).contains("group");
+			one(cache).get("group");
+		}});
 
 		IsUserInGroupCachingGroupsService cachingService = new IsUserInGroupCachingGroupsService(decorated);
 		assertEquals("getGroupsForUser", decorated.getGroupsForUser(testUserId), cachingService.getGroupsForUser(testUserId));
@@ -103,6 +122,7 @@ public final class CachingGroupsServiceTest extends TestCase {
 	public void testCacheWorks() throws Exception {
 		final String firstUserId = "userIdA";
 		final String firstGroupName = "groupName";
+		final Cache<String, Group> cache = m.mock(Cache.class);
 
 		TestCacheListener listener = new TestCacheListener();
 
@@ -152,8 +172,11 @@ public final class CachingGroupsServiceTest extends TestCase {
 
 			@Override
 			public Map<String, Set<Cache<?, ?>>> getCaches() {
-				// TODO Auto-generated method stub
-				return null;
+				final Set<Cache<?, ?>> cacheSet = new HashSet<Cache<?, ?>>();
+				cacheSet.add(cache);
+				final Map<String, Set<Cache<?, ?>>> caches = new HashMap<String, Set<Cache<?, ?>>>();
+				caches.put(UserLookup.GROUP_CACHE_NAME, Collections.unmodifiableSet(cacheSet));
+				return caches;
 			}
 
 			@Override
@@ -162,6 +185,18 @@ public final class CachingGroupsServiceTest extends TestCase {
 				
 			}
 		};
+		
+		m.checking(new Expectations() {{
+			allowing(cache).contains("groupName"); will(returnValue(true));
+			one(cache).get("groupName");
+			one(cache).contains("groupName0"); will(returnValue(true));
+			one(cache).get("groupName0");
+			one(cache).contains("groupName1"); will(returnValue(true));
+			one(cache).get("groupName1");
+			one(cache).contains("groupName2"); will(returnValue(true));
+			one(cache).get("groupName2");
+		}});
+		
 		IsUserInGroupCachingGroupsService cachingService = new IsUserInGroupCachingGroupsService(decorated);
 		cachingService.addCacheListener(listener);
 
