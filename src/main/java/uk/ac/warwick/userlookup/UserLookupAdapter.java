@@ -77,4 +77,9 @@ public abstract class UserLookupAdapter implements UserLookupInterface {
 		return delegate.getUserByIdAndPassNonLoggingIn(uncheckedUserId, uncheckedPass);
 	}
 
+	public void requestClearWebGroup(String groupName)
+			throws UserLookupException {
+		delegate.requestClearWebGroup(groupName);
+	}
+
 }
