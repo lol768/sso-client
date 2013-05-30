@@ -5,6 +5,7 @@ import uk.ac.warwick.userlookup.cache.Caches;
 import uk.ac.warwick.userlookup.cache.EntryUpdateException;
 import uk.ac.warwick.userlookup.cache.Pair;
 import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
+import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
 /**
@@ -46,12 +47,22 @@ public final class IsUserInGroupCachingGroupsService extends CacheingGroupServic
     }
 
     public boolean isUserInGroup(final String userId, final String group) throws GroupServiceException {
+    	// SSO-1372
+		if (!getGroupCache().contains(group)) {
+			try {
+				getGroupCache().get(group);
+			} catch (EntryUpdateException e) {
+				if (e.getCause() instanceof GroupServiceException){
+					throw (GroupServiceException)e.getCause();
+				} else if (e.getCause() instanceof GroupNotFoundException) {
+					// do nothing, WarwickGroupService.isUserinGroup handles missing groups
+				} else {
+					throw e.getRuntimeException();
+				}
+			}
+			getCache().remove(Pair.of(userId, group));
+		}
     	try {
-    		// SSO-1372
-    		if (!getGroupCache().contains(group)) {
-    			getGroupCache().get(group);
-    			getCache().remove(Pair.of(userId, group));
-    		}
     		return getCache().get(Pair.of(userId, group));
 		} catch (EntryUpdateException e) {
 			if (e.getCause() instanceof GroupServiceException){
