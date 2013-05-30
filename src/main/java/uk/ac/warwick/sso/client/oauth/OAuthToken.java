@@ -14,7 +14,7 @@ public final class OAuthToken implements Serializable, Cloneable {
     }
     
     public static enum RequestedExpiry {
-    	ONE_YEAR, FOREVER
+    	ONE_YEAR, FOREVER, NOT_SPECIFIED
     }
 
     private String token;
