@@ -734,14 +734,20 @@ public class UserLookup implements UserLookupInterface {
 				}
 			}
 		}
-		String def = defaultProperties.getProperty(propertyName);
-		if (def != null) {
-			return def;
-		}
+		String value = null;
 		if (configProperties != null) {
-			return configProperties.getProperty(propertyName);
+			value = configProperties.getProperty(propertyName);
 		}
-		return System.getProperty(propertyName);
+		
+		if (value == null) {
+			value = System.getProperty(propertyName);
+		}
+		
+		if (value == null) {
+			value = defaultProperties.getProperty(propertyName);
+		}
+		
+		return value;
 	}
 	
 	public static String getConfigProperty(String propertyName, String def) {
