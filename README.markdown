@@ -3,6 +3,13 @@ SSO Client
 
 A Java library for reading from SSO in other apps.
 
+Versioning
+-------------
+
+Most development should be done on a -SNAPSHOT version. When ready to release
+a new version, commit a change to the non-SNAPSHOT version, deploy that as below,
+then commit a change to the next SNAPSHOT version.
+
 Pushing a release onto Nexus
 -------------
 
