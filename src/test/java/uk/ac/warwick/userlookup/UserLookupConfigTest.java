@@ -21,7 +21,7 @@ public class UserLookupConfigTest {
 	
 	@Test
 	public void defaultValues() {
-		assertEquals("137.,172.31,172.29", UserLookup.getConfigProperty("ssoclient.oncampus.ranges"));
+		assertEquals("137.,172.31.,172.29.", UserLookup.getConfigProperty("ssoclient.oncampus.ranges"));
 	}
 	
 	@Test
