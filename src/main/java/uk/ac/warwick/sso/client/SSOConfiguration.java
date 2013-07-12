@@ -192,6 +192,10 @@ public class SSOConfiguration extends CompositeConfiguration {
 		THREAD_LOCAL.set(config);
 	}
 	
+	static final void removeConfig() {
+	    THREAD_LOCAL.remove();
+	}
+	
 	// Support Spring-style classpath protocol for resources.
 	public String resolveClasspathUrl(String url) {
 		if (url.startsWith("classpath:")) {

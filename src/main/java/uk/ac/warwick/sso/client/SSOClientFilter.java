@@ -159,99 +159,101 @@ public final class SSOClientFilter implements Filter {
 		HttpServletResponse response = (HttpServletResponse) arg1;
 
 		SSOConfiguration.setConfig(_config);
-
-		URL target = getTarget(request);
-		LOGGER.debug("Target=" + target);
-
-		// prevent ssoclientfilter from sitting in front of shire and logout servlets
-		String shireLocation = _config.getString("shire.location");
-		String logoutLocation = _config.getString("logout.location");
-
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("shire.location=" + shireLocation);
-			LOGGER.debug("logout.location=" + logoutLocation);
+		try {
+    		URL target = getTarget(request);
+    		LOGGER.debug("Target=" + target);
+    
+    		// prevent ssoclientfilter from sitting in front of shire and logout servlets
+    		String shireLocation = _config.getString("shire.location");
+    		String logoutLocation = _config.getString("logout.location");
+    
+    		if (LOGGER.isDebugEnabled()) {
+    			LOGGER.debug("shire.location=" + shireLocation);
+    			LOGGER.debug("logout.location=" + logoutLocation);
+    		}
+    
+    		if (target.toExternalForm().equals(shireLocation) || target.toExternalForm().equals(logoutLocation)) {
+    			LOGGER.debug("Letting request through without filtering because it is a shire or logout request");
+    			chain.doFilter(arg0, arg1);
+    			return;
+    		}
+    
+    		User user = new AnonymousUser();
+    
+    		boolean allowBasic = allowHttpBasic(target, request);
+    		
+    		/* [SSO-550] These variables are for handling sending WarwickSSO as a parameter,
+    		 * useful in limited cases like Flash apps who can't send cookies 
+    		 */
+    		String requestToken = request.getParameter(WARWICK_SSO);
+    		boolean postCookies = ("POST".equalsIgnoreCase(request.getMethod()) && requestToken != null);
+    
+    		if (allowBasic && "true".equals(request.getParameter("forcebasic")) && !isBasicAuthRequest(request)) {
+    			sendBasicAuthHeaders(response);
+    			return;
+    		}
+    
+    		Cookie[] cookies = request.getCookies();
+    
+    		if (allowBasic && isBasicAuthRequest(request)) {
+    			user = doBasicAuth(request);
+    		} else if (_config.getString("mode").equals("old") || request.getAttribute(ForceOldModeFilter.ALLOW_OLD_KEY) != null) {
+    			// do old style single sign on via WarwickSSO cookie
+    			user = doGetUserByOldSSO(cookies);
+    		} else if (postCookies) {
+    			user = getUserLookup().getUserByToken(requestToken);
+    		} else {
+    			// do new style single sign on with shibboleth
+    			Cookie loginTicketCookie = getCookie(cookies, GLOBAL_LOGIN_COOKIE_NAME);
+    			Cookie serviceSpecificCookie = getCookie(cookies, _config.getString("shire.sscookie.name"));
+    
+    			Cookie proxyTicketCookie = getCookie(cookies, PROXY_TICKET_COOKIE_NAME);
+    
+    			if (loginTicketCookie != null && serviceSpecificCookie == null) {
+    				if (redirectToRefreshSession) {
+    					redirectToLogin(response, request, loginTicketCookie);
+    					return;
+    				}
+    			} else {
+    				if (proxyTicketCookie != null) {
+    					user = getUserFromProxyTicket(proxyTicketCookie);
+    				} else if (serviceSpecificCookie != null) {
+    					LOGGER.debug("Found SSC (" + serviceSpecificCookie.getValue() + ")");
+    	
+    					SSOToken token = new SSOToken(serviceSpecificCookie.getValue(), SSOToken.SSC_TICKET_TYPE);
+    					UserCacheItem item = getCache().get(token);
+    	
+    					if (redirectToRefreshSession && (item == null || !item.getUser().isLoggedIn()) && loginTicketCookie != null) {
+    						redirectToLogin(response, request, loginTicketCookie);
+    						// didn't find user, so cookie is invalid, destroy it!
+    						destroySSC(response);
+    						return;
+    					} else if (item != null && item.getUser().isLoggedIn()) {
+    						user = item.getUser();
+    					} else {
+    						// user has SSC but is not actually logged in
+    						LOGGER.debug("Invalid SSC as user was not found in cache");
+    					}
+    	
+    				}
+    			}
+    		}
+    		
+    		user = handleOnCampusUsers(user, request);
+    
+    		HeaderSettingHttpServletRequest wrappedRequest = new HeaderSettingHttpServletRequest(request);
+    
+    		putUserAndAttributesInRequest(wrappedRequest, user);
+    
+    		setOldWarwickSSOToken(user, cookies);
+    
+    		checkIpAddress(wrappedRequest, user);
+    
+    		// redirect onto underlying page
+    		chain.doFilter(wrappedRequest, arg1);
+		} finally {
+		    SSOConfiguration.removeConfig();
 		}
-
-		if (target.toExternalForm().equals(shireLocation) || target.toExternalForm().equals(logoutLocation)) {
-			LOGGER.debug("Letting request through without filtering because it is a shire or logout request");
-			chain.doFilter(arg0, arg1);
-			return;
-		}
-
-		User user = new AnonymousUser();
-
-		boolean allowBasic = allowHttpBasic(target, request);
-		
-		/* [SSO-550] These variables are for handling sending WarwickSSO as a parameter,
-		 * useful in limited cases like Flash apps who can't send cookies 
-		 */
-		String requestToken = request.getParameter(WARWICK_SSO);
-		boolean postCookies = ("POST".equalsIgnoreCase(request.getMethod()) && requestToken != null);
-
-		if (allowBasic && "true".equals(request.getParameter("forcebasic")) && !isBasicAuthRequest(request)) {
-			sendBasicAuthHeaders(response);
-			return;
-		}
-
-		Cookie[] cookies = request.getCookies();
-
-		if (allowBasic && isBasicAuthRequest(request)) {
-			user = doBasicAuth(request);
-		} else if (_config.getString("mode").equals("old") || request.getAttribute(ForceOldModeFilter.ALLOW_OLD_KEY) != null) {
-			// do old style single sign on via WarwickSSO cookie
-			user = doGetUserByOldSSO(cookies);
-		} else if (postCookies) {
-			user = getUserLookup().getUserByToken(requestToken);
-		} else {
-			// do new style single sign on with shibboleth
-			Cookie loginTicketCookie = getCookie(cookies, GLOBAL_LOGIN_COOKIE_NAME);
-			Cookie serviceSpecificCookie = getCookie(cookies, _config.getString("shire.sscookie.name"));
-
-			Cookie proxyTicketCookie = getCookie(cookies, PROXY_TICKET_COOKIE_NAME);
-
-			if (loginTicketCookie != null && serviceSpecificCookie == null) {
-				if (redirectToRefreshSession) {
-					redirectToLogin(response, request, loginTicketCookie);
-					return;
-				}
-			} else {
-				if (proxyTicketCookie != null) {
-					user = getUserFromProxyTicket(proxyTicketCookie);
-				} else if (serviceSpecificCookie != null) {
-					LOGGER.debug("Found SSC (" + serviceSpecificCookie.getValue() + ")");
-	
-					SSOToken token = new SSOToken(serviceSpecificCookie.getValue(), SSOToken.SSC_TICKET_TYPE);
-					UserCacheItem item = getCache().get(token);
-	
-					if (redirectToRefreshSession && (item == null || !item.getUser().isLoggedIn()) && loginTicketCookie != null) {
-						redirectToLogin(response, request, loginTicketCookie);
-						// didn't find user, so cookie is invalid, destroy it!
-						destroySSC(response);
-						return;
-					} else if (item != null && item.getUser().isLoggedIn()) {
-						user = item.getUser();
-					} else {
-						// user has SSC but is not actually logged in
-						LOGGER.debug("Invalid SSC as user was not found in cache");
-					}
-	
-				}
-			}
-		}
-		
-		user = handleOnCampusUsers(user, request);
-
-		HeaderSettingHttpServletRequest wrappedRequest = new HeaderSettingHttpServletRequest(request);
-
-		putUserAndAttributesInRequest(wrappedRequest, user);
-
-		setOldWarwickSSOToken(user, cookies);
-
-		checkIpAddress(wrappedRequest, user);
-
-		// redirect onto underlying page
-		chain.doFilter(wrappedRequest, arg1);
-
 	}
 
 	/**
