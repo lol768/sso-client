@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -25,6 +26,7 @@ import uk.ac.warwick.userlookup.WebServiceTimeoutConfig;
 import uk.ac.warwick.userlookup.HttpMethodWebService.GetMethodFactory;
 import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
 import uk.ac.warwick.userlookup.HttpMethodWebService.WebServiceException;
+import uk.ac.warwick.util.cache.Cache;
 
 public class WarwickGroupsService implements GroupService {
 
@@ -270,5 +272,12 @@ public class WarwickGroupsService implements GroupService {
 			throw new GroupServiceException(SERVER_ERROR_MESSAGE, e);
 		}
 		return handler.getGroupInfo();
+	}
+
+	public Map<String, Set<Cache<?, ?>>> getCaches() {
+		return Collections.emptyMap();
+	}
+
+	public void clearCaches() {
 	}
 }

@@ -28,7 +28,7 @@ import org.springframework.util.FileCopyUtils;
 import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
-import uk.ac.warwick.userlookup.cache.Caches;
+import uk.ac.warwick.util.cache.Caches;
 
 public class ShireCommandTests extends TestCase {
 

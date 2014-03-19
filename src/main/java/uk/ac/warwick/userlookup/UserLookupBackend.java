@@ -34,4 +34,6 @@ interface UserLookupBackend {
 	Map<String, User> getUsersById(List<String> userIds) throws UserLookupException;
 	
 	boolean getSupportsBatchLookup();
+	
+	void requestClearWebGroup(final String groupName) throws UserLookupException;
 }

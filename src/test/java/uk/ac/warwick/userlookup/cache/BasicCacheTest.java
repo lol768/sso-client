@@ -11,15 +11,21 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 import uk.ac.warwick.userlookup.UserLookup;
+import uk.ac.warwick.util.cache.*;
 
+/**
+ * This class uses behaviour from WarwickUtils-Cache - we keep the test
+ * here (after the code was refactored out) to ensure that the same behaviour
+ * exists in SSO Client as expected.
+ */
 public class BasicCacheTest extends TestCase {
 
-	BasicCache<String, String> cache;
-	BasicCache<String, String> slowCache;
+	BasicCache<String, String, Object> cache;
+	BasicCache<String, String, Object> slowCache;
 	private BrokenEntryFactory slowFactory;
-	
-	private BasicCache<String, String> noFactoryCache;
-	
+
+    private BasicCache<String, String, Object> noFactoryCache;
+
 	public void testGetMissingValue() throws Exception {
 		assertEquals("Value for dog", cache.get("dog"));
 		assertEquals("Value for cat", cache.get("cat"));
@@ -28,12 +34,12 @@ public class BasicCacheTest extends TestCase {
 		// not just equal objects
 		assertSame(cache.get("frog"), cache.get("frog"));
 	}
-	
-	public void testNoFactory() throws Exception {
-		noFactoryCache.put(new Entry<String, String>("cat", "meow"));
-		assertNull(noFactoryCache.get("dog"));
-		assertEquals("meow", noFactoryCache.get("cat"));
-	}
+
+    public void testNoFactory() throws Exception {
+        noFactoryCache.put(new CacheEntry<String, String>("cat", "meow"));
+        assertNull(noFactoryCache.get("dog"));
+        assertEquals("meow", noFactoryCache.get("cat"));
+    }
 	
 	public void testSlowConcurrentLookups() throws Exception {
 		assertFactoryCount(0);
@@ -42,7 +48,7 @@ public class BasicCacheTest extends TestCase {
 			public void run() {
 				try {
 					slowCache.get("dog");
-				} catch (EntryUpdateException e) {
+				} catch (CacheEntryUpdateException e) {
 					throw e.getRuntimeException();
 				}
 			}
@@ -75,7 +81,7 @@ public class BasicCacheTest extends TestCase {
 	}
 	
 	public void testAsynchronousUpdates() throws Exception {
-		slowCache = Caches.newCache(UserLookup.USER_CACHE_NAME, slowFactory, 1);
+		slowCache = (BasicCache<String, String, Object>) Caches.newCache(UserLookup.USER_CACHE_NAME, slowFactory, 1);
 		slowCache.setAsynchronousUpdateEnabled(true);
 		slowFactory.addFastRequest("one");
 		
@@ -122,7 +128,7 @@ public class BasicCacheTest extends TestCase {
 	}
 	
 	public void testExpiry() throws Exception {
-		slowCache = Caches.newCache(UserLookup.USER_CACHE_NAME, slowFactory, 1);
+		slowCache = (BasicCache<String, String, Object>) Caches.newCache(UserLookup.USER_CACHE_NAME, slowFactory, 1);
 		slowFactory.addFastRequest("one");
 		
 		String result1 = slowCache.get("one");
@@ -138,9 +144,9 @@ public class BasicCacheTest extends TestCase {
 	
 	protected void setUp() throws Exception {
 		EhCacheUtils.setUp();
-		cache = Caches.newCache(UserLookup.USER_CACHE_NAME, new SingularEntryFactory<String, String>() {
+		cache = (BasicCache<String, String, Object>) Caches.newCache(UserLookup.USER_CACHE_NAME, new SingularCacheEntryFactory<String, String>() {
 			private Random r = new Random();
-			public String create(String key, Object data) {
+			public String create(String key) {
 				return new String("Value for " + key);
 			}
 			public boolean shouldBeCached(String val) {
@@ -149,9 +155,8 @@ public class BasicCacheTest extends TestCase {
 		}, 100);
 		
 		slowFactory = new BrokenEntryFactory();
-		slowCache = Caches.newCache(UserLookup.USER_CACHE_NAME, slowFactory, 100);
-		
-		noFactoryCache = Caches.newCache(UserLookup.USER_CACHE_NAME, null, 100);
+		slowCache = (BasicCache<String, String, Object>) Caches.newCache(UserLookup.USER_CACHE_NAME, slowFactory, 100);
+        noFactoryCache = (BasicCache<String, String, Object>) Caches.newCache(UserLookup.USER_CACHE_NAME, (CacheEntryFactory<String, String>) null, 100);
 	}
 	
 	@Override
@@ -166,7 +171,7 @@ public class BasicCacheTest extends TestCase {
 	 * then these will always return immediately, so you can test lookups
 	 * while others are still processing.
 	 */
-	class BrokenEntryFactory implements EntryFactory<String, String> {
+	class BrokenEntryFactory implements CacheEntryFactory<String, String> {
 		private volatile boolean blocking = true;
 		
 		private List<String> requests = Collections.synchronizedList(new ArrayList<String>());
@@ -174,7 +179,7 @@ public class BasicCacheTest extends TestCase {
 		// if a key is in here it'll return straight away.
 		private Set<String> fastRequests = new HashSet<String>();
 		
-		public synchronized String create(String key, Object data) {
+		public synchronized String create(String key) {
 			if (!fastRequests.contains(key)) {
 				while (blocking) {
 					try {
@@ -207,10 +212,10 @@ public class BasicCacheTest extends TestCase {
 		 * this were a batch lookup.
 		 */
 		public Map<String, String> create(List<String> keys)
-				throws EntryUpdateException {
+				throws CacheEntryUpdateException {
 			Map<String,String> response = new HashMap<String, String>();
 			for (String key : keys) {
-				response.put(key, create(key, null));
+				response.put(key, create(key));
 			}
 			return response;
 		}
@@ -221,10 +226,6 @@ public class BasicCacheTest extends TestCase {
 
 		public boolean shouldBeCached(String val) {
 			return true;
-		}
-
-		public int secondsToLive(String val) {
-			return -1; // always eternal
 		}
 	}
 

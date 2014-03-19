@@ -2,9 +2,16 @@ package uk.ac.warwick.userlookup.cache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
+import uk.ac.warwick.util.cache.*;
 
+/**
+ * This class uses behaviour from WarwickUtils-Cache - we keep the test
+ * here (after the code was refactored out) to ensure that the same behaviour
+ * exists in SSO Client as expected.
+ */
 public class HashMapCacheStoreTest extends TestCase {
 	
 	/**
@@ -18,12 +25,12 @@ public class HashMapCacheStoreTest extends TestCase {
 		HashMapCacheStore<String, String> cache2 = new HashMapCacheStore<String, String>("MyCache");
 		HashMapCacheStore<String, ArrayList> cache3 = new HashMapCacheStore<String, ArrayList>("MyCache");
 		
-		cache.put(new Entry<String, String>("one", "gamma"));
+		cache.put(new CacheEntry<String, String>("one", "gamma"), 10, TimeUnit.SECONDS);
 		
 		assertEquals("gamma", cache2.get("one").getValue());
 		
 		ArrayList list = new ArrayList(Arrays.asList("blah","blah"));
-		cache3.put(new Entry<String, ArrayList>("two", list));
+		cache3.put(new CacheEntry<String, ArrayList>("two", list), 10, TimeUnit.SECONDS);
 		
 		assertEquals(list, cache3.get("two").getValue());
 		

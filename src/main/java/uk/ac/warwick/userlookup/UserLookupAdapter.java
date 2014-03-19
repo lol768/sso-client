@@ -1,7 +1,10 @@
 package uk.ac.warwick.userlookup;
 
+import uk.ac.warwick.util.cache.Cache;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Adapter for UserLookupInterface to allow you to override behaviour without
@@ -15,6 +18,10 @@ public abstract class UserLookupAdapter implements UserLookupInterface {
 		this.delegate = userLookup;
 	}
 	
+	public Map<String, Set<Cache<?, ?>>> getCaches() {
+		return delegate.getCaches();
+	}
+
 	public void clearCaches() {
 		delegate.clearCaches();
 	}
@@ -68,6 +75,11 @@ public abstract class UserLookupAdapter implements UserLookupInterface {
 	public User getUserByIdAndPassNonLoggingIn(String uncheckedUserId,
 			String uncheckedPass) throws UserLookupException {
 		return delegate.getUserByIdAndPassNonLoggingIn(uncheckedUserId, uncheckedPass);
+	}
+
+	public void requestClearWebGroup(String groupName)
+			throws UserLookupException {
+		delegate.requestClearWebGroup(groupName);
 	}
 
 }

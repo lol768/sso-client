@@ -1,18 +1,17 @@
 package uk.ac.warwick.userlookup;
 
-import uk.ac.warwick.userlookup.cache.Cache;
-import uk.ac.warwick.userlookup.cache.CacheListener;
-import uk.ac.warwick.userlookup.cache.Caches;
-import uk.ac.warwick.userlookup.cache.EntryUpdateException;
-import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
+import uk.ac.warwick.util.cache.Caches;
+import uk.ac.warwick.util.cache.CacheEntryUpdateException;
+import uk.ac.warwick.util.cache.SingularCacheEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
-import uk.ac.warwick.userlookup.webgroups.GroupServiceAdapter;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
+
+import static uk.ac.warwick.userlookup.UserLookup.getConfigProperty;
 
 /**
  * Decorator which will cache Groups by name from the GroupService.
  */
-final class GroupByNameCachingGroupsService extends GroupServiceAdapter {
+public final class GroupByNameCachingGroupsService extends CacheingGroupServiceAdapter<String, Group> {
 
     public static final long DEFAULT_TIMEOUT_SECS = 18000;
 
@@ -20,38 +19,32 @@ final class GroupByNameCachingGroupsService extends GroupServiceAdapter {
 
     private static final long DEFAULT_CACHE_TIMEOUT_SECS=Long.parseLong(UserLookup.getConfigProperty("ssoclient.groupservice.cache.groupbyname.timeout"));
 
-    private Cache<String,Group> _cache;
-
     public GroupByNameCachingGroupsService(final GroupService theGroupService) {
         super(theGroupService);
-        _cache = Caches.newCache(UserLookup.GROUP_CACHE_NAME, new SingularEntryFactory<String, Group>() {
-			public Group create(final String key, Object data) throws EntryUpdateException {
+        setCache(Caches.newCache(UserLookup.GROUP_CACHE_NAME, new SingularCacheEntryFactory<String, Group>() {
+			public Group create(final String key) throws CacheEntryUpdateException {
 				try {
 					return getDecorated().getGroupByName(key);
 				} catch (GroupNotFoundException e) {
-					throw new EntryUpdateException(e);
+					throw new CacheEntryUpdateException(e);
 				} catch (GroupServiceException e) {
-					throw new EntryUpdateException(e);
+					throw new CacheEntryUpdateException(e);
 				}
 			}
 			public boolean shouldBeCached(Group val) {
 				return true;
 			}
-		}, determineCacheTimeOut());
+		}, determineCacheTimeOut(), Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy"))));
     }
 
     private long determineCacheTimeOut() {
         return Long.valueOf(UserLookup.getConfigProperty(CACHE_TIMEOUT_SECS, DEFAULT_CACHE_TIMEOUT_SECS + "")).longValue();
     }
 
-    public void addCacheListener(final CacheListener<String,Group> listener) {
-        _cache.addCacheListener(listener);
-    }
-
     public Group getGroupByName(final String name) throws GroupNotFoundException, GroupServiceException {
         try {
-			return _cache.get(name);
-		} catch (EntryUpdateException e) {
+			return getCache().get(name);
+		} catch (CacheEntryUpdateException e) {
 			if (e.getCause() instanceof GroupNotFoundException) {
 				throw (GroupNotFoundException)e.getCause();
 			} else if (e.getCause() instanceof GroupServiceException){

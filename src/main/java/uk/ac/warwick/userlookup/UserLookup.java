@@ -6,24 +6,20 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import uk.ac.warwick.userlookup.cache.Cache;
-import uk.ac.warwick.userlookup.cache.CacheListener;
-import uk.ac.warwick.userlookup.cache.Caches;
-import uk.ac.warwick.userlookup.cache.Entry;
-import uk.ac.warwick.userlookup.cache.EntryFactory;
-import uk.ac.warwick.userlookup.cache.EntryUpdateException;
-import uk.ac.warwick.userlookup.cache.ExpiryStrategy;
-import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService;
+import uk.ac.warwick.util.cache.*;
+import uk.ac.warwick.util.collections.Pair;
 
 /**
  * A class to look up arbitrary users from Single Sign-on.
@@ -37,6 +33,8 @@ import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService;
  * Spring then you can create it as a bean and share it around.
  */
 public class UserLookup implements UserLookupInterface {
+
+    private static final int TIME_TO_LIVE_ETERNITY = -1;
 
 	private static final int MILLIS_IN_SEC = 1000;
 
@@ -125,56 +123,69 @@ public class UserLookup implements UserLookupInterface {
 	public UserLookup() {
 		_onCampusService = new OnCampusServiceImpl();
 		
-		_userByTokenCache = Caches.newCache(USER_CACHE_NAME, new SingularEntryFactory<String, User>() {
-			public User create(String key, Object data) throws EntryUpdateException {
-				try {
-					if (key.startsWith(TOKEN_PREFIX)) {
-						return getSpecificUserLookupType().getUserByToken(key.substring(TOKEN_PREFIX.length()));
-					} else {
-						// The prefix should be always added by internal code so this indicates a UserLookup bug.
-						throw new IllegalArgumentException("Requests for tokens from cache must start with " + TOKEN_PREFIX);
-					}
-				} catch (UserLookupException e) {
-					return new UnverifiedUser(e);
-				}
-			}
-			public boolean shouldBeCached(User val) {
-				return val.isVerified();
-			}
-			@Override
-			public int secondsToLive(User val) {
-				if (val.isFoundUser()) {
-					return TIME_TO_LIVE_ETERNITY;
-				} else {
-					return MISSING_USERID_CACHE_TIMEOUT * 2; // twice the stale time
-				}
-			}
-		}, DEFAULT_TOKEN_CACHE_TIMEOUT);
+		_userByTokenCache = Caches.newCache(USER_CACHE_NAME, new SingularCacheEntryFactory<String, User>() {
+            public User create(String key) throws CacheEntryUpdateException {
+                try {
+                    if (key.startsWith(TOKEN_PREFIX)) {
+                        return getSpecificUserLookupType().getUserByToken(key.substring(TOKEN_PREFIX.length()));
+                    } else {
+                        // The prefix should be always added by internal code so this indicates a UserLookup bug.
+                        throw new IllegalArgumentException("Requests for tokens from cache must start with " + TOKEN_PREFIX);
+                    }
+                } catch (UserLookupException e) {
+                    return new UnverifiedUser(e);
+                }
+            }
+
+            public boolean shouldBeCached(User val) {
+                return val.isVerified();
+            }
+        }, DEFAULT_TOKEN_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
+        _userByTokenCache.setExpiryStrategy(new TTLCacheExpiryStrategy<String, User>() {
+            @Override
+            public Pair<Number, TimeUnit> getTTL(CacheEntry<String, User> entry) {
+                if (entry.getValue().isFoundUser()) {
+                    return Pair.of((Number) TIME_TO_LIVE_ETERNITY, TimeUnit.SECONDS);
+                } else {
+                    return Pair.of((Number) (MISSING_USERID_CACHE_TIMEOUT * 2), TimeUnit.SECONDS); // twice the stale time
+                }
+            }
+
+            @Override
+            public boolean isStale(CacheEntry<String, User> entry) {
+                final long staleTime = entry.getTimestamp() + (DEFAULT_TOKEN_CACHE_TIMEOUT * 1000);
+                final long now = System.currentTimeMillis();
+                return staleTime <= now;
+            }
+        });
+
 		_userByTokenCache.setMaxSize(DEFAULT_TOKEN_CACHE_SIZE);
 		_userByTokenCache.setAsynchronousUpdateEnabled(false);
 		_userByTokenCache.addCacheListener(new CacheListener<String, User>() {
-			// When we update a user entry from a token, push it on to the user Id cache
-			// (as long as it's a valid user with a user ID) 
-			public void cacheMiss(String key, uk.ac.warwick.userlookup.cache.Entry<String, User> newEntry) {
-				User user = newEntry.getValue();
-				String userId = user.getUserId();
-				if (user.isFoundUser() && userId != null && !"".equals(userId.trim())) {
-					if (LOGGER.isDebugEnabled()) LOGGER.debug("Updated token cache - copying to user ID cache");
-					_userByUserIdCache.put(new Entry<String, User>(userId, user));
-				}
-			}
-			public void cacheHit(String key, Entry<String, User> entry) {}
-		});
+            // When we update a user entry from a token, push it on to the user Id cache
+            // (as long as it's a valid user with a user ID)
+            public void cacheMiss(String key, uk.ac.warwick.util.cache.CacheEntry<String, User> newEntry) {
+                User user = newEntry.getValue();
+                String userId = user.getUserId();
+                if (user.isFoundUser() && userId != null && !"".equals(userId.trim())) {
+                    if (LOGGER.isDebugEnabled()) LOGGER.debug("Updated token cache - copying to user ID cache");
+                    _userByUserIdCache.put(new CacheEntry<String, User>(userId, user));
+                }
+            }
+
+            public void cacheHit(String key, CacheEntry<String, User> entry) {
+            }
+        });
 		
-		_userByUserIdCache = Caches.newCache(USER_CACHE_NAME, new EntryFactory<String, User>() {
-			public User create(String key, Object data) throws EntryUpdateException {
+		_userByUserIdCache = Caches.newCache(USER_CACHE_NAME, new CacheEntryFactory<String, User>() {
+			public User create(String key) throws CacheEntryUpdateException {
 				try {
 					return getSpecificUserLookupType().getUserById(key);
 				} catch (UserLookupException e) {
-					throw new EntryUpdateException(e);
+					throw new CacheEntryUpdateException(e);
 				}
 			}
-			public Map<String, User> create(List<String> keys) throws EntryUpdateException {
+			public Map<String, User> create(List<String> keys) throws CacheEntryUpdateException {
 				try {
 					Map<String, User> usersById = getSpecificUserLookupType().getUsersById(keys);
 					for (String key : keys) {
@@ -186,7 +197,7 @@ public class UserLookup implements UserLookupInterface {
 					}
 					return usersById;
 				} catch (UserLookupException e) {
-					throw new EntryUpdateException(e);
+					throw new CacheEntryUpdateException(e);
 				}
 			}
 			public boolean isSupportsMultiLookups() {
@@ -202,20 +213,25 @@ public class UserLookup implements UserLookupInterface {
 					return MISSING_USERID_CACHE_TIMEOUT * 2; // twice the stale time
 				}
 			}
-		}, DEFAULT_USERID_CACHE_TIMEOUT);
+		}, DEFAULT_USERID_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
 		_userByUserIdCache.setMaxSize(DEFAULT_USERID_CACHE_SIZE);
 		_userByUserIdCache.setAsynchronousUpdateEnabled(true);
-		_userByUserIdCache.setExpiryStrategy(new ExpiryStrategy<String, User>() {
-			public boolean isExpired(Entry<String, User> entry) {
-				long expires;
-				if (entry.getValue().isFoundUser()) { 
-					expires = entry.getTimestamp() + userIdCacheTimeout*MILLIS_IN_SEC;
-				} else {
-					expires = entry.getTimestamp() + MISSING_USERID_CACHE_TIMEOUT*MILLIS_IN_SEC;
-				}
-				final long now = System.currentTimeMillis();
-				return expires <= now;
-			}
+		_userByUserIdCache.setExpiryStrategy(new TTLCacheExpiryStrategy<String, User>() {
+            @Override
+            public Pair<Number, TimeUnit> getTTL(CacheEntry<String, User> entry) {
+                if (entry.getValue().isFoundUser()) {
+                    return Pair.of((Number) userIdCacheTimeout, TimeUnit.SECONDS);
+                } else {
+                    return Pair.of((Number) (MISSING_USERID_CACHE_TIMEOUT * 2), TimeUnit.SECONDS); // twice the stale time
+                }
+            }
+
+            @Override
+            public boolean isStale(CacheEntry<String, User> entry) {
+                final long staleTime = entry.getTimestamp() + (DEFAULT_USERID_CACHE_TIMEOUT * 1000);
+                final long now = System.currentTimeMillis();
+                return staleTime <= now;
+            }
 		});
 		
 
@@ -327,7 +343,7 @@ public class UserLookup implements UserLookupInterface {
 		try {
 			User user = getUserByTokenCache().get(TOKEN_PREFIX + token);
 			return user;
-		} catch (EntryUpdateException e) {
+		} catch (CacheEntryUpdateException e) {
 			LOGGER.warn(e);
 			return new UnverifiedUser(e);
 		}
@@ -351,7 +367,7 @@ public class UserLookup implements UserLookupInterface {
 		String userId = uncheckedUserId.trim();
 		try {
 			return getUserByUserIdCache().get(userId);
-		} catch (EntryUpdateException e) {
+		} catch (CacheEntryUpdateException e) {
 			LOGGER.warn(e);
 			return new UnverifiedUser(e);
 		}
@@ -372,7 +388,7 @@ public class UserLookup implements UserLookupInterface {
 		Set<String> distinctIds = new HashSet<String>(userIdList);
 		try {
 			return getUserByUserIdCache().get(new ArrayList<String>(distinctIds));
-		} catch (EntryUpdateException e) {
+		} catch (CacheEntryUpdateException e) {
 			LOGGER.warn(e);
 			Map<String,User> unverifiedUsers = new HashMap<String, User>();
 			for (String id : distinctIds) {
@@ -639,9 +655,13 @@ public class UserLookup implements UserLookupInterface {
 					_groupServiceBackend.setTimeoutConfig(new WebServiceTimeoutConfig(getHttpConnectionTimeout(), getHttpDataTimeout()));
 				}
 				// cache the groups
-				_groupService = new GroupAliasAwareGroupService(new GroupNameCheckerGroupService(
-						new IsUserInGroupCachingGroupsService(new GroupByNameCachingGroupsService(
-								new UsersInGroupCachingGroupsService(new GroupsNamesForUserCachingGroupsService(_groupServiceBackend))))),
+				_groupService = 
+						new GroupAliasAwareGroupService(
+						new GroupNameCheckerGroupService(
+						new IsUserInGroupCachingGroupsService(
+						new GroupByNameCachingGroupsService(
+						new UsersInGroupCachingGroupsService(
+						new GroupsNamesForUserCachingGroupsService(_groupServiceBackend))))),
 						this);
 
 			} else {
@@ -653,7 +673,11 @@ public class UserLookup implements UserLookupInterface {
 	}
 	
 	final boolean isUserByUserIdCacheEmpty() {
-		return _userByUserIdCache.getStatistics().getCacheSize() == 0;
+        try {
+		    return _userByUserIdCache.getStatistics().getCacheSize() == 0;
+        } catch (CacheStoreUnavailableException e) {
+            return true;
+        }
 	}
 
 	public final void setGroupService(final GroupService groupService) {
@@ -666,6 +690,12 @@ public class UserLookup implements UserLookupInterface {
 
 	public final void setVersion(String version) {
 		_version = version;
+	}
+	
+	public final Map<String, Set<Cache<?, ?>>> getCaches() {
+		Map<String, Set<Cache<?, ?>>> caches = new HashMap<String, Set<Cache<?,?>>>();
+		
+		return Collections.unmodifiableMap(caches);
 	}
 
 	public final void clearCaches() {
@@ -723,14 +753,20 @@ public class UserLookup implements UserLookupInterface {
 				}
 			}
 		}
-		String def = defaultProperties.getProperty(propertyName);
-		if (def != null) {
-			return def;
-		}
+		String value = null;
 		if (configProperties != null) {
-			return configProperties.getProperty(propertyName);
+			value = configProperties.getProperty(propertyName);
 		}
-		return System.getProperty(propertyName);
+		
+		if (value == null) {
+			value = System.getProperty(propertyName);
+		}
+		
+		if (value == null) {
+			value = defaultProperties.getProperty(propertyName);
+		}
+		
+		return value;
 	}
 	
 	public static String getConfigProperty(String propertyName, String def) {
@@ -769,5 +805,9 @@ public class UserLookup implements UserLookupInterface {
 			throw new IllegalStateException("Can only set backend before groupService has been created");
 		}
 		_groupServiceBackend = groupServiceBackend;
+	}
+	
+	public final void requestClearWebGroup(final String groupName) throws UserLookupException {
+		getSpecificUserLookupType().requestClearWebGroup(groupName);
 	}
 }

@@ -1,11 +1,14 @@
 package uk.ac.warwick.userlookup.webgroups;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import uk.ac.warwick.userlookup.Group;
 import uk.ac.warwick.userlookup.GroupService;
 import uk.ac.warwick.userlookup.WebServiceTimeoutConfig;
-import uk.ac.warwick.userlookup.cache.EntryUpdateException;
+import uk.ac.warwick.util.cache.Cache;
+import uk.ac.warwick.util.cache.CacheEntryUpdateException;
 
 public abstract class GroupServiceAdapter implements GroupService {
 	private final GroupService _decorated;
@@ -59,14 +62,22 @@ public abstract class GroupServiceAdapter implements GroupService {
 		return _decorated.getGroupInfo(name);
 	}
 	
-	protected void handleMissingOrServiceException(EntryUpdateException e) throws GroupServiceException, GroupNotFoundException {
+	public Map<String, Set<Cache<?, ?>>> getCaches() {
+		return _decorated.getCaches();
+	}
+
+	public void clearCaches() {
+		_decorated.clearCaches();
+	}
+
+	protected void handleMissingOrServiceException(CacheEntryUpdateException e) throws GroupServiceException, GroupNotFoundException {
 		if (e.getCause() instanceof GroupNotFoundException) {
 			throw (GroupNotFoundException)e.getCause();
 		}
 		handleServiceException(e);
 	}
 	
-	protected void handleServiceException(EntryUpdateException e) throws GroupServiceException {
+	protected void handleServiceException(CacheEntryUpdateException e) throws GroupServiceException {
 		if (e.getCause() instanceof GroupServiceException) {
 			throw (GroupServiceException)e.getCause();
 		}

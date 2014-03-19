@@ -2,7 +2,10 @@ package uk.ac.warwick.userlookup;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import uk.ac.warwick.util.cache.Cache;
 import uk.ac.warwick.userlookup.webgroups.GroupInfo;
 import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
 
@@ -50,5 +53,12 @@ public class DefaultGroupService implements GroupService {
 
 	public List<String> getUserCodesInGroup(String group) {
 		return Collections.emptyList();
+	}
+
+	public Map<String, Set<Cache<?, ?>>> getCaches() {
+		return Collections.emptyMap();
+	}
+
+	public void clearCaches() {
 	}
 }

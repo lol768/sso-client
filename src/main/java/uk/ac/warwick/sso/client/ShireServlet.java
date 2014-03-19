@@ -22,8 +22,11 @@ import org.springframework.util.FileCopyUtils;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
-import uk.ac.warwick.userlookup.cache.BasicCache;
-import uk.ac.warwick.userlookup.cache.Caches;
+import uk.ac.warwick.util.cache.BasicCache;
+import uk.ac.warwick.util.cache.Cache;
+import uk.ac.warwick.util.cache.Caches;
+
+import static uk.ac.warwick.userlookup.UserLookup.getConfigProperty;
 
 /**
  * <h2>What on earth is a shire?</h2>
@@ -63,7 +66,7 @@ public class ShireServlet extends HttpServlet {
 
 	private String _configSuffix = "";
 	
-	private BasicCache<String, User> _userIdCache;
+	private Cache<String, User> _userIdCache;
 	
 	private String getMessage = null;
 
@@ -164,7 +167,7 @@ public class ShireServlet extends HttpServlet {
 		}
 
 		if (getUserIdCache() == null) {
-			_userIdCache = Caches.newCache(UserLookup.USER_CACHE_NAME, null, 0);
+			_userIdCache = Caches.newCache(UserLookup.USER_CACHE_NAME, null, 0, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
 		}
 	}
 
@@ -205,11 +208,11 @@ public class ShireServlet extends HttpServlet {
 		_configSuffix = configSuffix;
 	}
 
-	public final BasicCache<String, User> getUserIdCache() {
+	public final Cache<String, User> getUserIdCache() {
 		return _userIdCache;
 	}
 
-	public final void setUserIdCache(BasicCache<String, User> userIdCache) {
+	public final void setUserIdCache(Cache<String, User> userIdCache) {
 		_userIdCache = userIdCache;
 	}
 

@@ -9,7 +9,7 @@ import java.util.Map;
  * 
  * @see UserLookupFactory#getInstance()
  */
-public interface UserLookupInterface extends UserResolver {
+public interface UserLookupInterface extends UserResolver, CacheingService {
 
 	/**
 	 * Do a userlookup from LDAP that returns all users in a given department, eg. Information Technology Services
@@ -91,5 +91,5 @@ public interface UserLookupInterface extends UserResolver {
 	
 	User getUserByIdAndPassNonLoggingIn(final String uncheckedUserId, final String uncheckedPass) throws UserLookupException;
 	
-	
+	void requestClearWebGroup(final String groupName) throws UserLookupException;
 }

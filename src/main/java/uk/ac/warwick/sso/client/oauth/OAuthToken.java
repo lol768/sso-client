@@ -12,6 +12,10 @@ public final class OAuthToken implements Serializable, Cloneable {
     public static enum Type {
         REQUEST, ACCESS, DISABLED
     }
+    
+    public static enum RequestedExpiry {
+    	ONE_YEAR, FOREVER, NOT_SPECIFIED
+    }
 
     private String token;
 
@@ -39,6 +43,8 @@ public final class OAuthToken implements Serializable, Cloneable {
     private String service;
     
     private Date expiresAt;
+    
+    private RequestedExpiry requestedExpiry;
 
     public String getToken() {
         return token;
@@ -208,5 +214,13 @@ public final class OAuthToken implements Serializable, Cloneable {
         token.setUserId(attributes.get("user_id"));
         return token;
     }
+
+	public RequestedExpiry getRequestedExpiry() {
+		return requestedExpiry;
+	}
+
+	public void setRequestedExpiry(RequestedExpiry requestedExpiry) {
+		this.requestedExpiry = requestedExpiry;
+	}
 
 }

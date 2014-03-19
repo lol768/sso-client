@@ -20,7 +20,7 @@ import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
  * WebServiceResponseHandler that takes a SAX handler to parse the returned
  * stream (of XML).
  */
-public abstract class XMLResponseHandler<T> implements ResultAwareWebServiceResponseHandler<T> {
+public abstract class XMLResponseHandler<T> extends ClearGroupResponseHandler implements ResultAwareWebServiceResponseHandler<T> {
 
 	private static final Logger LOGGER = Logger.getLogger(XMLResponseHandler.class);
 
