@@ -7,8 +7,8 @@ import java.util.Set;
 import uk.ac.warwick.userlookup.Group;
 import uk.ac.warwick.userlookup.GroupService;
 import uk.ac.warwick.userlookup.WebServiceTimeoutConfig;
-import uk.ac.warwick.userlookup.cache.Cache;
-import uk.ac.warwick.userlookup.cache.EntryUpdateException;
+import uk.ac.warwick.util.cache.Cache;
+import uk.ac.warwick.util.cache.CacheEntryUpdateException;
 
 public abstract class GroupServiceAdapter implements GroupService {
 	private final GroupService _decorated;
@@ -70,14 +70,14 @@ public abstract class GroupServiceAdapter implements GroupService {
 		_decorated.clearCaches();
 	}
 
-	protected void handleMissingOrServiceException(EntryUpdateException e) throws GroupServiceException, GroupNotFoundException {
+	protected void handleMissingOrServiceException(CacheEntryUpdateException e) throws GroupServiceException, GroupNotFoundException {
 		if (e.getCause() instanceof GroupNotFoundException) {
 			throw (GroupNotFoundException)e.getCause();
 		}
 		handleServiceException(e);
 	}
 	
-	protected void handleServiceException(EntryUpdateException e) throws GroupServiceException {
+	protected void handleServiceException(CacheEntryUpdateException e) throws GroupServiceException {
 		if (e.getCause() instanceof GroupServiceException) {
 			throw (GroupServiceException)e.getCause();
 		}

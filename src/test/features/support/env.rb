@@ -111,5 +111,5 @@ World(WarwickHelper)
 Before do
   load_userlookup_classes
   # Ensure any in-memory caches are empty before starting a test.
-  Java::Uk.ac.warwick.userlookup.cache.HashMapCacheStore.clearAll
+  Java::Uk.ac.warwick.util.cache.HashMapCacheStore.clearAll
 end

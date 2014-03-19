@@ -12,12 +12,12 @@ import junit.framework.TestCase;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 
-import uk.ac.warwick.userlookup.cache.Cache;
-import uk.ac.warwick.userlookup.cache.CacheListener;
-import uk.ac.warwick.userlookup.cache.Entry;
-import uk.ac.warwick.userlookup.cache.Pair;
 import uk.ac.warwick.userlookup.webgroups.GroupInfo;
 import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
+import uk.ac.warwick.util.cache.Cache;
+import uk.ac.warwick.util.cache.CacheEntry;
+import uk.ac.warwick.util.cache.CacheListener;
+import uk.ac.warwick.util.collections.Pair;
 
 public final class CachingGroupsServiceTest extends TestCase {
 	
@@ -301,11 +301,11 @@ class TestCacheListener implements CacheListener<Pair<String,String>,Boolean> {
 
 	public int numberOfCacheHits;
 
-	public void cacheMiss(final Pair<String,String> userId, final Entry<Pair<String,String>,Boolean> val) {
+	public void cacheMiss(final Pair<String,String> userId, final CacheEntry<Pair<String,String>,Boolean> val) {
 		numberOfCacheMisses++;
 	}
 
-	public void cacheHit(final Pair<String,String> userId, final Entry<Pair<String,String>,Boolean> val) {
+	public void cacheHit(final Pair<String,String> userId, final CacheEntry<Pair<String,String>,Boolean> val) {
 		numberOfCacheHits++;
 	}
 }
@@ -316,11 +316,11 @@ class TestGroupByNameCacheListener implements CacheListener<String,Group> {
 
 	public int numberOfCacheHits;
 
-	public void cacheMiss(final String groupName, final Entry<String,Group> val) {
+	public void cacheMiss(final String groupName, final CacheEntry<String,Group> val) {
 		numberOfCacheMisses++;
 	}
 
-	public void cacheHit(final String groupName, final Entry<String,Group> val) {
+	public void cacheHit(final String groupName, final CacheEntry<String,Group> val) {
 		numberOfCacheHits++;
 	}
 }

@@ -1,9 +1,9 @@
 package uk.ac.warwick.userlookup;
 
+import uk.ac.warwick.util.cache.Cache;
+
 import java.util.Map;
 import java.util.Set;
-
-import uk.ac.warwick.userlookup.cache.Cache;
 
 public interface CacheingService {
 	

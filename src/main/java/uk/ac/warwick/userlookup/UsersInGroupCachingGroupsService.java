@@ -3,11 +3,13 @@ package uk.ac.warwick.userlookup;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.ac.warwick.userlookup.cache.Caches;
-import uk.ac.warwick.userlookup.cache.EntryUpdateException;
-import uk.ac.warwick.userlookup.cache.SerializeUtils;
-import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
+import uk.ac.warwick.sso.client.cache.SerializeUtils;
+import uk.ac.warwick.util.cache.Caches;
+import uk.ac.warwick.util.cache.CacheEntryUpdateException;
+import uk.ac.warwick.util.cache.SingularCacheEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
+
+import static uk.ac.warwick.userlookup.UserLookup.getConfigProperty;
 
 /**
  * Decorater which will cache getUserCodesInGroup results from the GroupService
@@ -22,18 +24,18 @@ public final class UsersInGroupCachingGroupsService extends CacheingGroupService
 
     public UsersInGroupCachingGroupsService(final GroupService theGroupService) {
         super(theGroupService);
-        setCache(Caches.newCache(UserLookup.GROUP_MEMBER_CACHE_NAME, new SingularEntryFactory<String, ArrayList<String>>() {
-			public ArrayList<String> create(final String group, final Object data) throws EntryUpdateException {
+        setCache(Caches.newCache(UserLookup.GROUP_MEMBER_CACHE_NAME, new SingularCacheEntryFactory<String, ArrayList<String>>() {
+			public ArrayList<String> create(final String group) throws CacheEntryUpdateException {
 				try {
 					return SerializeUtils.arrayList(getDecorated().getUserCodesInGroup(group));
 				} catch (GroupServiceException e) {
-					throw new EntryUpdateException(e);
+					throw new CacheEntryUpdateException(e);
 				}
 			}
 			public boolean shouldBeCached(ArrayList<String> val) {
 				return true;
 			}
-		}, determineCacheTimeOut()));
+		}, determineCacheTimeOut(), Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy"))));
     }
 
     private long determineCacheTimeOut() {
@@ -43,7 +45,7 @@ public final class UsersInGroupCachingGroupsService extends CacheingGroupService
     public List<String> getUserCodesInGroup(final String group) throws GroupServiceException {
     	try {
 			return getCache().get(group);
-		} catch (EntryUpdateException e) {
+		} catch (CacheEntryUpdateException e) {
 			if (e.getCause() instanceof GroupServiceException){
 				throw (GroupServiceException)e.getCause();
 			} else {

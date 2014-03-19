@@ -1,10 +1,10 @@
 package uk.ac.warwick.userlookup;
 
+import uk.ac.warwick.util.cache.Cache;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import uk.ac.warwick.userlookup.cache.Cache;
 
 /**
  * Adapter for UserLookupInterface to allow you to override behaviour without
