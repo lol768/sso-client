@@ -152,7 +152,7 @@ public final class BasicCache<K extends Serializable, V extends Serializable> im
 	 * but some are expired, the stale values are used and updates run asynchronously
 	 * (when asynchronous updates are enabled).
 	 * 
-	 * If any entries are missing then ALL lookups are done syncronously, including
+	 * If any entries are missing then ALL lookups are done synchronously, including
 	 * any expired entries. If the client has to wait for one lookup, we may as well
 	 * do it all now and get fresh data for every key.
 	 */
