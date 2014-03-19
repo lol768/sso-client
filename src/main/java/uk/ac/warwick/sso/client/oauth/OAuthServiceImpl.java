@@ -41,10 +41,10 @@ import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.sso.client.util.ImmediateFuture;
 import uk.ac.warwick.userlookup.HttpMethodWebService;
 import uk.ac.warwick.userlookup.HttpPool;
-import uk.ac.warwick.userlookup.cache.BasicCache;
-import uk.ac.warwick.userlookup.cache.Caches;
-import uk.ac.warwick.userlookup.cache.EntryUpdateException;
-import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
+import uk.ac.warwick.util.cache.BasicCache;
+import uk.ac.warwick.util.cache.Caches;
+import uk.ac.warwick.util.cache.CacheEntryUpdateException;
+import uk.ac.warwick.util.cache.SingularCacheEntryFactory;
 
 public final class OAuthServiceImpl implements TrustedOAuthService {
     
@@ -144,7 +144,7 @@ public final class OAuthServiceImpl implements TrustedOAuthService {
     public Future<OAuthConsumer> getConsumerByConsumerKey(String consumerKey) {
         try {
             return ImmediateFuture.of(consumerCache.get(consumerKey));
-        } catch (EntryUpdateException e) {
+        } catch (CacheEntryUpdateException e) {
             LOGGER.error("Couldn't get consumer from key " + consumerKey, e.getCause());
         }
         
@@ -154,7 +154,7 @@ public final class OAuthServiceImpl implements TrustedOAuthService {
     public Future<OAuthToken> getToken(String tokenString) {
         try {
             return ImmediateFuture.of(tokenCache.get(tokenString));
-        } catch (EntryUpdateException e) {
+        } catch (CacheEntryUpdateException e) {
             LOGGER.error("Couldn't get token for token string " + tokenString, e.getCause());
         }
         
@@ -174,9 +174,9 @@ public final class OAuthServiceImpl implements TrustedOAuthService {
         _config = config;
     }
     
-    private class OAuthConsumerEntryFactory extends SingularEntryFactory<String, OAuthConsumer> {
+    private class OAuthConsumerEntryFactory extends SingularCacheEntryFactory<String, OAuthConsumer> {
 
-        public OAuthConsumer create(String consumerKey, Object data) throws EntryUpdateException {
+        public OAuthConsumer create(String consumerKey) throws CacheEntryUpdateException {
             try {
                 OAuthServiceRequest request = new OAuthServiceRequest.GetConsumerRequest(consumerKey, _config.getString("shire.providerid"));
 
@@ -210,7 +210,7 @@ public final class OAuthServiceImpl implements TrustedOAuthService {
                 
                 return null;
             } catch (SSOException e) {
-                throw new EntryUpdateException(e);
+                throw new CacheEntryUpdateException(e);
             }
         }
 
@@ -220,9 +220,9 @@ public final class OAuthServiceImpl implements TrustedOAuthService {
         
     };
     
-    private class OAuthTokenEntryFactory extends SingularEntryFactory<String, OAuthToken> {
+    private class OAuthTokenEntryFactory extends SingularCacheEntryFactory<String, OAuthToken> {
 
-        public OAuthToken create(String tokenString, Object data) throws EntryUpdateException {
+        public OAuthToken create(String tokenString) throws CacheEntryUpdateException {
             try {
                 OAuthServiceRequest request = new OAuthServiceRequest.GetTokenRequest(tokenString, _config.getString("shire.providerid"));
     
@@ -234,7 +234,7 @@ public final class OAuthServiceImpl implements TrustedOAuthService {
     
                 return token;
             } catch (SSOException e) {
-                throw new EntryUpdateException(e);
+                throw new CacheEntryUpdateException(e);
             }
         }
 

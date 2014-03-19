@@ -1,15 +1,15 @@
 package uk.ac.warwick.userlookup;
 
-import uk.ac.warwick.userlookup.cache.Caches;
-import uk.ac.warwick.userlookup.cache.EntryUpdateException;
-import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
+import uk.ac.warwick.util.cache.Caches;
+import uk.ac.warwick.util.cache.CacheEntryUpdateException;
+import uk.ac.warwick.util.cache.SingularCacheEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
 /**
  * Decorator which will cache Groups by name from the GroupService.
  */
-final class GroupByNameCachingGroupsService extends CacheingGroupServiceAdapter<String, Group> {
+public final class GroupByNameCachingGroupsService extends CacheingGroupServiceAdapter<String, Group> {
 
     public static final long DEFAULT_TIMEOUT_SECS = 18000;
 
@@ -19,14 +19,14 @@ final class GroupByNameCachingGroupsService extends CacheingGroupServiceAdapter<
 
     public GroupByNameCachingGroupsService(final GroupService theGroupService) {
         super(theGroupService);
-        setCache(Caches.newCache(UserLookup.GROUP_CACHE_NAME, new SingularEntryFactory<String, Group>() {
-			public Group create(final String key, Object data) throws EntryUpdateException {
+        setCache(Caches.newCache(UserLookup.GROUP_CACHE_NAME, new SingularCacheEntryFactory<String, Group>() {
+			public Group create(final String key) throws CacheEntryUpdateException {
 				try {
 					return getDecorated().getGroupByName(key);
 				} catch (GroupNotFoundException e) {
-					throw new EntryUpdateException(e);
+					throw new CacheEntryUpdateException(e);
 				} catch (GroupServiceException e) {
-					throw new EntryUpdateException(e);
+					throw new CacheEntryUpdateException(e);
 				}
 			}
 			public boolean shouldBeCached(Group val) {
@@ -42,7 +42,7 @@ final class GroupByNameCachingGroupsService extends CacheingGroupServiceAdapter<
     public Group getGroupByName(final String name) throws GroupNotFoundException, GroupServiceException {
         try {
 			return getCache().get(name);
-		} catch (EntryUpdateException e) {
+		} catch (CacheEntryUpdateException e) {
 			if (e.getCause() instanceof GroupNotFoundException) {
 				throw (GroupNotFoundException)e.getCause();
 			} else if (e.getCause() instanceof GroupServiceException){

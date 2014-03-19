@@ -1,13 +1,14 @@
 package uk.ac.warwick.sso.client.cache;
 
 import uk.ac.warwick.sso.client.SSOToken;
-import uk.ac.warwick.userlookup.cache.Cache;
-import uk.ac.warwick.userlookup.cache.Entry;
-import uk.ac.warwick.userlookup.cache.EntryUpdateException;
+import uk.ac.warwick.util.cache.Cache;
+import uk.ac.warwick.util.cache.CacheEntry;
+import uk.ac.warwick.util.cache.CacheEntryUpdateException;
+import uk.ac.warwick.util.cache.CacheStoreUnavailableException;
 
 /**
  * Adapter for creating a UserCache implementation (for SSOClient)
- * powered by a Cache implementation (inherited from UserLookup).
+ * powered by a Cache implementation (from WarwickUtils-Cache).
  */
 public class BasicCacheAdapter implements UserCache {
 
@@ -20,13 +21,13 @@ public class BasicCacheAdapter implements UserCache {
 	public UserCacheItem get(SSOToken key) {
 		try {
 			return cache.get(key);
-		} catch (EntryUpdateException e) {
+		} catch (CacheEntryUpdateException e) {
 			throw e.getRuntimeException();
 		}
 	}
 
 	public void put(SSOToken key, UserCacheItem value) {
-		cache.put(new Entry<SSOToken, UserCacheItem>(key, value));
+		cache.put(new CacheEntry<SSOToken, UserCacheItem>(key, value));
 	}
 
 	public void remove(SSOToken token) {
@@ -38,7 +39,11 @@ public class BasicCacheAdapter implements UserCache {
 	}
 	
 	public int size() {
-		return (int)cache.getStatistics().getCacheSize();
+        try {
+		    return (int)cache.getStatistics().getCacheSize();
+        } catch (CacheStoreUnavailableException e) {
+            return 0;
+        }
 	}
 	
 	public void setMaxSize(int size) {

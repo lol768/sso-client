@@ -1,4 +1,17 @@
 /bin
 /build
 /target
-/dist/*-SNAPSHOT*
+/dist/*-SNAPSHOT*#
+
+# IntelliJ IDE
+/.idea/workspace.xml
+/.idea/tasks.xml
+/.idea/artifacts
+/.idea/libraries
+/.idea/dictionaries
+/.idea/scala_compiler.xml
+/.idea/*
+.idea/
+*.iml
+*.iws
+

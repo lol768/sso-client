@@ -7,9 +7,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import uk.ac.warwick.userlookup.cache.Cache;
-import uk.ac.warwick.userlookup.cache.CacheListener;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceAdapter;
+import uk.ac.warwick.util.cache.Cache;
+import uk.ac.warwick.util.cache.CacheListener;
 
 public abstract class CacheingGroupServiceAdapter<K extends Serializable,V extends Serializable> extends GroupServiceAdapter implements CacheingService {
 		
@@ -41,7 +41,7 @@ public abstract class CacheingGroupServiceAdapter<K extends Serializable,V exten
 		Map<String, Set<Cache<?, ?>>> caches = new HashMap<String, Set<Cache<?, ?>>>();
 		boolean addedCache = false;
 		for (Map.Entry<String, Set<Cache<?, ?>>> otherCacheEntry: super.getCaches().entrySet()) {
-			if (otherCacheEntry.getKey().equals(cache.getStoreName())) {
+			if (otherCacheEntry.getKey().equals(cache.getName())) {
 				Set<Cache<?, ?>> theseCaches = new HashSet<Cache<?, ?>>();
 				theseCaches.addAll(otherCacheEntry.getValue());
 				theseCaches.add(cache);
@@ -54,7 +54,7 @@ public abstract class CacheingGroupServiceAdapter<K extends Serializable,V exten
 		if (!addedCache) {
 			Set<Cache<?, ?>> thisCache = new HashSet<Cache<?, ?>>();
 			thisCache.add(cache);
-			caches.put(cache.getStoreName(), Collections.unmodifiableSet(thisCache));
+			caches.put(cache.getName(), Collections.unmodifiableSet(thisCache));
 		}
 		
 		return Collections.unmodifiableMap(caches);

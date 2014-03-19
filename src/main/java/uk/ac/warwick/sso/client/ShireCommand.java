@@ -23,8 +23,8 @@ import org.opensaml.SAMLSubject;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.cache.UserCacheItem;
 import uk.ac.warwick.userlookup.User;
-import uk.ac.warwick.userlookup.cache.Cache;
-import uk.ac.warwick.userlookup.cache.Entry;
+import uk.ac.warwick.util.cache.Cache;
+import uk.ac.warwick.util.cache.CacheEntry;
 
 public class ShireCommand {
 
@@ -148,7 +148,7 @@ public class ShireCommand {
 		// also place the new user in the UserLookup user-by-id cache
 		final String userId = user.getUserId();
 		if (user.isFoundUser() && userId != null && !"".equals(userId.trim())) {
-			_userIdCache.put(new Entry<String,User>(userId, user));
+			_userIdCache.put(new CacheEntry<String,User>(userId, user));
 		}		
 		
 		Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), token.getValue());

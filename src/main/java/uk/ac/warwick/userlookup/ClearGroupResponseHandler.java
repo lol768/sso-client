@@ -12,7 +12,7 @@ import org.apache.commons.httpclient.HeaderElement;
 import org.apache.commons.httpclient.HttpMethod;
 
 import uk.ac.warwick.userlookup.HttpMethodWebService.WebServiceResponseHandler;
-import uk.ac.warwick.userlookup.cache.Cache;
+import uk.ac.warwick.util.cache.Cache;
 
 public abstract class ClearGroupResponseHandler implements
 		WebServiceResponseHandler {

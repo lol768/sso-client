@@ -8,10 +8,10 @@ import static java.lang.Integer.*;
 import static uk.ac.warwick.userlookup.UserLookup.*;
 import uk.ac.warwick.sso.client.SSOToken;
 import uk.ac.warwick.userlookup.UserLookup;
-import uk.ac.warwick.userlookup.cache.BasicCache;
-import uk.ac.warwick.userlookup.cache.Caches;
-import uk.ac.warwick.userlookup.cache.EntryUpdateException;
-import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
+import uk.ac.warwick.util.cache.BasicCache;
+import uk.ac.warwick.util.cache.Caches;
+import uk.ac.warwick.util.cache.CacheEntryUpdateException;
+import uk.ac.warwick.util.cache.SingularCacheEntryFactory;
 
 /**
  * 
@@ -35,8 +35,8 @@ public class InMemoryUserCache extends BasicCacheAdapter {
 		
 		// Create a new BasicCache. The EntryFactory always returns null, because SSOClient doesn't expect
 		// asynchronous updates or self-population. It will receive the null and generate a new value.		
-		final BasicCache<SSOToken, UserCacheItem> newCache = Caches.newCache(UserLookup.USER_CACHE_NAME, new SingularEntryFactory<SSOToken, UserCacheItem>() {
-			public UserCacheItem create(SSOToken item, Object data) throws EntryUpdateException {
+		final BasicCache<SSOToken, UserCacheItem> newCache = Caches.newCache(UserLookup.USER_CACHE_NAME, new SingularCacheEntryFactory<SSOToken, UserCacheItem>() {
+			public UserCacheItem create(SSOToken item) throws CacheEntryUpdateException {
 				return null;
 			}
 			public boolean shouldBeCached(UserCacheItem item) {

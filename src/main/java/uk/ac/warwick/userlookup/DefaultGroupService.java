@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import uk.ac.warwick.userlookup.cache.Cache;
+import uk.ac.warwick.util.cache.Cache;
 import uk.ac.warwick.userlookup.webgroups.GroupInfo;
 import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
 

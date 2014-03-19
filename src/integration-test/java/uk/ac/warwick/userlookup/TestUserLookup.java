@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import uk.ac.warwick.userlookup.cache.Cache;
+import uk.ac.warwick.util.cache.Cache;
 
 import junit.framework.TestCase;
 

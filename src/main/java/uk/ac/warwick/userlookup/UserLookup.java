@@ -16,15 +16,8 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import uk.ac.warwick.userlookup.cache.Cache;
-import uk.ac.warwick.userlookup.cache.CacheListener;
-import uk.ac.warwick.userlookup.cache.Caches;
-import uk.ac.warwick.userlookup.cache.Entry;
-import uk.ac.warwick.userlookup.cache.EntryFactory;
-import uk.ac.warwick.userlookup.cache.EntryUpdateException;
-import uk.ac.warwick.userlookup.cache.ExpiryStrategy;
-import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService;
+import uk.ac.warwick.util.cache.*;
 
 /**
  * A class to look up arbitrary users from Single Sign-on.
@@ -38,6 +31,8 @@ import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService;
  * Spring then you can create it as a bean and share it around.
  */
 public class UserLookup implements UserLookupInterface {
+
+    private static final int TIME_TO_LIVE_ETERNITY = -1;
 
 	private static final int MILLIS_IN_SEC = 1000;
 
@@ -126,56 +121,66 @@ public class UserLookup implements UserLookupInterface {
 	public UserLookup() {
 		_onCampusService = new OnCampusServiceImpl();
 		
-		_userByTokenCache = Caches.newCache(USER_CACHE_NAME, new SingularEntryFactory<String, User>() {
-			public User create(String key, Object data) throws EntryUpdateException {
-				try {
-					if (key.startsWith(TOKEN_PREFIX)) {
-						return getSpecificUserLookupType().getUserByToken(key.substring(TOKEN_PREFIX.length()));
-					} else {
-						// The prefix should be always added by internal code so this indicates a UserLookup bug.
-						throw new IllegalArgumentException("Requests for tokens from cache must start with " + TOKEN_PREFIX);
-					}
-				} catch (UserLookupException e) {
-					return new UnverifiedUser(e);
-				}
-			}
-			public boolean shouldBeCached(User val) {
-				return val.isVerified();
-			}
-			@Override
-			public int secondsToLive(User val) {
-				if (val.isFoundUser()) {
-					return TIME_TO_LIVE_ETERNITY;
-				} else {
-					return MISSING_USERID_CACHE_TIMEOUT * 2; // twice the stale time
-				}
-			}
-		}, DEFAULT_TOKEN_CACHE_TIMEOUT);
+		_userByTokenCache = Caches.newCache(USER_CACHE_NAME, new SingularCacheEntryFactory<String, User>() {
+            public User create(String key) throws CacheEntryUpdateException {
+                try {
+                    if (key.startsWith(TOKEN_PREFIX)) {
+                        return getSpecificUserLookupType().getUserByToken(key.substring(TOKEN_PREFIX.length()));
+                    } else {
+                        // The prefix should be always added by internal code so this indicates a UserLookup bug.
+                        throw new IllegalArgumentException("Requests for tokens from cache must start with " + TOKEN_PREFIX);
+                    }
+                } catch (UserLookupException e) {
+                    return new UnverifiedUser(e);
+                }
+            }
+
+            public boolean shouldBeCached(User val) {
+                return val.isVerified();
+            }
+        }, DEFAULT_TOKEN_CACHE_TIMEOUT);
+        _userByTokenCache.setExpiryStrategy(new CacheExpiryStrategy<String, User>() {
+            public boolean isExpired(CacheEntry<String, User> entry) {
+                final int ttl;
+                if (entry.getValue().isFoundUser()) {
+                    ttl = TIME_TO_LIVE_ETERNITY;
+                } else {
+                    ttl = MISSING_USERID_CACHE_TIMEOUT * 2; // twice the stale time
+                }
+
+                final long expires = entry.getTimestamp() + (ttl * 1000);
+                final long now = System.currentTimeMillis();
+                return expires <= now;
+            }
+        });
+
 		_userByTokenCache.setMaxSize(DEFAULT_TOKEN_CACHE_SIZE);
 		_userByTokenCache.setAsynchronousUpdateEnabled(false);
 		_userByTokenCache.addCacheListener(new CacheListener<String, User>() {
-			// When we update a user entry from a token, push it on to the user Id cache
-			// (as long as it's a valid user with a user ID) 
-			public void cacheMiss(String key, uk.ac.warwick.userlookup.cache.Entry<String, User> newEntry) {
-				User user = newEntry.getValue();
-				String userId = user.getUserId();
-				if (user.isFoundUser() && userId != null && !"".equals(userId.trim())) {
-					if (LOGGER.isDebugEnabled()) LOGGER.debug("Updated token cache - copying to user ID cache");
-					_userByUserIdCache.put(new Entry<String, User>(userId, user));
-				}
-			}
-			public void cacheHit(String key, Entry<String, User> entry) {}
-		});
+            // When we update a user entry from a token, push it on to the user Id cache
+            // (as long as it's a valid user with a user ID)
+            public void cacheMiss(String key, uk.ac.warwick.util.cache.CacheEntry<String, User> newEntry) {
+                User user = newEntry.getValue();
+                String userId = user.getUserId();
+                if (user.isFoundUser() && userId != null && !"".equals(userId.trim())) {
+                    if (LOGGER.isDebugEnabled()) LOGGER.debug("Updated token cache - copying to user ID cache");
+                    _userByUserIdCache.put(new CacheEntry<String, User>(userId, user));
+                }
+            }
+
+            public void cacheHit(String key, CacheEntry<String, User> entry) {
+            }
+        });
 		
-		_userByUserIdCache = Caches.newCache(USER_CACHE_NAME, new EntryFactory<String, User>() {
-			public User create(String key, Object data) throws EntryUpdateException {
+		_userByUserIdCache = Caches.newCache(USER_CACHE_NAME, new CacheEntryFactory<String, User>() {
+			public User create(String key) throws CacheEntryUpdateException {
 				try {
 					return getSpecificUserLookupType().getUserById(key);
 				} catch (UserLookupException e) {
-					throw new EntryUpdateException(e);
+					throw new CacheEntryUpdateException(e);
 				}
 			}
-			public Map<String, User> create(List<String> keys) throws EntryUpdateException {
+			public Map<String, User> create(List<String> keys) throws CacheEntryUpdateException {
 				try {
 					Map<String, User> usersById = getSpecificUserLookupType().getUsersById(keys);
 					for (String key : keys) {
@@ -187,7 +192,7 @@ public class UserLookup implements UserLookupInterface {
 					}
 					return usersById;
 				} catch (UserLookupException e) {
-					throw new EntryUpdateException(e);
+					throw new CacheEntryUpdateException(e);
 				}
 			}
 			public boolean isSupportsMultiLookups() {
@@ -206,8 +211,8 @@ public class UserLookup implements UserLookupInterface {
 		}, DEFAULT_USERID_CACHE_TIMEOUT);
 		_userByUserIdCache.setMaxSize(DEFAULT_USERID_CACHE_SIZE);
 		_userByUserIdCache.setAsynchronousUpdateEnabled(true);
-		_userByUserIdCache.setExpiryStrategy(new ExpiryStrategy<String, User>() {
-			public boolean isExpired(Entry<String, User> entry) {
+		_userByUserIdCache.setExpiryStrategy(new CacheExpiryStrategy<String, User>() {
+			public boolean isExpired(CacheEntry<String, User> entry) {
 				long expires;
 				if (entry.getValue().isFoundUser()) { 
 					expires = entry.getTimestamp() + userIdCacheTimeout*MILLIS_IN_SEC;
@@ -328,7 +333,7 @@ public class UserLookup implements UserLookupInterface {
 		try {
 			User user = getUserByTokenCache().get(TOKEN_PREFIX + token);
 			return user;
-		} catch (EntryUpdateException e) {
+		} catch (CacheEntryUpdateException e) {
 			LOGGER.warn(e);
 			return new UnverifiedUser(e);
 		}
@@ -352,7 +357,7 @@ public class UserLookup implements UserLookupInterface {
 		String userId = uncheckedUserId.trim();
 		try {
 			return getUserByUserIdCache().get(userId);
-		} catch (EntryUpdateException e) {
+		} catch (CacheEntryUpdateException e) {
 			LOGGER.warn(e);
 			return new UnverifiedUser(e);
 		}
@@ -373,7 +378,7 @@ public class UserLookup implements UserLookupInterface {
 		Set<String> distinctIds = new HashSet<String>(userIdList);
 		try {
 			return getUserByUserIdCache().get(new ArrayList<String>(distinctIds));
-		} catch (EntryUpdateException e) {
+		} catch (CacheEntryUpdateException e) {
 			LOGGER.warn(e);
 			Map<String,User> unverifiedUsers = new HashMap<String, User>();
 			for (String id : distinctIds) {
@@ -658,7 +663,11 @@ public class UserLookup implements UserLookupInterface {
 	}
 	
 	final boolean isUserByUserIdCacheEmpty() {
-		return _userByUserIdCache.getStatistics().getCacheSize() == 0;
+        try {
+		    return _userByUserIdCache.getStatistics().getCacheSize() == 0;
+        } catch (CacheStoreUnavailableException e) {
+            return true;
+        }
 	}
 
 	public final void setGroupService(final GroupService groupService) {

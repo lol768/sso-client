@@ -22,8 +22,8 @@ import org.springframework.util.FileCopyUtils;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
-import uk.ac.warwick.userlookup.cache.BasicCache;
-import uk.ac.warwick.userlookup.cache.Caches;
+import uk.ac.warwick.util.cache.BasicCache;
+import uk.ac.warwick.util.cache.Caches;
 
 /**
  * <h2>What on earth is a shire?</h2>

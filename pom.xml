@@ -26,6 +26,7 @@
 	<properties>
 		<org.springframework.version>3.1.0.RELEASE</org.springframework.version>
 		<jetty.version>7.0.1.v20091125</jetty.version>
+        <warwickutils.version>20140318-1424</warwickutils.version>
 		<ssoclient.artifacts.dir>/tmp</ssoclient.artifacts.dir>
 	</properties>
 
@@ -476,12 +477,37 @@
 			<version>20090617</version>
 		</dependency>
 
-		<dependency>
-			<groupId>net.sf.ehcache</groupId>
-			<artifactId>ehcache-core</artifactId>
-			<version>1.7.0</version>
-		</dependency>
+        <dependency>
+            <groupId>uk.ac.warwick.util</groupId>
+            <artifactId>warwickutils-cache</artifactId>
+            <version>${warwickutils.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.warwick.util</groupId>
+            <artifactId>warwickutils-core</artifactId>
+            <version>${warwickutils.version}</version>
+        </dependency>
 
+        <dependency>
+            <groupId>net.sf.ehcache</groupId>
+            <artifactId>ehcache-core</artifactId>
+            <version>1.7.0</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>net.spy</groupId>
+            <artifactId>spymemcached</artifactId>
+            <version>2.10.6</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>uk.ac.warwick.util</groupId>
+            <artifactId>warwickutils-test</artifactId>
+            <version>${warwickutils.version}</version>
+            <scope>test</scope>
+        </dependency>
 
 		<dependency>
 			<groupId>junit</groupId>

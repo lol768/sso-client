@@ -26,7 +26,7 @@ import uk.ac.warwick.userlookup.WebServiceTimeoutConfig;
 import uk.ac.warwick.userlookup.HttpMethodWebService.GetMethodFactory;
 import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
 import uk.ac.warwick.userlookup.HttpMethodWebService.WebServiceException;
-import uk.ac.warwick.userlookup.cache.Cache;
+import uk.ac.warwick.util.cache.Cache;
 
 public class WarwickGroupsService implements GroupService {
 

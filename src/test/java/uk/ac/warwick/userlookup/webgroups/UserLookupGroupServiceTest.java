@@ -14,7 +14,7 @@ import org.jmock.Mockery;
 import uk.ac.warwick.userlookup.GroupService;
 import uk.ac.warwick.userlookup.IsUserInGroupCachingGroupsService;
 import uk.ac.warwick.userlookup.UserLookup;
-import uk.ac.warwick.userlookup.cache.Cache;
+import uk.ac.warwick.util.cache.Cache;
 
 public class UserLookupGroupServiceTest extends TestCase {
 	

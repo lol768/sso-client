@@ -1,12 +1,12 @@
 package uk.ac.warwick.userlookup;
 
-import uk.ac.warwick.userlookup.cache.Cache;
-import uk.ac.warwick.userlookup.cache.Caches;
-import uk.ac.warwick.userlookup.cache.EntryUpdateException;
-import uk.ac.warwick.userlookup.cache.Pair;
-import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
+import uk.ac.warwick.util.cache.Cache;
+import uk.ac.warwick.util.cache.Caches;
+import uk.ac.warwick.util.cache.CacheEntryUpdateException;
+import uk.ac.warwick.util.cache.SingularCacheEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
+import uk.ac.warwick.util.collections.Pair;
 
 /**
  * Decorater which will cache isUserInGroup from the GroupService.
@@ -22,17 +22,17 @@ public final class IsUserInGroupCachingGroupsService extends CacheingGroupServic
     @SuppressWarnings("unchecked")
 	public IsUserInGroupCachingGroupsService(final GroupService theGroupService) {
         super(theGroupService);
-        setCache(Caches.newCache(UserLookup.IN_GROUP_CACHE_NAME, new SingularEntryFactory<Pair<String,String>, Boolean>() {
-			public Boolean create(Pair<String,String> key, Object data) throws EntryUpdateException {
+        setCache(Caches.newCache(UserLookup.IN_GROUP_CACHE_NAME, new SingularCacheEntryFactory<Pair<String,String>, Boolean>() {
+			public Boolean create(Pair<String,String> key) throws CacheEntryUpdateException {
 				// we munged the two arguments into a key - now to get them out.
 				// It might be better to extend the Cache API to allow secondary data to
 				// be passed to cache.get(), which will get sent here.
-				String userId = key.getFirst();
-				String group = key.getSecond();
+				String userId = key.getLeft();
+				String group = key.getRight();
 				try {
 					return getDecorated().isUserInGroup(userId, group);
 				} catch (GroupServiceException e) {
-					throw new EntryUpdateException(e);
+					throw new CacheEntryUpdateException(e);
 				}
 			}
 			public boolean shouldBeCached(Boolean val) {
@@ -51,7 +51,7 @@ public final class IsUserInGroupCachingGroupsService extends CacheingGroupServic
 		if (!getGroupCache().contains(group)) {
 			try {
 				getGroupCache().get(group);
-			} catch (EntryUpdateException e) {
+			} catch (CacheEntryUpdateException e) {
 				if (e.getCause() instanceof GroupServiceException){
 					throw (GroupServiceException)e.getCause();
 				} else if (e.getCause() instanceof GroupNotFoundException) {
@@ -64,7 +64,7 @@ public final class IsUserInGroupCachingGroupsService extends CacheingGroupServic
 		}
     	try {
     		return getCache().get(Pair.of(userId, group));
-		} catch (EntryUpdateException e) {
+		} catch (CacheEntryUpdateException e) {
 			if (e.getCause() instanceof GroupServiceException){
 				throw (GroupServiceException)e.getCause();
 			} else {

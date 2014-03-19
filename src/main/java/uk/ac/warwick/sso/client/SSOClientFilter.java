@@ -38,10 +38,10 @@ import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookupException;
 import uk.ac.warwick.userlookup.UserLookupFactory;
 import uk.ac.warwick.userlookup.UserLookupInterface;
-import uk.ac.warwick.userlookup.cache.Cache;
-import uk.ac.warwick.userlookup.cache.Caches;
-import uk.ac.warwick.userlookup.cache.EntryUpdateException;
-import uk.ac.warwick.userlookup.cache.SingularEntryFactory;
+import uk.ac.warwick.util.cache.Cache;
+import uk.ac.warwick.util.cache.Caches;
+import uk.ac.warwick.util.cache.CacheEntryUpdateException;
+import uk.ac.warwick.util.cache.SingularCacheEntryFactory;
 
 /**
  * SSOClientFilter is responsible for checking cookies for an existing session,
@@ -518,14 +518,14 @@ public final class SSOClientFilter implements Filter {
 			String userName = split[0];
 			String password = split[1];
 			
-			UserAndHash userAndHash = getBasicAuthCache().get(userName, password);
+			UserAndHash userAndHash = getBasicAuthCache().get(userName);
 			User user = userAndHash.getUser();
 			String hash = userAndHash.getHash();
 			
 			if (hash != null && !SaltedDigest.matches(hash, password)) {
 				// entry was previously valid, but pass doesn't match.
 				getBasicAuthCache().remove(userName);
-				userAndHash = getBasicAuthCache().get(userName, password);
+				userAndHash = getBasicAuthCache().get(userName);
 				user = userAndHash.getUser();
 				// don't need to check pass hash because it's just been generated based on a response.
 			}
@@ -540,7 +540,7 @@ public final class SSOClientFilter implements Filter {
 	}
 
 	private User authUserWithCache(String userName, String password)
-			throws EntryUpdateException {
+			throws CacheEntryUpdateException {
 		UserAndHash userAndHash = getBasicAuthCache().get(userName);
 		User user = userAndHash.getUser();
 		String hash = userAndHash.getHash();
@@ -553,9 +553,10 @@ public final class SSOClientFilter implements Filter {
 
 	private Cache<String, UserAndHash> getBasicAuthCache() {
 		if (_basicAuthCache == null) {
-			_basicAuthCache = Caches.newCache("BasicAuthCache", new SingularEntryFactory<String, UserAndHash>() {
-				public UserAndHash create(String userName, Object data) throws EntryUpdateException {
-					String password = (String) data;
+			_basicAuthCache = Caches.newCache("BasicAuthCache", new SingularCacheEntryFactory<String, UserAndHash>() {
+				public UserAndHash create(String userName) throws CacheEntryUpdateException {
+                    String password = ""; // FIXME
+//					String password = (String) data;
 					try {
 						User user = getUserLookup().getUserByIdAndPassNonLoggingIn(userName, password);
 						String hash = null;
@@ -564,7 +565,7 @@ public final class SSOClientFilter implements Filter {
 						}
 						return new UserAndHash(user, hash);
 					} catch (UserLookupException e) {
-						throw new EntryUpdateException(e);
+						throw new CacheEntryUpdateException(e);
 					}
 				}
 				// only cache fully sucessful requests
