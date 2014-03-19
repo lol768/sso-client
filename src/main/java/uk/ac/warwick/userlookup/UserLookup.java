@@ -13,11 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
 import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService;
 import uk.ac.warwick.util.cache.*;
+import uk.ac.warwick.util.collections.Pair;
 
 /**
  * A class to look up arbitrary users from Single Sign-on.
@@ -138,19 +140,22 @@ public class UserLookup implements UserLookupInterface {
             public boolean shouldBeCached(User val) {
                 return val.isVerified();
             }
-        }, DEFAULT_TOKEN_CACHE_TIMEOUT);
-        _userByTokenCache.setExpiryStrategy(new CacheExpiryStrategy<String, User>() {
-            public boolean isExpired(CacheEntry<String, User> entry) {
-                final int ttl;
+        }, DEFAULT_TOKEN_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
+        _userByTokenCache.setExpiryStrategy(new TTLCacheExpiryStrategy<String, User>() {
+            @Override
+            public Pair<Number, TimeUnit> getTTL(CacheEntry<String, User> entry) {
                 if (entry.getValue().isFoundUser()) {
-                    ttl = TIME_TO_LIVE_ETERNITY;
+                    return Pair.of((Number) TIME_TO_LIVE_ETERNITY, TimeUnit.SECONDS);
                 } else {
-                    ttl = MISSING_USERID_CACHE_TIMEOUT * 2; // twice the stale time
+                    return Pair.of((Number) (MISSING_USERID_CACHE_TIMEOUT * 2), TimeUnit.SECONDS); // twice the stale time
                 }
+            }
 
-                final long expires = entry.getTimestamp() + (ttl * 1000);
+            @Override
+            public boolean isStale(CacheEntry<String, User> entry) {
+                final long staleTime = entry.getTimestamp() + (DEFAULT_TOKEN_CACHE_TIMEOUT * 1000);
                 final long now = System.currentTimeMillis();
-                return expires <= now;
+                return staleTime <= now;
             }
         });
 
@@ -208,20 +213,25 @@ public class UserLookup implements UserLookupInterface {
 					return MISSING_USERID_CACHE_TIMEOUT * 2; // twice the stale time
 				}
 			}
-		}, DEFAULT_USERID_CACHE_TIMEOUT);
+		}, DEFAULT_USERID_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
 		_userByUserIdCache.setMaxSize(DEFAULT_USERID_CACHE_SIZE);
 		_userByUserIdCache.setAsynchronousUpdateEnabled(true);
-		_userByUserIdCache.setExpiryStrategy(new CacheExpiryStrategy<String, User>() {
-			public boolean isExpired(CacheEntry<String, User> entry) {
-				long expires;
-				if (entry.getValue().isFoundUser()) { 
-					expires = entry.getTimestamp() + userIdCacheTimeout*MILLIS_IN_SEC;
-				} else {
-					expires = entry.getTimestamp() + MISSING_USERID_CACHE_TIMEOUT*MILLIS_IN_SEC;
-				}
-				final long now = System.currentTimeMillis();
-				return expires <= now;
-			}
+		_userByUserIdCache.setExpiryStrategy(new TTLCacheExpiryStrategy<String, User>() {
+            @Override
+            public Pair<Number, TimeUnit> getTTL(CacheEntry<String, User> entry) {
+                if (entry.getValue().isFoundUser()) {
+                    return Pair.of((Number) userIdCacheTimeout, TimeUnit.SECONDS);
+                } else {
+                    return Pair.of((Number) (MISSING_USERID_CACHE_TIMEOUT * 2), TimeUnit.SECONDS); // twice the stale time
+                }
+            }
+
+            @Override
+            public boolean isStale(CacheEntry<String, User> entry) {
+                final long staleTime = entry.getTimestamp() + (DEFAULT_USERID_CACHE_TIMEOUT * 1000);
+                final long now = System.currentTimeMillis();
+                return staleTime <= now;
+            }
 		});
 		
 

@@ -6,6 +6,8 @@ import uk.ac.warwick.util.cache.SingularCacheEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
+import static uk.ac.warwick.userlookup.UserLookup.getConfigProperty;
+
 /**
  * Decorator which will cache Groups by name from the GroupService.
  */
@@ -32,7 +34,7 @@ public final class GroupByNameCachingGroupsService extends CacheingGroupServiceA
 			public boolean shouldBeCached(Group val) {
 				return true;
 			}
-		}, determineCacheTimeOut()));
+		}, determineCacheTimeOut(), Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy"))));
     }
 
     private long determineCacheTimeOut() {

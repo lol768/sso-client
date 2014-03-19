@@ -20,12 +20,12 @@ import uk.ac.warwick.util.cache.*;
  */
 public class BasicCacheTest extends TestCase {
 
-	BasicCache<String, String> cache;
-	BasicCache<String, String> slowCache;
+	BasicCache<String, String, Object> cache;
+	BasicCache<String, String, Object> slowCache;
 	private BrokenEntryFactory slowFactory;
-	
-	private BasicCache<String, String> noFactoryCache;
-	
+
+    private BasicCache<String, String, Object> noFactoryCache;
+
 	public void testGetMissingValue() throws Exception {
 		assertEquals("Value for dog", cache.get("dog"));
 		assertEquals("Value for cat", cache.get("cat"));
@@ -34,6 +34,12 @@ public class BasicCacheTest extends TestCase {
 		// not just equal objects
 		assertSame(cache.get("frog"), cache.get("frog"));
 	}
+
+    public void testNoFactory() throws Exception {
+        noFactoryCache.put(new CacheEntry<String, String>("cat", "meow"));
+        assertNull(noFactoryCache.get("dog"));
+        assertEquals("meow", noFactoryCache.get("cat"));
+    }
 	
 	public void testSlowConcurrentLookups() throws Exception {
 		assertFactoryCount(0);
@@ -75,7 +81,7 @@ public class BasicCacheTest extends TestCase {
 	}
 	
 	public void testAsynchronousUpdates() throws Exception {
-		slowCache = Caches.newCache(UserLookup.USER_CACHE_NAME, slowFactory, 1);
+		slowCache = (BasicCache<String, String, Object>) Caches.newCache(UserLookup.USER_CACHE_NAME, slowFactory, 1);
 		slowCache.setAsynchronousUpdateEnabled(true);
 		slowFactory.addFastRequest("one");
 		
@@ -122,7 +128,7 @@ public class BasicCacheTest extends TestCase {
 	}
 	
 	public void testExpiry() throws Exception {
-		slowCache = Caches.newCache(UserLookup.USER_CACHE_NAME, slowFactory, 1);
+		slowCache = (BasicCache<String, String, Object>) Caches.newCache(UserLookup.USER_CACHE_NAME, slowFactory, 1);
 		slowFactory.addFastRequest("one");
 		
 		String result1 = slowCache.get("one");
@@ -138,7 +144,7 @@ public class BasicCacheTest extends TestCase {
 	
 	protected void setUp() throws Exception {
 		EhCacheUtils.setUp();
-		cache = Caches.newCache(UserLookup.USER_CACHE_NAME, new SingularCacheEntryFactory<String, String>() {
+		cache = (BasicCache<String, String, Object>) Caches.newCache(UserLookup.USER_CACHE_NAME, new SingularCacheEntryFactory<String, String>() {
 			private Random r = new Random();
 			public String create(String key) {
 				return new String("Value for " + key);
@@ -149,9 +155,8 @@ public class BasicCacheTest extends TestCase {
 		}, 100);
 		
 		slowFactory = new BrokenEntryFactory();
-		slowCache = Caches.newCache(UserLookup.USER_CACHE_NAME, slowFactory, 100);
-		
-		noFactoryCache = Caches.newCache(UserLookup.USER_CACHE_NAME, null, 100);
+		slowCache = (BasicCache<String, String, Object>) Caches.newCache(UserLookup.USER_CACHE_NAME, slowFactory, 100);
+        noFactoryCache = (BasicCache<String, String, Object>) Caches.newCache(UserLookup.USER_CACHE_NAME, (CacheEntryFactory<String, String>) null, 100);
 	}
 	
 	@Override
@@ -221,10 +226,6 @@ public class BasicCacheTest extends TestCase {
 
 		public boolean shouldBeCached(String val) {
 			return true;
-		}
-
-		public int secondsToLive(String val) {
-			return -1; // always eternal
 		}
 	}
 

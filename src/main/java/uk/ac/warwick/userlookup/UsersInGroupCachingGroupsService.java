@@ -9,6 +9,8 @@ import uk.ac.warwick.util.cache.CacheEntryUpdateException;
 import uk.ac.warwick.util.cache.SingularCacheEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
+import static uk.ac.warwick.userlookup.UserLookup.getConfigProperty;
+
 /**
  * Decorater which will cache getUserCodesInGroup results from the GroupService
  *
@@ -33,7 +35,7 @@ public final class UsersInGroupCachingGroupsService extends CacheingGroupService
 			public boolean shouldBeCached(ArrayList<String> val) {
 				return true;
 			}
-		}, determineCacheTimeOut()));
+		}, determineCacheTimeOut(), Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy"))));
     }
 
     private long determineCacheTimeOut() {

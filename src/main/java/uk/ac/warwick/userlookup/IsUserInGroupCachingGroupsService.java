@@ -8,6 +8,8 @@ import uk.ac.warwick.userlookup.webgroups.GroupNotFoundException;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 import uk.ac.warwick.util.collections.Pair;
 
+import static uk.ac.warwick.userlookup.UserLookup.getConfigProperty;
+
 /**
  * Decorater which will cache isUserInGroup from the GroupService.
  *
@@ -38,7 +40,7 @@ public final class IsUserInGroupCachingGroupsService extends CacheingGroupServic
 			public boolean shouldBeCached(Boolean val) {
 				return true;
 			}
-		}, determineCacheTimeOut()));
+		}, determineCacheTimeOut(), Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy"))));
         setGroupCache((Cache<String, Group>) theGroupService.getCaches().get(UserLookup.GROUP_CACHE_NAME).iterator().next());
     }
 

@@ -9,6 +9,8 @@ import uk.ac.warwick.sso.client.cache.SerializeUtils;
 import uk.ac.warwick.util.cache.SingularCacheEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
+import static uk.ac.warwick.userlookup.UserLookup.getConfigProperty;
+
 /**
  * Decorator which will cache Groups by name from the GroupService.
  * 
@@ -25,17 +27,18 @@ final class GroupsNamesForUserCachingGroupsService extends CacheingGroupServiceA
 	public GroupsNamesForUserCachingGroupsService(final GroupService theGroupService) {
 		super(theGroupService);
 		setCache(Caches.newCache(UserLookup.USER_GROUPS_CACHE_NAME, new SingularCacheEntryFactory<String, ArrayList<String>>() {
-			public ArrayList<String> create(final String key) throws CacheEntryUpdateException {
-				try {
-					return SerializeUtils.arrayList(getDecorated().getGroupsNamesForUser(key));
-				} catch (GroupServiceException e) {
-					throw new CacheEntryUpdateException(e);
-				}
-			}
-			public boolean shouldBeCached(ArrayList<String> val) {
-				return true;
-			}
-		}, determineCacheTimeOut()));
+            public ArrayList<String> create(final String key) throws CacheEntryUpdateException {
+                try {
+                    return SerializeUtils.arrayList(getDecorated().getGroupsNamesForUser(key));
+                } catch (GroupServiceException e) {
+                    throw new CacheEntryUpdateException(e);
+                }
+            }
+
+            public boolean shouldBeCached(ArrayList<String> val) {
+                return true;
+            }
+        }, determineCacheTimeOut(), Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy"))));
 	}
 
 	private long determineCacheTimeOut() {
