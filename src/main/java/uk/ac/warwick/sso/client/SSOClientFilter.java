@@ -252,7 +252,8 @@ public final class SSOClientFilter implements Filter {
     		// redirect onto underlying page
     		chain.doFilter(wrappedRequest, arg1);
 		} finally {
-		    SSOConfiguration.removeConfig();
+            // SSO-1489
+		    //SSOConfiguration.removeConfig();
 		}
 	}
 
