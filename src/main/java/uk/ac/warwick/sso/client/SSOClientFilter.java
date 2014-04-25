@@ -39,6 +39,7 @@ import uk.ac.warwick.userlookup.UserLookupException;
 import uk.ac.warwick.userlookup.UserLookupFactory;
 import uk.ac.warwick.userlookup.UserLookupInterface;
 import uk.ac.warwick.util.cache.*;
+import uk.ac.warwick.util.core.StringUtils;
 
 import static uk.ac.warwick.userlookup.UserLookup.getConfigProperty;
 
@@ -251,7 +252,8 @@ public final class SSOClientFilter implements Filter {
     		// redirect onto underlying page
     		chain.doFilter(wrappedRequest, arg1);
 		} finally {
-		    SSOConfiguration.removeConfig();
+            // SSO-1489
+		    //SSOConfiguration.removeConfig();
 		}
 	}
 
@@ -600,13 +602,21 @@ public final class SSOClientFilter implements Filter {
 	private void redirectToLogin(final HttpServletResponse response, final HttpServletRequest request,
 			final Cookie loginTicketCookie) throws UnsupportedEncodingException, IOException {
 
-		SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
-		generator.setRequest(request);
-		String loginLink = generator.getLoginUrl();
-		response.sendRedirect(loginLink);
+        boolean isRangeRequest = StringUtils.hasText(request.getHeader("Range"));
+        if (isRangeRequest) {
+            response.setStatus(HttpServletResponse.SC_PROXY_AUTHENTICATION_REQUIRED);
 
-		LOGGER.debug("Found global login cookie (" + loginTicketCookie.getValue()
-				+ "), but not a valid SSC, redirecting to Handle Service " + _config.getString("origin.login.location"));
+            LOGGER.debug("Found global login cookie (" + loginTicketCookie.getValue()
+                    + "), but not a valid SSC for range request - sending 407");
+        } else {
+            SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();
+            generator.setRequest(request);
+            String loginLink = generator.getLoginUrl();
+            response.sendRedirect(loginLink);
+
+            LOGGER.debug("Found global login cookie (" + loginTicketCookie.getValue()
+                    + "), but not a valid SSC, redirecting to Handle Service " + _config.getString("origin.login.location"));
+        }
 	}
 
 	/**

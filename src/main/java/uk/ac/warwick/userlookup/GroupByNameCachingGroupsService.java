@@ -26,7 +26,8 @@ public final class GroupByNameCachingGroupsService extends CacheingGroupServiceA
 				try {
 					return getDecorated().getGroupByName(key);
 				} catch (GroupNotFoundException e) {
-					throw new CacheEntryUpdateException(e);
+					// store as null, we'll handle as an exception when we retrieve it.
+                    return null;
 				} catch (GroupServiceException e) {
 					throw new CacheEntryUpdateException(e);
 				}
@@ -43,7 +44,12 @@ public final class GroupByNameCachingGroupsService extends CacheingGroupServiceA
 
     public Group getGroupByName(final String name) throws GroupNotFoundException, GroupServiceException {
         try {
-			return getCache().get(name);
+			Group group = getCache().get(name);
+            if (group == null) {
+                throw new GroupNotFoundException(name);
+            } else {
+                return group;
+            }
 		} catch (CacheEntryUpdateException e) {
 			if (e.getCause() instanceof GroupNotFoundException) {
 				throw (GroupNotFoundException)e.getCause();
