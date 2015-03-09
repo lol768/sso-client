@@ -9,7 +9,7 @@ public interface TrustedApplication extends Application {
     String HEADER_PREFIX = "X-Trusted-App-";
     String HEADER_PROVIDER_ID = HEADER_PREFIX + "ProviderID";
     String HEADER_CERTIFICATE = HEADER_PREFIX + "Cert";
-    String HEADER_SECRET_KEY = HEADER_PREFIX + "Key";
+//    String HEADER_SECRET_KEY = HEADER_PREFIX + "Key";
     String HEADER_SIGNATURE = HEADER_PREFIX + "Signature";
 
     /**

@@ -72,13 +72,13 @@ public class TransportErrorMessage {
     // ------------------------------------------------------------------------------------------------- specializations
 
     static class System extends TransportErrorMessage {
-        System(final Throwable cause, final String appId) {
-            super(Code.SYSTEM, "Exception: {0} occurred serving request for application: {1}", cause.toString(), appId);
+        System(final Throwable cause, final String providerID) {
+            super(Code.SYSTEM, "Exception: {0} occurred serving request for application: {1}", cause.toString(), providerID);
         }
     }
 
     /**
-     * AppId not found in request
+     * providerID not found in request
      */
     public static class ProviderIdNotFoundInRequest extends TransportErrorMessage {
         public ProviderIdNotFoundInRequest() {

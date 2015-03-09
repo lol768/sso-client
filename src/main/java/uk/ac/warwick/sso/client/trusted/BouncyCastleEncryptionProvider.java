@@ -4,6 +4,8 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Base64;
 import org.joda.time.DateTime;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 import java.io.*;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
@@ -13,7 +15,6 @@ import java.security.spec.X509EncodedKeySpec;
 public class BouncyCastleEncryptionProvider implements EncryptionProvider {
 
     public static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
-    private static final String ASYM_CIPHER = "RSA/NONE/NoPadding";
     private static final String ASYM_ALGORITHM = "RSA";
 
     public static final Provider PROVIDER = new BouncyCastleProvider();
@@ -75,5 +76,35 @@ public class BouncyCastleEncryptionProvider implements EncryptionProvider {
                 }
             }
         }
+    }
+
+    @Override
+    public EncryptedCertificate createEncryptedCertificate(String username, PrivateKey privateKey, String providerID, String urlToSign) {
+        try {
+            DateTime timeStamp = new DateTime();
+            final String certificate = generateCertificate(username, timeStamp);
+            final String signature = generateSignature(privateKey, TrustedApplicationUtils.generateSignatureBaseString(timeStamp, urlToSign, username));
+
+            return new EncryptedCertificateImpl(providerID, Base64.toBase64String(Base64.encode(certificate.getBytes("UTF-8"))), signature);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * Generate a certificate representing the credentials being passed to the remote application.
+     * @param username the username of the current user
+     * @param timeStamp the creation timestamp of the certificate
+     * @return a string representation of the certificate.
+     * @throws IllegalBlockSizeException
+     * @throws BadPaddingException
+     */
+    private String generateCertificate(String username, DateTime timeStamp) throws IllegalBlockSizeException, BadPaddingException {
+        final StringWriter writer = new StringWriter();
+        writer.write(Long.toString(timeStamp.getMillis()));
+        writer.write('\n');
+        writer.write(username);
+        writer.flush();
+        return writer.toString();
     }
 }

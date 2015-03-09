@@ -31,7 +31,7 @@ public class SSOConfigTrustedApplicationsManager implements TrustedApplicationsM
 
         ImmutableMap.Builder<String, TrustedApplication> builder = ImmutableMap.builder();
 
-        Iterator<Pair<String, String>> itr = new PairIterator<>(
+        Iterator<Pair<String, String>> itr = new PairIterator<String, String>(
             config.getList("trustedapps.app.providerid").iterator(),
             config.getList("trustedapps.app.publickey").iterator()
         );

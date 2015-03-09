@@ -24,43 +24,23 @@ public interface EncryptionProvider {
      *            the encrypted certificate of the application
      * @param publicKey
      *            the application's public key
-     * @param appId
+     * @param providerID
      *            the application's ID
      * @return the decrypted ApplicationCertificate
      * @throws InvalidCertificateException
      *             if the certificate was malformed, or could not be decrypted
      */
-    ApplicationCertificate decodeEncryptedCertificate(EncryptedCertificate encCert, PublicKey publicKey, String appId) throws InvalidCertificateException;
+    ApplicationCertificate decodeEncryptedCertificate(EncryptedCertificate encCert, PublicKey publicKey, String providerID) throws InvalidCertificateException;
 
-//    /**
-//     * Create a new encrypted certificate for transmission to another application
-//     *
-//     * @param userName
-//     *            the username to certify
-//     * @param privateKey
-//     *            the private key of this application
-//     * @param appId
-//     *            the ID of this application
-//     * @return
-//     *
-//     *
-//     * @deprecated use {@link EncryptionProvider#createEncryptedCertificate(String, java.security.PrivateKey, String, String)}
-//     */
-//    @Deprecated
-//    EncryptedCertificate createEncryptedCertificate(String userName, PrivateKey privateKey, String appId);
-//
-//    /**
-//     * Create a new encrypted certificate for transmission to another application
-//     *
-//     * defaults to a v3 protocol.
-//     *
-//     * @param userName the username to certify
-//     * @param privateKey the private key of this application
-//     * @param appId the ID of this application
-//     * @param urlToSign the target URL of this request, or <code>null</code> for a v1 request
-//     * @since 2.4
-//     */
-//    EncryptedCertificate createEncryptedCertificate(String userName, PrivateKey privateKey, String appId, String urlToSign);
+    /**
+     * Create a new encrypted certificate for transmission to another application
+     *
+     * @param username the username to certify
+     * @param privateKey the private key of this application
+     * @param providerID the provider ID of this application
+     * @param urlToSign the target URL of this request
+     */
+    EncryptedCertificate createEncryptedCertificate(String username, PrivateKey privateKey, String providerID, String urlToSign);
 
     /**
      * Convert an encoded public key into a PublicKey instance

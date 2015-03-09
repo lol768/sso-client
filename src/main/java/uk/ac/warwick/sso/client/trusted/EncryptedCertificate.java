@@ -20,4 +20,10 @@ public interface EncryptedCertificate {
      */
     String getCertificate();
 
+    /**
+     * A Base64-encoded signature, of a timestamp and the URL this request is intended for,
+     * signed with the private key of the client trusted application.
+     */
+    String getSignature();
+
 }

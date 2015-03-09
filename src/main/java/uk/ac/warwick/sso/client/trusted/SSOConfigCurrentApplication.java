@@ -23,6 +23,11 @@ public class SSOConfigCurrentApplication implements CurrentApplication {
     }
 
     @Override
+    public EncryptedCertificate encode(String username, String urlToSign) {
+        return encryptionProvider.createEncryptedCertificate(username, privateKey, getProviderID(), urlToSign);
+    }
+
+    @Override
     public PublicKey getPublicKey() {
         return publicKey;
     }
@@ -31,4 +36,5 @@ public class SSOConfigCurrentApplication implements CurrentApplication {
     public String getProviderID() {
         return providerID;
     }
+
 }

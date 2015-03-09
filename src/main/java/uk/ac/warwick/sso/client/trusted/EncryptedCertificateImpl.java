@@ -6,9 +6,16 @@ public class EncryptedCertificateImpl implements EncryptedCertificate {
 
     private final String certificate;
 
-    public EncryptedCertificateImpl(String providerID, String certificate) {
+    private final String signature;
+
+    public EncryptedCertificateImpl(String providerID, String certificate, String signature) {
         this.providerID = providerID;
         this.certificate = certificate;
+        this.signature = signature;
+    }
+
+    public EncryptedCertificateImpl(String providerID, String certificate) {
+        this(providerID, certificate, null);
     }
 
     @Override
@@ -19,5 +26,10 @@ public class EncryptedCertificateImpl implements EncryptedCertificate {
     @Override
     public String getCertificate() {
         return certificate;
+    }
+
+    @Override
+    public String getSignature() {
+        return signature;
     }
 }
