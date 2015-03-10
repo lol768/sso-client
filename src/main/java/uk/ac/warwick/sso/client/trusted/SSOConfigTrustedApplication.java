@@ -12,7 +12,7 @@ public class SSOConfigTrustedApplication implements TrustedApplication {
 
     public static final Duration CERTIFICATE_TIMEOUT = Duration.standardMinutes(5);
 
-    private final EncryptionProvider encryptionProvider = new BouncyCastleEncryptionProvider();
+    private EncryptionProvider encryptionProvider = new BouncyCastleEncryptionProvider();
 
     private final String providerID;
 
@@ -29,15 +29,15 @@ public class SSOConfigTrustedApplication implements TrustedApplication {
     }
 
     @Override
-    public PublicKey getPublicKey() { return null; }
+    public PublicKey getPublicKey() { return publicKey; }
 
     @Override
     public boolean verifySignature(DateTime timestamp, String requestUrl, String username, String receivedSignature) throws SignatureVerificationFailedException {
         try {
             return encryptionProvider.verifySignature(
-                    this.publicKey,
-                    TrustedApplicationUtils.generateSignatureBaseString(timestamp, requestUrl, username),
-                    receivedSignature
+                this.publicKey,
+                TrustedApplicationUtils.generateSignatureBaseString(timestamp, requestUrl, username),
+                receivedSignature
             );
         } catch (UnsupportedEncodingException e) {
             throw new SignatureVerificationFailedException(e);
@@ -56,5 +56,9 @@ public class SSOConfigTrustedApplication implements TrustedApplication {
         }
 
         return cert;
+    }
+
+    void setEncryptionProvider(EncryptionProvider encryptionProvider) {
+        this.encryptionProvider = encryptionProvider;
     }
 }

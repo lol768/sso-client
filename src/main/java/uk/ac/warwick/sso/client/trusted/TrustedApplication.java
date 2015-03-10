@@ -15,7 +15,8 @@ public interface TrustedApplication extends Application {
 
     // Response headers
     String HEADER_STATUS = HEADER_PREFIX + "Status";
-    String HEADER_ERROR = HEADER_PREFIX + "Error";
+    String HEADER_ERROR_CODE = HEADER_PREFIX + "Error-Code";
+    String HEADER_ERROR_MESSAGE = HEADER_PREFIX + "Error-Message";
 
     enum Status {
         OK, Error

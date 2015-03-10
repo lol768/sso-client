@@ -4,8 +4,8 @@ import org.bouncycastle.util.encoders.Base64;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.junit.Test;
+import uk.ac.warwick.util.core.jodatime.DateTimeUtils;
 
-import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -43,10 +43,6 @@ public class BouncyCastleEncryptionProviderTest {
         "1szkwZnureQ30ObXrOoMs=";
 
     private final BouncyCastleEncryptionProvider provider = new BouncyCastleEncryptionProvider();
-
-//        KeyPair keyPair = KeyPairGenerator.getInstance("RSA", BouncyCastleEncryptionProvider.PROVIDER).generateKeyPair();
-//        System.out.println(new String(Base64.encode(keyPair.getPublic().getEncoded()), "UTF-8"));
-//        System.out.println(new String(Base64.encode(keyPair.getPrivate().getEncoded()), "UTF-8"));
 
     @Test
     public void testToPublicKey() throws Exception {
@@ -118,11 +114,49 @@ public class BouncyCastleEncryptionProviderTest {
 
     @Test
     public void testCreateEncryptedCertificate() throws Exception {
+        final String username = "cuscav";
+        final String providerID = "urn:tabula.warwick.ac.uk:tabula:service";
+        final PrivateKey privateKey = provider.toPrivateKey(Base64.decode(PRIVATE_KEY));
+        final DateTime base = new DateTime(2014, DateTimeConstants.DECEMBER, 25, 9, 31, 29, 384);
+        final String url = "http://warwick.ac.uk?external=true";
 
+        final String expectedCertString = "MTQxOTQ5OTg4OTM4NApjdXNjYXY=";
+
+        final String expectedSignature =
+            "E2DIaXFajtZU1abI51sWR+5WomVPYt/RpYLDA0XTkTfxATYm3cyX7IQPM8A9ZmkPBpHqKqG6pz9YBXraARhB9Fwjx+" +
+            "skXI4GY5SCFJeosq3NDjj4Nkp5mFS8270hYsGisxQaoz9CwEnMT490DxqIB6ay801JGHXY68GSs0Cfv22IGumn3GhZ" +
+            "3TYxaGHv63QYUsGATINoHlNkbnqmT5RfbnmywAb24rLrU5Scxa8Up3XWBNpmflmF//JybOhufRk7ewDLmtpfFFdwi6" +
+            "elBjYtofUekVbxK811zzp1yd/IUhxq9nkODIMeSMYRdrZUCJcdJ963RCQBixzCxmkfN7Wiyw==";
+
+        DateTimeUtils.useMockDateTime(base, new DateTimeUtils.Callback() {
+            @Override
+            public void doSomething() {
+                try {
+                    EncryptedCertificate cert = provider.createEncryptedCertificate(username, privateKey, providerID, url);
+
+                    assertEquals(expectedCertString, cert.getCertificate());
+                    assertEquals(providerID, cert.getProviderID());
+                    assertEquals(expectedSignature, cert.getSignature());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    fail(e.getMessage());
+                }
+            }
+        });
     }
 
     @Test
     public void testDecodeEncryptedCertificate() throws Exception {
+        String providerID = "urn:tabula.warwick.ac.uk:tabula:service";
+        String certString = "MTQxOTQ5OTg4OTM4NApjdXNjYXY=";
 
+        EncryptedCertificate cert = new EncryptedCertificateImpl(providerID, certString);
+
+        PublicKey publicKey = provider.toPublicKey(Base64.decode(PUBLIC_KEY));
+        ApplicationCertificate appCert = provider.decodeEncryptedCertificate(cert, publicKey, providerID);
+
+        assertEquals(new DateTime(2014, DateTimeConstants.DECEMBER, 25, 9, 31, 29, 384), appCert.getCreationTime());
+        assertEquals(providerID, appCert.getProviderID());
+        assertEquals("cuscav", appCert.getUsername());
     }
 }

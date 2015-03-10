@@ -82,7 +82,7 @@ public class TransportErrorMessage {
      */
     public static class ProviderIdNotFoundInRequest extends TransportErrorMessage {
         public ProviderIdNotFoundInRequest() {
-            super(Code.PROVIDER_ID_NOT_FOUND, "Application ID not found in request");
+            super(Code.PROVIDER_ID_NOT_FOUND, "Provider ID not found in request");
         }
     }
 
@@ -100,10 +100,10 @@ public class TransportErrorMessage {
         }
     }
 
-    public static class PermissionDenied extends TransportErrorMessage {
-        public PermissionDenied()
+    public static class UserDisabled extends TransportErrorMessage {
+        public UserDisabled(final String userName)
         {
-            super(Code.PERMISSION_DENIED, "Permission Denied");
+            super(Code.USER_DISABLED, "User disabled: {0}", userName);
         }
     }
 
@@ -115,7 +115,7 @@ public class TransportErrorMessage {
 
         public BadSignature()
         {
-            super(Code.BAD_SIGNATURE, "Missing signature in a v2 request");
+            super(Code.BAD_SIGNATURE, "Missing signature in request");
         }
     }
 
@@ -138,7 +138,7 @@ public class TransportErrorMessage {
 
         public static final Code OLD_CERT = new Code(Severity.FAIL, "OLD_CERT");
         public static final Code USER_UNKNOWN = new Code(Severity.ERROR, "USER_UNKNOWN");
-        public static final Code PERMISSION_DENIED = new Code(Severity.ERROR, "PERMISSION_DENIED");
+        public static final Code USER_DISABLED = new Code(Severity.ERROR, "USER_DISABLED");
         public static final Code BAD_SIGNATURE = new Code(Severity.FAIL, "BAD_SIGNATURE");
 
         static Code get(final String code) {

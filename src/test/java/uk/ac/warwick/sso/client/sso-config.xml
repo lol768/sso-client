@@ -65,20 +65,6 @@
 	<logout>
 		<location>http://myapp.warwick.ac.uk/myapp/logout</location>
 	</logout>
-    <trustedapps>
-        <publickey></publickey>
-        <privatekey></privatekey>
-
-        <app>
-            <providerid>urn:tabula.warwick.ac.uk:tabula:service</providerid>
-            <publickey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnv6C3+vG6ce52yBeZfRAZTg9gSClXZfkEKzQaD8Zj35M3MM3IPdQxMXR2Ay8IDvYyGicAcbW30VaO+E5JJV3zteR44ClAXeUQirTRXVP4moi9Bj8lHF/BYDMWqowcifXakMdMKww9eBU+Okgh8F7c0hIp8DIFeGmR94FGZ9lOh3LtoH3Qyc0kn4eyGq1XhDtVqf9VATA9dE87LLa83fPx/gkWUSt/NeTQO+64Xl1bFa5k0yIY3emSZADbUVNFEEztUP1GeaqHWfxyg1X38DCuHE+45DoMahNsj/q4q0eGPW8VIh5IlaUBs0aDKnBPnzy4f9SCiDRSyQsgRU0f1EL/QIDAQAB</publickey>
-        </app>
-
-        <app>
-            <providerid>urn:start.warwick.ac.uk:portal:service</providerid>
-            <publickey>MIIBIjANBgkq5M3MM3IPdQxMXR2Ay8IDvYyGicAcbW30VaO+E5JJV3zteR44ClAXeUQirTRXVP4moi9Bj8lHF/BYDMWqowcifXakMdMKww9eBU+Okgh8F7c0hIp8DIFeGmR94FGZ9lOh3LtoH3Qyc0kn4eyGq1XhDtVqf9VATA9dE87LLa83fPx/gkWUSt/NeTQO+64Xl1bFa5k0yIY3emSZADbUVNFEEztUP1GeaqHWfxyg1X38DCuHE+45DoMahNsj/q4q0eGPW8VIh5IlaUBs0aDKnBPnzy4f9SCiDRSyQsgRU0f1EL/QIDAQAB</publickey>
-        </app>
-    </trustedapps>
   <!-- 
 	<cacertskeystore>
 			<location>file:/j2sdk1.4.2_02/jre/lib/security/cacerts</location>

@@ -1,5 +1,9 @@
 package uk.ac.warwick.sso.client.trusted;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.bouncycastle.util.encoders.Base64;
 import uk.ac.warwick.sso.client.SSOConfiguration;
 import uk.ac.warwick.util.cache.Cache;
@@ -18,7 +22,7 @@ public class SSOConfigCurrentApplication implements CurrentApplication {
 
     public static final String CERTIFICATE_CACHE_NAME = "CurrentApplicationCertificateCache";
 
-    private final EncryptionProvider encryptionProvider = new BouncyCastleEncryptionProvider();
+    private EncryptionProvider encryptionProvider = new BouncyCastleEncryptionProvider();
 
     private final PublicKey publicKey;
 
@@ -36,7 +40,7 @@ public class SSOConfigCurrentApplication implements CurrentApplication {
     public SSOConfigCurrentApplication(SSOConfiguration config) throws Exception {
         this.providerID = config.getString("shire.providerid");
         this.publicKey = encryptionProvider.toPublicKey(Base64.decode(config.getString("trustedapps.publickey")));
-        this.privateKey = encryptionProvider.toPrivateKey(Base64.decode(config.getString("trustedapps.privateKey")));
+        this.privateKey = encryptionProvider.toPrivateKey(Base64.decode(config.getString("trustedapps.privatekey")));
     }
 
     @Override
@@ -58,6 +62,10 @@ public class SSOConfigCurrentApplication implements CurrentApplication {
         return providerID;
     }
 
+    void setEncryptionProvider(EncryptionProvider encryptionProvider) {
+        this.encryptionProvider = encryptionProvider;
+    }
+
     private static class CacheKey implements Serializable {
 
         private final String username;
@@ -69,6 +77,34 @@ public class SSOConfigCurrentApplication implements CurrentApplication {
             this.urlToSign = urlToSign;
         }
 
+        @Override
+        public String toString() {
+            return new ToStringBuilder(this, ToStringStyle.SIMPLE_STYLE)
+                .append("username", username)
+                .append("urlToSign", urlToSign)
+                .toString();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof CacheKey)) {
+                return false;
+            }
+
+            CacheKey other = (CacheKey) obj;
+            return new EqualsBuilder()
+                .append(username, other.username)
+                .append(urlToSign, other.urlToSign)
+                .isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder()
+                .append(username)
+                .append(urlToSign)
+                .toHashCode();
+        }
     }
 
     private class CacheEntryFactory extends SingularCacheEntryFactory<CacheKey, EncryptedCertificate> {

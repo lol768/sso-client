@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <!-- Do you want to allow HTTP BASIC auth on this filter? -->
+    <httpbasic>
+        <allow>true</allow>
+    </httpbasic>
+    <cluster>
+        <enabled>false</enabled>
+        <datasource></datasource>
+    </cluster>
+    <!-- mode can be 'old' or 'new' this defines if the SSOClientFilter should use
+        the old WarwickSSO cookie or the newer SSO-SSC-* cookies -->
+    <mode>new</mode>
+    <origin>
+        <!-- This is the id of the SSO origin, this might change when the service goes live -->
+        <originid>urn:mace:eduserv.org.uk:athens:provider:warwick.ac.uk</originid>
+        <login>
+            <!-- url of the login page, should always be HTTPS -->
+            <location>https://websignon.warwick.ac.uk/origin/hs</location>
+        </login>
+        <logout>
+            <!-- url of the logout page, should always be HTTPS -->
+            <location>https://websignon.warwick.ac.uk/origin/logout</location>
+        </logout>
+        <attributeauthority>
+            <!-- url of the Attribute Authority -->
+            <location>https://websignon.warwick.ac.uk/origin/aa</location>
+        </attributeauthority>
+    </origin>
+    <shire>
+        <!-- This is the key that the filter will put the User object under in the request
+            You should be able to get a user with request.getAttribute("SSO_USER") -->
+        <filteruserkey>SSO_USER</filteruserkey>
+        <!-- To get redirects working properly, pages need to know where to redirect back to after login
+            This is the request parameter key that contains the real url of the webpage, it is used to generate
+            correct redirects. -->
+        <urlparamkey>requestedUrl</urlparamkey>
+        <uri-header>x-requested-uri</uri-header>
+        <!-- if there are some rewrites which are done internally to apache where querystring parameters are added
+            and you don't want them showing up after a redirect, add in the parameter names here and they will be stripped -->
+        <stripparams>
+            <key>test</key>
+            <key>page</key>
+        </stripparams>
+        <!-- location of this services SHIRE, should be HTTPS...as mapped in the web.xml -->
+        <location>https://myapp.warwick.ac.uk/myapp/shire</location>
+        <sscookie>
+            <!-- Name of the service specific cookie (SSC) that will be used for keeping a session -->
+            <name>SSO-SSC-BlogBuilder</name>
+            <!-- path scope of this cookie -->
+            <path>/myapp</path>
+            <!-- domain scope of this cookie...should be as restrictive as possible -->
+            <domain>myapp.warwick.ac.uk</domain>
+        </sscookie>
+        <!-- provider id, as assigned by single sign on -->
+        <providerid>urn:myapp.warwick.ac.uk:myapp:service</providerid>
+        <keystore>
+            <!-- location of the java keystore -->
+            <location>classpath:/myapp.warwick.ac.uk.keystore</location>
+            <!-- password for that keystore -->
+            <password>changeit</password>
+            <shire-alias>moleman.warwick.ac.uk</shire-alias>
+        </keystore>
+    </shire>
+    <logout>
+        <location>http://myapp.warwick.ac.uk/myapp/logout</location>
+    </logout>
+    <trustedapps>
+        <publickey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwdYwzt3WoVBBNKNrn+0RYyzf/g4ssNwYxMxTvMhE1b89JWwKzVpFgQWL73kmUhkgA12fea7NGBOcB04WH0d8dlKMu0kqwgYCA+8RS21Eb35fiuD1UJCnnbXovGkqubIRbX7RgGdvgRYdcWSZ4B2tzxdXo73ayLhWY4WS+TFZpJMDcLrTNDAfu42yxNXlOiYJcELY7o0NRXNfTAvezzJXZsBpAxRKdWIJQlEmiJz+IHNGtDZEd5sMNO2kgpr5CQHc0dhohCN18On31lx6mCJl+HdWpGISmjkXlHTSVjHqot6OfsnNcTfetyseJyKWKN5SPTwmVje6t6kDD+B81tpFQwIDAQAB</publickey>
+        <privatekey>MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDB1jDO3dahUEE0o2uf7RFjLN/+Diyw3BjEzFO8yETVvz0lbArNWkWBBYvveSZSGSADXZ95rs0YE5wHThYfR3x2Uoy7SSrCBgID7xFLbURvfl+K4PVQkKedtei8aSq5shFtftGAZ2+BFh1xZJngHa3PF1ejvdrIuFZjhZL5MVmkkwNwutM0MB+7jbLE1eU6JglwQtjujQ1Fc19MC97PMldmwGkDFEp1YglCUSaInP4gc0a0NkR3mww07aSCmvkJAdzR2GiEI3Xw6ffWXHqYImX4d1akYhKaOReUdNJWMeqi3o5+yc1xN963Kx4nIpYo3lI9PCZWN7q3qQMP4HzW2kVDAgMBAAECggEAWgK9vYJUZapf7TKqCqTKuzQee9pXNHWwZsq/Y93X4S4iFdubFIsD1Yse1UB75AnYzNdP8/CROsn4XYgMS9AlYsioo1uxqFGj4/HDJTSDYAbeFR6rrBLQUzMi9UMc3QhsgV0vqiHeLKJ5X6uorOL7UDx1rQq/qw+2xhZEDsW06++tg8i/J6AFnPW4L41V9IFImSc5OTxbP7XU4QvaBBa4yja4TnWkXqmR+vy7hqLWW4UJXZdomhtuJTyZZ2my01wOR5Bl7lzQtqbgoY+WBu0l/x115nMGQelJUyUPExz7ydEAS012Hdbhcx7SxQ5XVTXB3+RhdEqdmITajso0LcpdCQKBgQDuGegQA/1XGTwnzhsz7ZsdfNNLbk/fucEOFgNkrTPy2ZHomAmnC8aPcQJ305V5/Oue80cVdiFx9ShRKgV97cFJz/mA3YZQFZlN6K6uZOQWtEVLs0++BO8v438quURBrE1T0l+K3hhNYsk179Hq88d8Q5nvcWZS2SznriYbta6hfQKBgQDQaHGuVP2Z/57qGa9QvWlsruwSPLhTCXzc6KvCpwfMXzkYpaxO+JoiCNY8eoNSqChIKeiYb7rTkhvcrdAIxWjagwey03OXpA1dtE7J2VOvWoIqiaF+z8FgqNJwyoMXF/1YwIE6v8PxT0QFPPvbRLnonEjPQv9NWFyAsqtoDXk9vwKBgH4+BijXtK9FlfuU8B9sT94mnPFVn8wDdTS+vzXWD8EnUpF8a0HCoJjVVnWqHYr8awFwA7SBWeJOFf5SxW6rbNxyBNwqmFhF227PfC7DF5xiIIuumw0pGJjPilFgwawAa0+SL041y7TcN8r9SNPGRXLBdRDbk2FB/OkqENKIVfsRAoGADQGXpqOTOBsl1cJImKdZfvjjrrevYS9EZZz3qyw1ZmHC9HDSchM9u0YF6LxUmcH40Zgb9fdzF2UU7A7E3udDBfALePONUTdhxilMiXhQqq7hVLpGI93fWaLvjy50Q+qxWuqYpgv1tIeX3SPTK/n8CDJIsPajbDZJf5am79V3bY0CgYEAxJ7JGvpqEzm4aFKHrFIOkGvqwDbOTSNmHPMX7YD9nfrE0elgulHRKGhL/Ym1h6Ata/vVmRghEuWauIrsQJi4geqGS67DsTFtQQjd1TceBeYSCMYiNg4AwYXw+YWrOSOc59cpabUGVl9dsmDclQrluKJeB8sdWl0SDe5bYUNRLZA=</privatekey>
+
+        <app>
+            <providerid>urn:tabula.warwick.ac.uk:tabula:service</providerid>
+            <publickey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAk8RJRFrRp/PNerwssDYd85YWHliYcyMDBdpkmPZD+bWyxXa8ENKiQ7v/Dnt7NxnMaMNc7PJrEjk5lkShFdUppCmGdpdT0YCrf8TmeU6/cTPRT9zA2BAy4Ojh5Xc01glreT7KuqbwHw4nI/FpdW5tDmsfhq1A/b5+bP6BNUDPLJ+p/EthsEoohhF2Tk80/ez38vCP+wsQVim+/DQ5JhIX1boO8II5W5kcLcQ8N2OkpCeZpU3DMS6ckdik7NmjWJ1oAyu4sAQx7AwNRq0hNWmG/W3+WljVcFjk7ccba2h2OMC6adMll8OtCSY90ZTGhYfM/jvDud9Py1DsO3ZCauo23QIDAQAB</publickey>
+        </app>
+
+        <app>
+            <providerid>urn:start.warwick.ac.uk:portal:service</providerid>
+            <publickey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAg5Fqb51yekDC2N3AqcuOrKw3vKJ+qyEzzsgp+/be/j69vQkLyB7kaZMf7ApACaNpjVIwXicRbBQj/zQbdYU3/V7czL8QdvSBnwZUFUbkARpzN8eVnngkPRGs463TStJzhD+/Dqkf8hgTF+D9eG77J15dqQ6H/bfBDyxMqb+Utb5QJVPII7DCsITLsvGnBxsfntGaqyAyE/pJqw+0FqzCThk2RLQiIcnby7I0DZvxzsS457apKxeRsT51y1RHNv7RV1/Xnd6XQTreMFGS+khtkmMXcSCjXrOE7mvvDBIzxsjB/cuCCWkd20L8n+7m3dxg7s/zgBpW60rbCIqZxv5nAwIDAQAB</publickey>
+        </app>
+    </trustedapps>
+</config>

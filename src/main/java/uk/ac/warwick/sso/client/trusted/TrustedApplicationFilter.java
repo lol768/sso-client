@@ -46,7 +46,8 @@ public class TrustedApplicationFilter implements Filter {
                 chain.doFilter(request, response);
             } catch (TransportException e) {
                 response.setHeader(TrustedApplication.HEADER_STATUS, TrustedApplication.Status.Error.name());
-                response.setHeader(TrustedApplication.HEADER_ERROR, e.getTransportErrorMessage().getFormattedMessage());
+                response.setHeader(TrustedApplication.HEADER_ERROR_CODE, e.getTransportErrorMessage().getCode().getCode());
+                response.setHeader(TrustedApplication.HEADER_ERROR_MESSAGE, e.getTransportErrorMessage().getFormattedMessage());
             }
         }
     }
@@ -70,7 +71,7 @@ public class TrustedApplicationFilter implements Filter {
         ApplicationCertificate certificate =
             app.decode(new EncryptedCertificateImpl(providerId, certStr), request);
 
-        String signature = request.getHeader(TrustedApplication.HEADER_CERTIFICATE);
+        String signature = request.getHeader(TrustedApplication.HEADER_SIGNATURE);
 
         if (!StringUtils.hasText(signature)) {
             throw new FilterException(new TransportErrorMessage.BadSignature());
@@ -91,7 +92,7 @@ public class TrustedApplicationFilter implements Filter {
             // Ensure the user is logged in
             user.setIsLoggedIn(true);
         } else if (user != null && user.isLoginDisabled()) {
-            throw new FilterException(new TransportErrorMessage.PermissionDenied());
+            throw new FilterException(new TransportErrorMessage.UserDisabled(certificate.getUsername()));
         } else {
             throw new FilterException(new TransportErrorMessage.UserUnknown(certificate.getUsername()));
         }
@@ -177,8 +178,12 @@ public class TrustedApplicationFilter implements Filter {
         return userLookup;
     }
 
-    public void setUserLookup(final UserLookupInterface userLookup) {
+    void setUserLookup(final UserLookupInterface userLookup) {
         this.userLookup = userLookup;
+    }
+
+    void setTrustedApplicationsManager(final TrustedApplicationsManager manager) {
+        this.appManager = manager;
     }
 
     private static class FilterException extends TransportException {
