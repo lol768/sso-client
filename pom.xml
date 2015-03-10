@@ -233,6 +233,7 @@
 							</execution>
 						</executions>
 						<configuration>
+                            <additionalparam>-Xdoclint:none</additionalparam>
 							<reportOutputDirectory>${project.basedir}/dist/artifacts/javadoc</reportOutputDirectory>
 							<windowtitle>SSO Client API</windowtitle>
 							<destDir>./</destDir>
@@ -249,7 +250,10 @@
 								<sourceFileInclude>**/oauth/OAuthService.java</sourceFileInclude>
 								<sourceFileInclude>**/oauth/OAuthServiceImpl.java</sourceFileInclude>
 								<sourceFileInclude>**/oauth/OAuthToken.java</sourceFileInclude>
-								<sourceFileInclude>**/client/tags/*</sourceFileInclude>
+
+                                <sourceFileInclude>**/trusted/*</sourceFileInclude>
+
+                                <sourceFileInclude>**/client/tags/*</sourceFileInclude>
 								<sourceFileInclude>**/client/*Filter.java</sourceFileInclude>
 								<sourceFileInclude>**/client/*Servlet.java</sourceFileInclude>
 								<sourceFileInclude>**/*Exception.java</sourceFileInclude>
