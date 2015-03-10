@@ -27,9 +27,13 @@ public class SSOConfigTrustedApplicationsManager implements TrustedApplicationsM
 
     public SSOConfigTrustedApplicationsManager(SSOConfiguration config) throws Exception {
         // Get current application first by getting the providerID and then the public key
-        this.application = new SSOConfigCurrentApplication(config);
+        SSOConfigCurrentApplication currentApp = new SSOConfigCurrentApplication(config);
+        this.application = currentApp;
 
         ImmutableMap.Builder<String, TrustedApplication> builder = ImmutableMap.builder();
+
+        // Trust thyself
+        builder.put(this.application.getProviderID(), currentApp);
 
         Iterator<Pair<String, String>> itr = new PairIterator<String, String>(
             config.getList("trustedapps.app.providerid").iterator(),

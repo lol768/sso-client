@@ -42,7 +42,7 @@ public class TrustedApplicationFilterTest {
 
         request.addHeader("X-Requested-URI", REQUEST_URL);
 
-        SSOConfiguration.setConfig(new SSOConfiguration(new XMLConfiguration(getClass().getResource("sso-config-trustedapps.xml"))));
+        SSOConfiguration.setConfig(new SSOConfiguration(new XMLConfiguration(getClass().getResource("/sso-config-trustedapps.xml"))));
     }
 
     @After
@@ -340,10 +340,10 @@ public class TrustedApplicationFilterTest {
         final String certificate = "MTQxOTQ5OTg4OTM4NApjdXNjYXY=";
         final String providerID = "urn:myapp.warwick.ac.uk:myapp:service";
         final String signature =
-                "E2DIaXFajtZU1abI51sWR+5WomVPYt/RpYLDA0XTkTfxATYm3cyX7IQPM8A9ZmkPBpHqKqG6pz9YBXraARhB9Fwjx+" +
-                        "skXI4GY5SCFJeosq3NDjj4Nkp5mFS8270hYsGisxQaoz9CwEnMT490DxqIB6ay801JGHXY68GSs0Cfv22IGumn3GhZ" +
-                        "3TYxaGHv63QYUsGATINoHlNkbnqmT5RfbnmywAb24rLrU5Scxa8Up3XWBNpmflmF//JybOhufRk7ewDLmtpfFFdwi6" +
-                        "elBjYtofUekVbxK811zzp1yd/IUhxq9nkODIMeSMYRdrZUCJcdJ963RCQBixzCxmkfN7Wiyw==";
+            "E2DIaXFajtZU1abI51sWR+5WomVPYt/RpYLDA0XTkTfxATYm3cyX7IQPM8A9ZmkPBpHqKqG6pz9YBXraARhB9Fwjx+" +
+            "skXI4GY5SCFJeosq3NDjj4Nkp5mFS8270hYsGisxQaoz9CwEnMT490DxqIB6ay801JGHXY68GSs0Cfv22IGumn3GhZ" +
+            "3TYxaGHv63QYUsGATINoHlNkbnqmT5RfbnmywAb24rLrU5Scxa8Up3XWBNpmflmF//JybOhufRk7ewDLmtpfFFdwi6" +
+            "elBjYtofUekVbxK811zzp1yd/IUhxq9nkODIMeSMYRdrZUCJcdJ963RCQBixzCxmkfN7Wiyw==";
 
         request.addHeader(TrustedApplication.HEADER_CERTIFICATE, certificate);
         request.addHeader(TrustedApplication.HEADER_PROVIDER_ID, providerID);

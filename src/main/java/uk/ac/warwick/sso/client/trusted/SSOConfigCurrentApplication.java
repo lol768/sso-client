@@ -18,17 +18,11 @@ import java.security.PrivateKey;
 import static java.lang.Integer.*;
 import static uk.ac.warwick.userlookup.UserLookup.*;
 
-public class SSOConfigCurrentApplication implements CurrentApplication {
+public class SSOConfigCurrentApplication extends AbstractTrustedApplication implements CurrentApplication {
 
     public static final String CERTIFICATE_CACHE_NAME = "CurrentApplicationCertificateCache";
 
-    private EncryptionProvider encryptionProvider = new BouncyCastleEncryptionProvider();
-
-    private final PublicKey publicKey;
-
     private final PrivateKey privateKey;
-
-    private final String providerID;
 
     private final Cache<CacheKey, EncryptedCertificate> cache = Caches.newCache(
         CERTIFICATE_CACHE_NAME,
@@ -38,8 +32,8 @@ public class SSOConfigCurrentApplication implements CurrentApplication {
     );
 
     public SSOConfigCurrentApplication(SSOConfiguration config) throws Exception {
-        this.providerID = config.getString("shire.providerid");
-        this.publicKey = encryptionProvider.toPublicKey(Base64.decode(config.getString("trustedapps.publickey")));
+        super(config);
+
         this.privateKey = encryptionProvider.toPrivateKey(Base64.decode(config.getString("trustedapps.privatekey")));
     }
 
@@ -50,20 +44,6 @@ public class SSOConfigCurrentApplication implements CurrentApplication {
         } catch (CacheEntryUpdateException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    @Override
-    public PublicKey getPublicKey() {
-        return publicKey;
-    }
-
-    @Override
-    public String getProviderID() {
-        return providerID;
-    }
-
-    void setEncryptionProvider(EncryptionProvider encryptionProvider) {
-        this.encryptionProvider = encryptionProvider;
     }
 
     private static class CacheKey implements Serializable {

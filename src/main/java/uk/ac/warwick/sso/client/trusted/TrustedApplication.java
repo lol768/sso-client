@@ -1,6 +1,7 @@
 package uk.ac.warwick.sso.client.trusted;
 
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -21,6 +22,8 @@ public interface TrustedApplication extends Application {
     enum Status {
         OK, Error
     }
+
+    Duration CERTIFICATE_TIMEOUT = Duration.standardMinutes(5);
 
     /**
      * This method decodes and validates the received certificate.

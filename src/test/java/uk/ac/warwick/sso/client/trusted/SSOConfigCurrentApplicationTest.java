@@ -17,7 +17,7 @@ public class SSOConfigCurrentApplicationTest {
 
     @Test
     public void testInit() throws Exception {
-        SSOConfiguration config = new SSOConfiguration(new XMLConfiguration(getClass().getResource("sso-config-trustedapps.xml")));
+        SSOConfiguration config = new SSOConfiguration(new XMLConfiguration(getClass().getResource("/sso-config-trustedapps.xml")));
 
         SSOConfigCurrentApplication currentApplication = new SSOConfigCurrentApplication(config);
 
@@ -27,7 +27,7 @@ public class SSOConfigCurrentApplicationTest {
 
     @Test
     public void testEncode() throws Exception {
-        SSOConfiguration config = new SSOConfiguration(new XMLConfiguration(getClass().getResource("sso-config-trustedapps.xml")));
+        SSOConfiguration config = new SSOConfiguration(new XMLConfiguration(getClass().getResource("/sso-config-trustedapps.xml")));
         SSOConfigCurrentApplication currentApplication = new SSOConfigCurrentApplication(config);
 
         final EncryptionProvider provider = m.mock(EncryptionProvider.class);

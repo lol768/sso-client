@@ -10,7 +10,7 @@ public class SSOConfigTrustedApplicationsManagerTest {
 
     @Test
     public void testInitFromConfig() throws Exception {
-        SSOConfiguration config = new SSOConfiguration(new XMLConfiguration(getClass().getResource("sso-config-trustedapps.xml")));
+        SSOConfiguration config = new SSOConfiguration(new XMLConfiguration(getClass().getResource("/sso-config-trustedapps.xml")));
 
         SSOConfigTrustedApplicationsManager manager = new SSOConfigTrustedApplicationsManager(config);
         assertNotNull(manager.getCurrentApplication());

@@ -45,6 +45,7 @@ public class TrustedApplicationFilter implements Filter {
 
                 chain.doFilter(request, response);
             } catch (TransportException e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.setHeader(TrustedApplication.HEADER_STATUS, TrustedApplication.Status.Error.name());
                 response.setHeader(TrustedApplication.HEADER_ERROR_CODE, e.getTransportErrorMessage().getCode().getCode());
                 response.setHeader(TrustedApplication.HEADER_ERROR_MESSAGE, e.getTransportErrorMessage().getFormattedMessage());
