@@ -16,7 +16,8 @@ public class SSOConfigTrustedApplicationsManagerTest {
         assertNotNull(manager.getCurrentApplication());
         assertNotNull(manager.getTrustedApplication("urn:tabula.warwick.ac.uk:tabula:service"));
         assertNotNull(manager.getTrustedApplication("urn:start.warwick.ac.uk:portal:service"));
-        assertNull(manager.getTrustedApplication("urn:myapp.warwick.ac.uk:myapp:service"));
+        assertNotNull(manager.getTrustedApplication("urn:myapp.warwick.ac.uk:myapp:service")); // Trust thyself
+        assertNull(manager.getTrustedApplication("urn:www.warwick.ac.uk:wwwwww:service"));
     }
 
 }
