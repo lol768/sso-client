@@ -50,6 +50,8 @@ public class User implements Serializable, ExtraProperties {
 	private boolean verified = true;
 	
 	private boolean oauthUser;
+
+    private boolean trustedApplicationsUser;
 	
 	private boolean onCampus;
 
@@ -485,6 +487,18 @@ public class User implements Serializable, ExtraProperties {
 	public void setOAuthUser(boolean isOAuthUser) {
 	    this.oauthUser = isOAuthUser;
 	}
+
+    /**
+     * Will return true if the user was generated from a Trusted Applications request
+     * rather than a cookie or a username and password.
+     */
+    public boolean isTrustedApplicationsUser() {
+        return trustedApplicationsUser;
+    }
+
+    public void setTrustedApplicationsUser(boolean isTrustedApplicationsUser) {
+        this.trustedApplicationsUser = isTrustedApplicationsUser;
+    }
 
 	public boolean isOnCampus() {
 		return onCampus;

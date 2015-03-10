@@ -9,6 +9,7 @@ import java.security.cert.X509Certificate;
 
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.XMLConfiguration;
 import org.junit.Test;
 
 

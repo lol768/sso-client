@@ -4,16 +4,8 @@ import static java.lang.Integer.*;
 import static uk.ac.warwick.userlookup.UserLookup.*;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.security.Key;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -26,18 +18,14 @@ import net.oauth.signature.RSA_SHA1;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.signature.XMLSignature;
 
-import uk.ac.warwick.sso.client.ConfigHelper;
 import uk.ac.warwick.sso.client.SSOClientVersionLoader;
 import uk.ac.warwick.sso.client.SSOConfiguration;
 import uk.ac.warwick.sso.client.SSOException;
 import uk.ac.warwick.sso.client.oauth.OAuthToken.Type;
-import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
-import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.sso.client.util.ImmediateFuture;
 import uk.ac.warwick.userlookup.HttpMethodWebService;
 import uk.ac.warwick.userlookup.HttpPool;
