@@ -2,11 +2,21 @@ package uk.ac.warwick.sso.client.trusted;
 
 import org.bouncycastle.util.encoders.Base64;
 import uk.ac.warwick.sso.client.SSOConfiguration;
+import uk.ac.warwick.util.cache.Cache;
+import uk.ac.warwick.util.cache.CacheEntryUpdateException;
+import uk.ac.warwick.util.cache.Caches;
+import uk.ac.warwick.util.cache.SingularCacheEntryFactory;
 
+import java.io.Serializable;
 import java.security.PublicKey;
 import java.security.PrivateKey;
 
+import static java.lang.Integer.*;
+import static uk.ac.warwick.userlookup.UserLookup.*;
+
 public class SSOConfigCurrentApplication implements CurrentApplication {
+
+    public static final String CERTIFICATE_CACHE_NAME = "CurrentApplicationCertificateCache";
 
     private final EncryptionProvider encryptionProvider = new BouncyCastleEncryptionProvider();
 
@@ -16,6 +26,13 @@ public class SSOConfigCurrentApplication implements CurrentApplication {
 
     private final String providerID;
 
+    private final Cache<CacheKey, EncryptedCertificate> cache = Caches.newCache(
+        CERTIFICATE_CACHE_NAME,
+        new CacheEntryFactory(),
+        parseInt(getConfigProperty("ssoclient.trusted.cache.certificate.timeout.secs")),
+        Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy"))
+    );
+
     public SSOConfigCurrentApplication(SSOConfiguration config) throws Exception {
         this.providerID = config.getString("shire.providerid");
         this.publicKey = encryptionProvider.toPublicKey(Base64.decode(config.getString("trustedapps.publickey")));
@@ -24,7 +41,11 @@ public class SSOConfigCurrentApplication implements CurrentApplication {
 
     @Override
     public EncryptedCertificate encode(String username, String urlToSign) {
-        return encryptionProvider.createEncryptedCertificate(username, privateKey, getProviderID(), urlToSign);
+        try {
+            return cache.get(new CacheKey(username, urlToSign));
+        } catch (CacheEntryUpdateException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
@@ -35,6 +56,35 @@ public class SSOConfigCurrentApplication implements CurrentApplication {
     @Override
     public String getProviderID() {
         return providerID;
+    }
+
+    private static class CacheKey implements Serializable {
+
+        private final String username;
+
+        private final String urlToSign;
+
+        CacheKey(String username, String urlToSign) {
+            this.username = username;
+            this.urlToSign = urlToSign;
+        }
+
+    }
+
+    private class CacheEntryFactory extends SingularCacheEntryFactory<CacheKey, EncryptedCertificate> {
+        @Override
+        public EncryptedCertificate create(CacheKey key) throws CacheEntryUpdateException {
+            try {
+                return encryptionProvider.createEncryptedCertificate(key.username, privateKey, getProviderID(), key.urlToSign);
+            } catch (Exception e) {
+                throw new CacheEntryUpdateException(e);
+            }
+        }
+
+        @Override
+        public boolean shouldBeCached(EncryptedCertificate val) {
+            return true;
+        }
     }
 
 }

@@ -32,68 +32,78 @@ public class TrustedApplicationFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) arg0;
         HttpServletResponse response = (HttpServletResponse) arg1;
 
-        User user = SSOClientFilter.getUserFromRequest(request);
-        if (user.isFoundUser()) {
-            // We already have a perfectly fine user here.
+        if (!StringUtils.hasText(request.getHeader(TrustedApplication.HEADER_CERTIFICATE)) || SSOClientFilter.getUserFromRequest(request).isFoundUser()) {
+            // Either not a trusted apps request, or we already have a perfectly fine user here.
             chain.doFilter(request, response);
-            return;
-        }
+        } else {
+            try {
+                User user = parseTrustedApplicationsRequest(request);
 
-        SSOLinkGenerator generator = new SSOLinkGenerator();
-        generator.setConfig(getConfig());
-        generator.setRequest(request);
-        String requestedUrl = generator.getTarget();
+                // Set it to the SSO Client Filter's parameter
+                request.setAttribute(SSOClientFilter.getUserKey(), user);
+                response.setHeader(TrustedApplication.HEADER_STATUS, TrustedApplication.Status.OK.name());
+
+                chain.doFilter(request, response);
+            } catch (TransportException e) {
+                response.setHeader(TrustedApplication.HEADER_STATUS, TrustedApplication.Status.Error.name());
+                response.setHeader(TrustedApplication.HEADER_ERROR, e.getTransportErrorMessage().getFormattedMessage());
+            }
+        }
+    }
+
+    private User parseTrustedApplicationsRequest(HttpServletRequest request) throws TransportException {
+        String requestedUrl = getRequestedUrl(request);
 
         String certStr = request.getHeader(TrustedApplication.HEADER_CERTIFICATE);
+
         String providerId = request.getHeader(TrustedApplication.HEADER_PROVIDER_ID);
-
-        if (!StringUtils.hasText(certStr)) {
-            chain.doFilter(request, response);
-            return;
+        if (!StringUtils.hasText(providerId)) {
+            throw new FilterException(new TransportErrorMessage.ProviderIdNotFoundInRequest());
         }
-
-        // TODO if no provider ID in request, throw error
 
         TrustedApplication app = appManager.getTrustedApplication(providerId);
         if (app == null) {
-            // TODO Unknown application
+            throw new FilterException(new TransportErrorMessage.ApplicationUnknown(providerId));
         }
 
-        ApplicationCertificate certificate = null;
-        try {
-            certificate = app.decode(new EncryptedCertificateImpl(providerId, certStr), request);
-        } catch (InvalidCertificateException e) {
-            // TODO fail
-        }
+        // This will throw an InvalidCertificateException (which is a transport exception)
+        ApplicationCertificate certificate =
+            app.decode(new EncryptedCertificateImpl(providerId, certStr), request);
 
         String signature = request.getHeader(TrustedApplication.HEADER_CERTIFICATE);
 
-        // TODO if no signature, fail
+        if (!StringUtils.hasText(signature)) {
+            throw new FilterException(new TransportErrorMessage.BadSignature());
+        }
 
         try {
             if (!app.verifySignature(certificate.getCreationTime(), requestedUrl, certificate.getUsername(), signature)) {
-                // TODO die
+                throw new FilterException(new TransportErrorMessage.BadSignature(requestedUrl));
             }
         } catch (SignatureVerificationFailedException e) {
-            // TODO die
+            throw new FilterException(new TransportErrorMessage.BadSignature(requestedUrl));
         }
 
-        user = getUserLookup().getUserByUserId(certificate.getUsername());
+        User user = getUserLookup().getUserByUserId(certificate.getUsername());
         if (user != null && user.isFoundUser() && !user.isLoginDisabled()) {
-            user.setOAuthUser(true);
+            user.setTrustedApplicationsUser(true);
 
             // Ensure the user is logged in
             user.setIsLoggedIn(true);
-
-            // Set it to the SSO Client Filter's parameter
-            request.setAttribute(SSOClientFilter.getUserKey(), user);
         } else if (user != null && user.isLoginDisabled()) {
-            // TODO disabled user error
+            throw new FilterException(new TransportErrorMessage.PermissionDenied());
         } else {
-            // TODO not found user error
+            throw new FilterException(new TransportErrorMessage.UserUnknown(certificate.getUsername()));
         }
 
-        chain.doFilter(request, response);
+        return user;
+    }
+
+    private String getRequestedUrl(HttpServletRequest request) {
+        SSOLinkGenerator generator = new SSOLinkGenerator();
+        generator.setConfig(getConfig());
+        generator.setRequest(request);
+        return generator.getTarget();
     }
 
     public void init(FilterConfig ctx) throws ServletException {
@@ -169,5 +179,20 @@ public class TrustedApplicationFilter implements Filter {
 
     public void setUserLookup(final UserLookupInterface userLookup) {
         this.userLookup = userLookup;
+    }
+
+    private static class FilterException extends TransportException {
+        public FilterException(TransportErrorMessage error)
+        {
+            super(error);
+        }
+
+        public String getMessage() {
+            Throwable cause = getCause();
+            if (cause != null) {
+                return cause.getMessage();
+            }
+            return super.getMessage();
+        }
     }
 }

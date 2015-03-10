@@ -7,10 +7,19 @@ import javax.servlet.http.HttpServletRequest;
 public interface TrustedApplication extends Application {
 
     String HEADER_PREFIX = "X-Trusted-App-";
+
+    // Request headers
     String HEADER_PROVIDER_ID = HEADER_PREFIX + "ProviderID";
     String HEADER_CERTIFICATE = HEADER_PREFIX + "Cert";
-//    String HEADER_SECRET_KEY = HEADER_PREFIX + "Key";
     String HEADER_SIGNATURE = HEADER_PREFIX + "Signature";
+
+    // Response headers
+    String HEADER_STATUS = HEADER_PREFIX + "Status";
+    String HEADER_ERROR = HEADER_PREFIX + "Error";
+
+    enum Status {
+        OK, Error
+    }
 
     /**
      * This method decodes and validates the received certificate.

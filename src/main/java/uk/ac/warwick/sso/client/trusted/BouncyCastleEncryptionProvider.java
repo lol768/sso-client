@@ -24,7 +24,7 @@ public class BouncyCastleEncryptionProvider implements EncryptionProvider {
         Signature sig = Signature.getInstance(SIGNATURE_ALGORITHM, PROVIDER);
         sig.initSign(privateKey);
         sig.update(signatureBaseString);
-        return Base64.toBase64String(Base64.encode(sig.sign()));
+        return new String(Base64.encode(sig.sign()), "UTF-8");
     }
 
     @Override
@@ -79,16 +79,12 @@ public class BouncyCastleEncryptionProvider implements EncryptionProvider {
     }
 
     @Override
-    public EncryptedCertificate createEncryptedCertificate(String username, PrivateKey privateKey, String providerID, String urlToSign) {
-        try {
-            DateTime timeStamp = new DateTime();
-            final String certificate = generateCertificate(username, timeStamp);
-            final String signature = generateSignature(privateKey, TrustedApplicationUtils.generateSignatureBaseString(timeStamp, urlToSign, username));
+    public EncryptedCertificate createEncryptedCertificate(String username, PrivateKey privateKey, String providerID, String urlToSign) throws Exception {
+        DateTime timeStamp = DateTime.now();
+        final String certificate = generateCertificate(username, timeStamp);
+        final String signature = generateSignature(privateKey, TrustedApplicationUtils.generateSignatureBaseString(timeStamp, urlToSign, username));
 
-            return new EncryptedCertificateImpl(providerID, Base64.toBase64String(Base64.encode(certificate.getBytes("UTF-8"))), signature);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
+        return new EncryptedCertificateImpl(providerID, new String(Base64.encode(certificate.getBytes("UTF-8")), "UTF-8"), signature);
     }
 
     /**

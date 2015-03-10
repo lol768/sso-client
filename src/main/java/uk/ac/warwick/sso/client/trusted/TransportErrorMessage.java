@@ -136,6 +136,7 @@ public class TransportErrorMessage {
         public static final Code SYSTEM = new Code(Severity.ERROR, "SYSTEM");
         public static final Code PROVIDER_ID_NOT_FOUND = new Code(Severity.ERROR, "PROVIDER_ID_NOT_FOUND");
 
+        public static final Code OLD_CERT = new Code(Severity.FAIL, "OLD_CERT");
         public static final Code USER_UNKNOWN = new Code(Severity.ERROR, "USER_UNKNOWN");
         public static final Code PERMISSION_DENIED = new Code(Severity.ERROR, "PERMISSION_DENIED");
         public static final Code BAD_SIGNATURE = new Code(Severity.FAIL, "BAD_SIGNATURE");

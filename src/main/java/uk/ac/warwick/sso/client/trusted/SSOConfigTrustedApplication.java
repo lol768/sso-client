@@ -1,12 +1,16 @@
 package uk.ac.warwick.sso.client.trusted;
 
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
+import org.joda.time.Period;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.security.PublicKey;
 
 public class SSOConfigTrustedApplication implements TrustedApplication {
+
+    public static final Duration CERTIFICATE_TIMEOUT = Duration.standardMinutes(5);
 
     private final EncryptionProvider encryptionProvider = new BouncyCastleEncryptionProvider();
 
@@ -42,6 +46,15 @@ public class SSOConfigTrustedApplication implements TrustedApplication {
 
     @Override
     public ApplicationCertificate decode(EncryptedCertificate encCert, HttpServletRequest request) throws InvalidCertificateException {
-        return encryptionProvider.decodeEncryptedCertificate(encCert, publicKey, getProviderID());
+        ApplicationCertificate cert = encryptionProvider.decodeEncryptedCertificate(encCert, publicKey, getProviderID());
+
+        // Check expiry of cert
+        DateTime created = cert.getCreationTime();
+
+        if (created.plus(CERTIFICATE_TIMEOUT).isBefore(DateTime.now())) {
+            throw new CertificateTimeoutException(cert, CERTIFICATE_TIMEOUT.getMillis());
+        }
+
+        return cert;
     }
 }

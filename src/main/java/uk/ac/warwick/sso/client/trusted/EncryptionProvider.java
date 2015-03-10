@@ -34,13 +34,12 @@ public interface EncryptionProvider {
 
     /**
      * Create a new encrypted certificate for transmission to another application
-     *
-     * @param username the username to certify
+     *  @param username the username to certify
      * @param privateKey the private key of this application
      * @param providerID the provider ID of this application
      * @param urlToSign the target URL of this request
      */
-    EncryptedCertificate createEncryptedCertificate(String username, PrivateKey privateKey, String providerID, String urlToSign);
+    EncryptedCertificate createEncryptedCertificate(String username, PrivateKey privateKey, String providerID, String urlToSign) throws Exception;
 
     /**
      * Convert an encoded public key into a PublicKey instance

@@ -11,13 +11,11 @@ public class InvalidCertificateException extends TransportException {
         super(error);
     }
 
-    public InvalidCertificateException(TransportException exception)
-    {
+    public InvalidCertificateException(TransportException exception) {
         super(exception.getTransportErrorMessage(), exception);
     }
 
-    public String getMessage()
-    {
+    public String getMessage() {
         Throwable cause = getCause();
         if (cause != null)
         {
