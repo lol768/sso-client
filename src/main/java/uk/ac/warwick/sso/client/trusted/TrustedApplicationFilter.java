@@ -43,8 +43,23 @@ public class TrustedApplicationFilter implements Filter {
                 request.setAttribute(SSOClientFilter.getUserKey(), user);
                 response.setHeader(TrustedApplication.HEADER_STATUS, TrustedApplication.Status.OK.name());
 
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(String.format("Allowing trusted request for %s on %s", user.getUserId(), getRequestedUrl(request)));
+                }
+
                 chain.doFilter(request, response);
             } catch (TransportException e) {
+                // We log this at quite a high level - we don't expect to get errors on this, it's
+                // indicative of someone being naughty
+                LOGGER.error(
+                    String.format(
+                        "Failed trusted request on %s: %s (%s)",
+                        getRequestedUrl(request),
+                        e.getTransportErrorMessage().getCode().getCode(),
+                        e.getTransportErrorMessage().getFormattedMessage()
+                    )
+                );
+
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.setHeader(TrustedApplication.HEADER_STATUS, TrustedApplication.Status.Error.name());
                 response.setHeader(TrustedApplication.HEADER_ERROR_CODE, e.getTransportErrorMessage().getCode().getCode());

@@ -1,6 +1,7 @@
 package uk.ac.warwick.sso.client.trusted;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.log4j.Logger;
 import org.bouncycastle.util.encoders.Base64;
 import uk.ac.warwick.sso.client.SSOConfiguration;
 import uk.ac.warwick.util.collections.Pair;
@@ -13,6 +14,8 @@ import java.util.Iterator;
  * Default implementation.
  */
 public class SSOConfigTrustedApplicationsManager implements TrustedApplicationsManager {
+
+    private static final Logger LOGGER = Logger.getLogger(SSOConfigTrustedApplicationsManager.class);
 
     private final EncryptionProvider encryptionProvider = new BouncyCastleEncryptionProvider();
 
@@ -54,6 +57,14 @@ public class SSOConfigTrustedApplicationsManager implements TrustedApplicationsM
         }
 
         this.trustedApplications = builder.build();
+
+        LOGGER.info(
+            String.format(
+                "SSOConfigTrustedApplicationsManager initialised. Current application: %s, public key: %s",
+                application.getProviderID(),
+                new String(Base64.encode(application.getPublicKey().getEncoded()), "UTF-8")
+            )
+        );
     }
 
     public CurrentApplication getCurrentApplication()

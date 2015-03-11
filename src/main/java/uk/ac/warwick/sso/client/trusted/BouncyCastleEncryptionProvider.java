@@ -1,5 +1,6 @@
 package uk.ac.warwick.sso.client.trusted;
 
+import org.apache.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Base64;
 import org.joda.time.DateTime;
@@ -15,9 +16,14 @@ import java.security.spec.X509EncodedKeySpec;
 public class BouncyCastleEncryptionProvider implements EncryptionProvider {
 
     public static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
-    private static final String ASYM_ALGORITHM = "RSA";
 
     public static final Provider PROVIDER = new BouncyCastleProvider();
+
+    private static final Logger LOGGER = Logger.getLogger(BouncyCastleEncryptionProvider.class);
+
+    private static final String ASYM_CIPHER = "RSA/NONE/NoPadding";
+
+    private static final String ASYM_ALGORITHM = "RSA";
 
     @Override
     public String generateSignature(PrivateKey privateKey, byte[] signatureBaseString) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, UnsupportedEncodingException {
@@ -35,6 +41,10 @@ public class BouncyCastleEncryptionProvider implements EncryptionProvider {
             sig.update(signatureBaseString);
             return sig.verify(Base64.decode(signatureToVerify));
         } catch (Exception e) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Exception verifying signature " + signatureToVerify, e);
+            }
+
             throw new SignatureVerificationFailedException(e);
         }
     }
@@ -48,9 +58,9 @@ public class BouncyCastleEncryptionProvider implements EncryptionProvider {
 
     @Override
     public PrivateKey toPrivateKey(byte[] encodedForm) throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
-        final PKCS8EncodedKeySpec pubKeySpec = new PKCS8EncodedKeySpec(encodedForm);
+        final PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedForm);
         final KeyFactory keyFactory = KeyFactory.getInstance(ASYM_ALGORITHM, PROVIDER);
-        return keyFactory.generatePrivate(pubKeySpec);
+        return keyFactory.generatePrivate(privateKeySpec);
     }
 
     @Override
@@ -64,8 +74,16 @@ public class BouncyCastleEncryptionProvider implements EncryptionProvider {
 
             final DateTime timeCreated = new DateTime(Long.parseLong(created));
 
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(String.format("Application certificate decrypted: providerID=%s, username=%s, timeCreated=%s,", providerID, username, timeCreated.toString()));
+            }
+
             return new ApplicationCertificateImpl(providerID, username, timeCreated);
         } catch (IOException e) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Exception decoding encrypted certificate", e);
+            }
+
             throw new InvalidCertificateException(new TransportErrorMessage.System(e, providerID));
         } finally {
             if (in != null) {
