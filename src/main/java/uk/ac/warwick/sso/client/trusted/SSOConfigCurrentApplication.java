@@ -24,6 +24,7 @@ public class SSOConfigCurrentApplication extends AbstractTrustedApplication impl
 
     private final PrivateKey privateKey;
 
+    // Note that we can't cache for very long, because otherwise the certificate will be stale!
     private final Cache<CacheKey, EncryptedCertificate> cache = Caches.newCache(
         CERTIFICATE_CACHE_NAME,
         new CacheEntryFactory(),

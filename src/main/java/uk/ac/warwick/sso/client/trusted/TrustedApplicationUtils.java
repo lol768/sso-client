@@ -1,6 +1,9 @@
 package uk.ac.warwick.sso.client.trusted;
 
+import com.google.common.collect.ImmutableSet;
+import org.apache.http.Header;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.message.BasicHeader;
 import org.joda.time.DateTime;
 
 import java.io.UnsupportedEncodingException;
@@ -48,12 +51,25 @@ public abstract class TrustedApplicationUtils {
      *            the request to populate
      */
     public static void addRequestParameters(final EncryptedCertificate certificate, final HttpUriRequest request) {
-        request.setHeader(TrustedApplication.HEADER_PROVIDER_ID, certificate.getProviderID());
-        request.setHeader(TrustedApplication.HEADER_CERTIFICATE, certificate.getCertificate());
+        for (Header header: getRequestHeaders(certificate)) {
+            request.setHeader(header);
+        }
+    }
+
+    public static ImmutableSet<Header> getRequestHeaders(final CurrentApplication application, final String username, final String requestUrl) {
+        return getRequestHeaders(application.encode(username, requestUrl));
+    }
+
+    public static ImmutableSet<Header> getRequestHeaders(final EncryptedCertificate certificate) {
+        ImmutableSet.Builder<Header> builder = ImmutableSet.builder();
+        builder.add(new BasicHeader(TrustedApplication.HEADER_PROVIDER_ID, certificate.getProviderID()));
+        builder.add(new BasicHeader(TrustedApplication.HEADER_CERTIFICATE, certificate.getCertificate()));
 
         if (certificate.getSignature() != null) {
-            request.setHeader(TrustedApplication.HEADER_SIGNATURE, certificate.getSignature());
+            builder.add(new BasicHeader(TrustedApplication.HEADER_SIGNATURE, certificate.getSignature()));
         }
+
+        return builder.build();
     }
 
 }
