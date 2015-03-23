@@ -6,7 +6,6 @@ package uk.ac.warwick.userlookup;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -16,7 +15,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.http.HttpResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
 import uk.ac.warwick.userlookup.HttpMethodWebService.WebServiceException;
@@ -31,7 +32,7 @@ public class WebUserLookup implements UserLookupBackend {
 	//for reading the response.
 	private static final String SENTRY_RESPONSE_CHARSET = "ISO-8859-1";
 
-	private static final Logger LOGGER = Logger.getLogger(WebUserLookup.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebUserLookup.class);
 
 	/**
 	 * If making a batch request for users greater than this size,
@@ -100,8 +101,7 @@ public class WebUserLookup implements UserLookupBackend {
 		LOGGER.debug("Got back results from SSO");
 		if (getResultType(results) == AUTH_OK) {
 			// populate user and return
-			User returnUser = populateUser(results);
-			return returnUser;
+			return populateUser(results);
 		}
 		LOGGER.debug("Returning an AnonymousUser");
 		return new AnonymousUser();
@@ -167,7 +167,7 @@ public class WebUserLookup implements UserLookupBackend {
 			LOGGER.debug("getUserById: " + userId);
 		}
 		Map<String,Object> params = new HashMap<String,Object>();
-		params.put("requestType", new Integer(USER_ID).toString());
+		params.put("requestType", Integer.toString(USER_ID));
 		params.put("user", userId);
 		Map<String,String> results = doSSO(params);
 		user = parsePropertiesToUser(results);
@@ -195,7 +195,7 @@ public class WebUserLookup implements UserLookupBackend {
 		if (userIds.size() <= BATCH_USER_SIZE) {
 			return doGetUsersById(userIds);
 		} else {
-			Map<String,User> allBatches = new HashMap<String, User>();
+			Map<String,User> allBatches = new HashMap<>();
 			for (int start = 0; start<userIds.size(); start += BATCH_USER_SIZE) {
 				int end = Math.min(start + BATCH_USER_SIZE, userIds.size());
 				List<String> sublist = userIds.subList(start, end);
@@ -207,9 +207,9 @@ public class WebUserLookup implements UserLookupBackend {
 
 	private Map<String, User> doGetUsersById(List<String> userIds)
 			throws UserLookupException {
-		Map<String,User> users = new HashMap<String,User>();
+		Map<String,User> users = new HashMap<>();
 		LOGGER.debug("getUsersById, " + userIds.size() + " users");
-		Map<String,Object> params = new HashMap<String,Object>();
+		Map<String,Object> params = new HashMap<>();
 		params.put("requestType", String.valueOf(USERS_IDS));
 		params.put("user", userIds);
 		List<Map<String,String>> resultsList = doSSOMulti(params);
@@ -274,15 +274,15 @@ public class WebUserLookup implements UserLookupBackend {
 	}
 
 	public final void signOut(final String token) throws UserLookupException {
-		Map<String,Object> params = new HashMap<String,Object>();
-		params.put("requestType", new Integer(LOGOUT).toString());
+		Map<String,Object> params = new HashMap<>();
+		params.put("requestType", Integer.toString(LOGOUT));
 		params.put("token", token);
 		doSSO(params);
 	}
 
 	public final User getUserByUserIdAndPassNonLoggingIn(final String usercode, final String password) throws UserLookupException {
-		Map<String,Object> params = new HashMap<String,Object>();
-		params.put("requestType", new Integer(CHECK_AUTH).toString());
+		Map<String,Object> params = new HashMap<>();
+		params.put("requestType", Integer.toString(CHECK_AUTH));
 		params.put("user", usercode);
 		params.put("pass", password);
 		params.put("skiplogin", "true");
@@ -301,12 +301,13 @@ public class WebUserLookup implements UserLookupBackend {
 		private final Map<String,String> resultSet;
 		
 		private WebServiceResponseHandlerImplementation() {
-			this.resultSet = new HashMap<String, String>();
+			this.resultSet = new HashMap<>();
 		}
 		
-		public final void processResults(final InputStream fromServer) throws HttpMethodWebService.HandlerException {
+		public final void processResults(final HttpResponse response) throws HttpMethodWebService.HandlerException {
+            BufferedReader reader = null;
 			try {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(fromServer, Charset.forName(SENTRY_RESPONSE_CHARSET)));
+				reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), Charset.forName(SENTRY_RESPONSE_CHARSET)));
 				while (true) {
 					String line = reader.readLine();
 					if (line == null) {
@@ -318,7 +319,15 @@ public class WebUserLookup implements UserLookupBackend {
 				}
 			} catch (IOException e) {
 				throw new HttpMethodWebService.HandlerException(e);
-			}
+			} finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        // ignore
+                    }
+                }
+            }
 		}
 		
 		public Map<String,String> getResults() { return resultSet; }
@@ -330,13 +339,14 @@ public class WebUserLookup implements UserLookupBackend {
 		private final List<Map<String,String>> resultSet;
 		
 		private WebServiceResponseHandlerListImplementation() {
-			this.resultSet = new ArrayList<Map<String,String>>();
+			this.resultSet = new ArrayList<>();
 		}
 		
-		public final void processResults(final InputStream fromServer) throws HttpMethodWebService.HandlerException {
+		public final void processResults(final HttpResponse response) throws HttpMethodWebService.HandlerException {
+            BufferedReader reader = null;
 			try {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(fromServer, Charset.forName(SENTRY_RESPONSE_CHARSET)));
-				Map<String,String> p = new HashMap<String,String>();
+				reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), Charset.forName(SENTRY_RESPONSE_CHARSET)));
+				Map<String,String> p = new HashMap<>();
 				while (true) {
 					String line = reader.readLine();
 					if (line == null) {
@@ -344,7 +354,7 @@ public class WebUserLookup implements UserLookupBackend {
 					}
 					if (line.startsWith("---")) {
 						this.resultSet.add(p);
-						p = new HashMap<String,String>();
+						p = new HashMap<>();
 					} else {
 						int equals = line.indexOf("=");
 						if (equals > 0 && equals <= line.length()) {
@@ -359,7 +369,15 @@ public class WebUserLookup implements UserLookupBackend {
 				}
 			} catch (IOException e) {
 				throw new HttpMethodWebService.HandlerException(e);
-			}
+			} finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        // ignore
+                    }
+                }
+            }
 		}
 		
 		public List<Map<String,String>> getResultsList() { return resultSet; }
@@ -373,8 +391,8 @@ public class WebUserLookup implements UserLookupBackend {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("requestClearWebGroup: " + groupName);
 		}
-		Map<String,Object> params = new HashMap<String,Object>();
-		params.put("requestType", new Integer(CLEAR_GROUP).toString());
+		Map<String,Object> params = new HashMap<>();
+		params.put("requestType", Integer.toString(CLEAR_GROUP));
 		params.put("group", groupName);
 		doSSO(params);
 	}

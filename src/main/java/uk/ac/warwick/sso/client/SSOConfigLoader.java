@@ -4,7 +4,6 @@
  */
 package uk.ac.warwick.sso.client;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
 
@@ -19,14 +18,13 @@ import javax.sql.DataSource;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.sso.client.cache.DatabaseUserCache;
 import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
 import uk.ac.warwick.sso.client.cache.UserCache;
-import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 
 /**
  * Listener to be inserted into web.xml which will load the SSO configuration on startup.
@@ -46,7 +44,7 @@ import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
  */
 public class SSOConfigLoader implements ServletContextListener {
 
-	private static final Logger LOGGER = Logger.getLogger(SSOConfigLoader.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SSOConfigLoader.class);
 
 	public static final String SSO_CONFIG_KEY = "SSO-CONFIG";
 
@@ -102,15 +100,6 @@ public class SSOConfigLoader implements ServletContextListener {
 		} else if ("old".equals(mode) && loginLocation.contains("/hs")) {
 			LOGGER.error("It looks like you are using old mode with /hs in the configuration. Old mode should point to /slogin");
 		}
-	}
-	
-	/**
-	 * Use client keystore for HTTPS connections, unless we're in old
-	 * mode. In old mode, just use the default HTTPS setup. 
-	 * SSO-591
-	 */
-	private boolean shouldUseKeystore(XMLConfiguration config) {
-		return (! "old".equals(config.getString("mode")));
 	}
 
 	public void loadSSOConfig(ServletContext servletContext) {

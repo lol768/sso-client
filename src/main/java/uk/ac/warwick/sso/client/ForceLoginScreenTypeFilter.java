@@ -15,7 +15,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * SSO supports a few alternate login screens for mobile and text-only user agents.
@@ -34,7 +35,7 @@ import org.apache.log4j.Logger;
  */
 public class ForceLoginScreenTypeFilter implements Filter {
 
-	private static final Logger LOGGER = Logger.getLogger(ForceOldModeFilter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ForceOldModeFilter.class);
 
 	public static final String SSO_SCREEN_TYPE_KEY = "SSO_SCREEN_TYPE";
 

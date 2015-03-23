@@ -26,12 +26,12 @@ public class HeaderSettingHttpServletRequest extends HttpServletRequestWrapper {
 
 	public final String getHeader(final String name) {
 		if (_headers.containsKey(name)) {
-			return (String) _headers.get(name);
+			return _headers.get(name);
 		}
 		return super.getHeader(name);
 	}
 
-	public final Enumeration<?> getHeaderNames() {
+	public final Enumeration<String> getHeaderNames() {
 		List<String> headerNames = new ArrayList<String>();
 		Enumeration<?> enumeration = super.getHeaderNames();
 		while (enumeration.hasMoreElements()) {

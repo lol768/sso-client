@@ -8,9 +8,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.httpclient.Cookie;
+import org.apache.http.cookie.Cookie;
 import org.opensaml.SAMLAssertion;
 import org.opensaml.SAMLAttribute;
 import org.opensaml.SAMLAttributeStatement;

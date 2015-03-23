@@ -18,7 +18,8 @@ import net.oauth.OAuthMessage;
 import net.oauth.OAuthProblemException;
 import net.oauth.server.OAuthServlet;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.sso.client.SSOClientFilter;
 import uk.ac.warwick.sso.client.SSOConfigLoader;
@@ -52,7 +53,7 @@ import uk.ac.warwick.userlookup.UserLookupInterface;
  */
 public final class OAuthFilter implements Filter {
 
-    private static final Logger LOGGER = Logger.getLogger(OAuthFilter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OAuthFilter.class);
 
     private String _configSuffix = "";
 

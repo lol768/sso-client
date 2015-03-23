@@ -14,7 +14,8 @@ import javax.naming.ldap.LdapContext;
 
 import junit.framework.TestCase;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author cusaab (Chris May)
@@ -24,7 +25,7 @@ public class TestFilteredUserSearch extends TestCase {
 
 	private static final String ORIGIN_SENTRY_URL = "https://websignon-test.warwick.ac.uk/origin/sentry";
 	
-	private static final Logger LOGGER = Logger.getLogger(TestFilteredUserSearch.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(TestFilteredUserSearch.class);
 	
 
 	public void testFindUsersByName() throws Exception {

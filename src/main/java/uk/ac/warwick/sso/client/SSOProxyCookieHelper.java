@@ -6,9 +6,10 @@ package uk.ac.warwick.sso.client;
 
 import java.net.URL;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.httpclient.Cookie;
-import org.apache.log4j.Logger;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.cookie.BasicClientCookie2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.opensaml.SAMLException;
 import org.opensaml.SAMLNameIdentifier;
 import org.opensaml.SAMLSubject;
@@ -30,7 +31,7 @@ public class SSOProxyCookieHelper {
 		// default empty constructor
 	}
 
-	public static final Logger LOGGER = Logger.getLogger(SSOProxyCookieHelper.class);
+	public static final Logger LOGGER = LoggerFactory.getLogger(SSOProxyCookieHelper.class);
 
 	/**
 	 * If you are going to proxy through to another SSO enabled application, you need a proxy cookie. Passing in an SSO
@@ -86,16 +87,13 @@ public class SSOProxyCookieHelper {
 	 * @return
 	 */
 	private Cookie generateHttpClientCookie(final URL targetURL, final String proxyTicket) {
-
 		if (proxyTicket == null) {
 			return null;
 		}
 
-		Cookie cookie = new Cookie();
-		cookie.setDomain(targetURL.getHost());
+        BasicClientCookie2 cookie = new BasicClientCookie2("SSO-Proxy", proxyTicket);
+        cookie.setDomain(targetURL.getHost());
 		cookie.setPath("/");
-		cookie.setName("SSO-Proxy");
-		cookie.setValue(proxyTicket);
 		return cookie;
 	}
 

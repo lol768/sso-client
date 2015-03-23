@@ -10,13 +10,14 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.sso.client.SSOConfiguration;
 
 public class SSOLinkGenerator {
 
-	private static final Logger LOGGER = Logger.getLogger(SSOLinkGenerator.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SSOLinkGenerator.class);
 
 	private String _target;
 

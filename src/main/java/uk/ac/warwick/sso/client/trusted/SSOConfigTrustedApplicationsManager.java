@@ -1,7 +1,8 @@
 package uk.ac.warwick.sso.client.trusted;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.bouncycastle.util.encoders.Base64;
 import uk.ac.warwick.sso.client.SSOConfiguration;
 import uk.ac.warwick.util.collections.Pair;
@@ -15,7 +16,7 @@ import java.util.Iterator;
  */
 public class SSOConfigTrustedApplicationsManager implements TrustedApplicationsManager {
 
-    private static final Logger LOGGER = Logger.getLogger(SSOConfigTrustedApplicationsManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SSOConfigTrustedApplicationsManager.class);
 
     private final EncryptionProvider encryptionProvider = new BouncyCastleEncryptionProvider();
 

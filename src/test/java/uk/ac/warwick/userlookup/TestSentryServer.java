@@ -16,7 +16,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections.EnumerationUtils;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -37,7 +38,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
  */
 public class TestSentryServer extends AbstractHandler {
 	
-	private static final Logger LOGGER = Logger.getLogger(TestSentryServer.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(TestSentryServer.class);
 	
 	private int requests;
 	

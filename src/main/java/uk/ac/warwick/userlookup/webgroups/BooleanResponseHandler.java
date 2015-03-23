@@ -1,9 +1,10 @@
 package uk.ac.warwick.userlookup.webgroups;
 
 import java.io.IOException;
-import java.io.InputStream;
 
-import org.apache.log4j.Logger;
+import org.apache.http.HttpResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.userlookup.ClearGroupResponseHandler;
 import uk.ac.warwick.userlookup.ResultAwareWebServiceResponseHandler;
@@ -13,13 +14,13 @@ import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
  * <p>Implementation which expects a stream whose first character is either "t" or "f".</p>
  */
 final class BooleanResponseHandler extends ClearGroupResponseHandler implements ResultAwareWebServiceResponseHandler<Boolean> {
-	private static final Logger LOGGER = Logger.getLogger(BooleanResponseHandler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(BooleanResponseHandler.class);
 	private boolean _result;
 
-	public void processResults(final InputStream fromServer) throws HandlerException {
+	public void processResults(final HttpResponse response) throws HandlerException {
 		String firstChar = "f";
 		try {
-			firstChar = String.valueOf((char) fromServer.read());
+			firstChar = String.valueOf((char) response.getEntity().getContent().read());
 		} catch (IOException e1) {
 			LOGGER.error("Cannot read first char: ", e1);
 		}

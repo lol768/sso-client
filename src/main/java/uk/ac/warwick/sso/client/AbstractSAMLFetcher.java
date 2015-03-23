@@ -19,20 +19,15 @@ import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 import org.apache.xml.security.signature.XMLSignature;
 import org.opensaml.SAMLAssertion;
 import org.opensaml.SAMLAttribute;
@@ -47,8 +42,6 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
-import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 import uk.ac.warwick.sso.client.util.Xml;
 import uk.ac.warwick.userlookup.ClearGroupResponseHandler;
 import uk.ac.warwick.userlookup.HttpMethodWebService;
@@ -63,9 +56,7 @@ public abstract class AbstractSAMLFetcher {
     private SSOConfiguration _config;
 
     private String _version;
-    
-    private Protocol protocol;
-    
+
     protected AbstractSAMLFetcher() {}
     
     protected AbstractSAMLFetcher(SSOConfiguration config) {
@@ -106,42 +97,37 @@ public abstract class AbstractSAMLFetcher {
     protected SAMLResponse getSAMLResponse(final SAMLSubject subject, final String resource) throws SSOException {
         String location = getEndpointLocation();
 
-        final int standardHttpsPort = 443;
-
         URL url;
         try {
             url = new URL(location);
-            if (protocol == null) {
-				protocol = new Protocol("https", new AuthSSLProtocolSocketFactory(getConfig().getAuthenticationDetails()), standardHttpsPort);
-            }
         } catch (MalformedURLException e) {
             throw new SSOException(e);
         }
         
         LOGGER.info("Connecting to " + location);
         HttpClient client = HttpPool.getHttpClient();
-        client.getHostConfiguration().setHost(url.getHost(), url.getPort(), protocol);
-        PostMethod method = new PostMethod(url.getPath());
+        HttpPost method = new HttpPost(url.toExternalForm());
         
-        method.addRequestHeader("User-Agent", HttpMethodWebService.getUserAgent(_version));
-
-        method.addRequestHeader("Content-Type", "text/xml");
+        method.setHeader("User-Agent", HttpMethodWebService.getUserAgent(_version));
+        method.setHeader("Content-Type", "text/xml");
         
         String fullRequest = generateSAMLRequestXml(subject, resource);
+        method.setEntity(new StringEntity(fullRequest, ContentType.TEXT_XML));
 
-        
-        method.setRequestBody(fullRequest);
         LOGGER.debug("SAMLRequest:" + fullRequest);
         String body;
+        HttpResponse httpResponse = null;
         try {
-            client.executeMethod(method);
-            body = method.getResponseBodyAsString();
-            ClearGroupResponseHandler.staticProcessClearGroupHeader(method);
+            httpResponse = client.execute(method);
+            body = EntityUtils.toString(httpResponse.getEntity());
+            ClearGroupResponseHandler.staticProcessClearGroupHeader(httpResponse);
         } catch (IOException e) {
             LOGGER.error(location + " request failed at client.executeMethod", e);
             throw new SSOException(location + " request failed at client.executeMethod", e);
         } finally {
-            method.releaseConnection();
+            if (httpResponse != null) {
+                EntityUtils.consumeQuietly(httpResponse.getEntity());
+            }
         }
 
         LOGGER.debug("Https response:" + body);

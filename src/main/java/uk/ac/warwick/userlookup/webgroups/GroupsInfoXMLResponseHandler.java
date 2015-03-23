@@ -1,6 +1,7 @@
 package uk.ac.warwick.userlookup.webgroups;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.helpers.DefaultHandler;
@@ -16,7 +17,7 @@ import uk.ac.warwick.userlookup.XMLResponseHandler;
  */
 public final class GroupsInfoXMLResponseHandler extends XMLResponseHandler<GroupInfo> {
 
-	private static final Logger LOGGER = Logger.getLogger(GroupsXMLParser.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(GroupsXMLParser.class);
 	
 	public GroupsInfoXMLResponseHandler() {
 		super(new GroupsInfoXMLParser());

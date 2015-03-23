@@ -1,10 +1,12 @@
 package uk.ac.warwick.userlookup;
 
+import java.net.URI;
 import java.net.URL;
 
-import org.apache.commons.httpclient.methods.GetMethod;
-
 import junit.framework.TestCase;
+import org.apache.http.client.methods.HttpGet;
+import uk.ac.warwick.util.web.Uri;
+import uk.ac.warwick.util.web.UriBuilder;
 
 public class HttpMethodWebServiceTest extends TestCase {
 
@@ -12,13 +14,12 @@ public class HttpMethodWebServiceTest extends TestCase {
 		HttpMethodWebService service = new HttpMethodWebService(new URL("http://www.example.com/service"),
 				null, null, "", "mykey");
 		
-		GetMethod method = new GetMethod();		
+		HttpGet method = new HttpGet(URI.create("http://warwick.ac.uk"));
 		service.addApiKeyToUrl(method);
-		assertEquals("wsos_api_key=mykey", method.getQueryString());
+		assertEquals("wsos_api_key=mykey", new UriBuilder(Uri.fromJavaUri(method.getURI())).getQuery());
 		
-		method = new GetMethod();
-		method.setQueryString("myparam=somethinggreat&apppass=123");
+		method = new HttpGet(URI.create("http://warwick.ac.uk?myparam=somethinggreat&apppass=123"));
 		service.addApiKeyToUrl(method);
-		assertEquals("myparam=somethinggreat&apppass=123&wsos_api_key=mykey", method.getQueryString());
+		assertEquals("myparam=somethinggreat&apppass=123&wsos_api_key=mykey", new UriBuilder(Uri.fromJavaUri(method.getURI())).getQuery());
 	}
 }

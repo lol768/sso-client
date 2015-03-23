@@ -7,10 +7,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HeaderElement;
-import org.apache.commons.httpclient.HttpMethod;
-
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
 import uk.ac.warwick.userlookup.HttpMethodWebService.WebServiceResponseHandler;
 import uk.ac.warwick.util.cache.Cache;
 
@@ -22,8 +22,8 @@ public abstract class ClearGroupResponseHandler implements
 	private static Map<String, Date> lastCleared = new HashMap<String, Date>();
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void staticProcessClearGroupHeader(HttpMethod method) {
-		Header header = method.getResponseHeader(CLEAR_WEB_GROUP_HEADER);
+	public static void staticProcessClearGroupHeader(HttpResponse response) {
+		Header header = response.getFirstHeader(CLEAR_WEB_GROUP_HEADER);
 		if (header != null) {
 			Set<String> groupsToClear = new HashSet<String>();
 			for (HeaderElement element : header.getElements()) {
@@ -72,8 +72,8 @@ public abstract class ClearGroupResponseHandler implements
 	}
 
 	@Override
-	public void processClearGroupHeader(HttpMethod method) {
-		ClearGroupResponseHandler.staticProcessClearGroupHeader(method);
+	public void processClearGroupHeader(HttpResponse response) {
+		ClearGroupResponseHandler.staticProcessClearGroupHeader(response);
 	}
 	
 	private static void clearOutOldEntries() {

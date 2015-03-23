@@ -4,7 +4,8 @@
  */
 package uk.ac.warwick.sso.client.cache;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.sso.client.SSOToken;
 
@@ -19,7 +20,7 @@ import uk.ac.warwick.sso.client.SSOToken;
  */
 public class TwoLevelUserCache implements UserCache {
 
-	private static final Logger LOGGER = Logger.getLogger(TwoLevelUserCache.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(TwoLevelUserCache.class);
 
 	private UserCache _levelOneCache;
 

@@ -16,10 +16,14 @@ import net.oauth.OAuthConsumer;
 import net.oauth.OAuthServiceProvider;
 import net.oauth.signature.RSA_SHA1;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 import org.apache.xml.security.signature.XMLSignature;
 
 import uk.ac.warwick.sso.client.SSOClientVersionLoader;
@@ -67,24 +71,27 @@ public final class OAuthServiceImpl implements TrustedOAuthService {
 
         LOGGER.info("Connecting to " + location);
         HttpClient client = HttpPool.getHttpClient();
-        PostMethod method = new PostMethod(location);
+        HttpPost method = new HttpPost(location);
 
-        method.addRequestHeader("User-Agent", HttpMethodWebService.getUserAgent(_version));
-
-        method.addRequestHeader("Content-Type", "text/xml");
+        method.setHeader("User-Agent", HttpMethodWebService.getUserAgent(_version));
+        method.setHeader("Content-Type", "text/xml");
         
         String fullRequest = signedRequest(request);
-        method.setRequestBody(fullRequest);
+        method.setEntity(new StringEntity(fullRequest, ContentType.TEXT_XML));
+
         LOGGER.debug("Request:" + fullRequest);
         OAuthServiceResponse response;
+        HttpResponse httpResponse = null;
         try {
-            client.executeMethod(method);
-            response = OAuthServiceResponse.fromXML(method.getResponseBodyAsStream());
+            httpResponse = client.execute(method);
+            response = OAuthServiceResponse.fromXML(httpResponse);
         } catch (IOException e) {
             LOGGER.error(location + " request failed at client.executeMethod", e);
             throw new SSOException(location + " request failed at client.executeMethod", e);
         } finally {
-            method.releaseConnection();
+            if (httpResponse != null) {
+                EntityUtils.consumeQuietly(httpResponse.getEntity());
+            }
         }
 
         LOGGER.debug("Https response:" + response);

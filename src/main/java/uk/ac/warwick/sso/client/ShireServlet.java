@@ -15,14 +15,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.FileCopyUtils;
 
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
-import uk.ac.warwick.util.cache.BasicCache;
 import uk.ac.warwick.util.cache.Cache;
 import uk.ac.warwick.util.cache.Caches;
 
@@ -58,7 +57,7 @@ import static uk.ac.warwick.userlookup.UserLookup.getConfigProperty;
 public class ShireServlet extends HttpServlet {
 	private static final long serialVersionUID = 3043814958673574588L;
 
-	private static final Logger LOGGER = Logger.getLogger(ShireServlet.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ShireServlet.class);
 
 	private SSOConfiguration _config;
 

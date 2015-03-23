@@ -28,7 +28,6 @@ import org.opensaml.SAMLNameIdentifier;
 import org.opensaml.SAMLResponse;
 import org.opensaml.SAMLSubject;
 
-import uk.ac.warwick.sso.client.ssl.AuthSSLProtocolSocketFactory;
 import uk.ac.warwick.userlookup.User;
 
 public class AttributeAuthorityFetcherTests extends TestCase {
@@ -138,13 +137,6 @@ public class AttributeAuthorityFetcherTests extends TestCase {
 	 */
 	private void testSSL(SSOConfiguration config, String url,int expectedStatus) {
 		final int standardHttpsPort = 443;
-		
-		 Protocol authhttps = new Protocol("https", 
-				 new AuthSSLProtocolSocketFactory(config.getAuthenticationDetails()),
-		 standardHttpsPort);
-
-		Protocol.registerProtocol("https", authhttps);
-		
 
 		HttpClient client = new HttpClient();
 		PostMethod method = new PostMethod(url);

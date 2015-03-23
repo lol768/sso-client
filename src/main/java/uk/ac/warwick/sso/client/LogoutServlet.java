@@ -12,7 +12,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.sso.client.cache.UserCache;
 
@@ -28,7 +29,7 @@ import uk.ac.warwick.sso.client.cache.UserCache;
 @SuppressWarnings("serial")
 public class LogoutServlet extends HttpServlet {
 
-	private static final Logger LOGGER = Logger.getLogger(LogoutServlet.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(LogoutServlet.class);
 
 	private UserCache _cache;
 

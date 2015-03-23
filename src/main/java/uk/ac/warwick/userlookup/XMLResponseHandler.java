@@ -1,13 +1,14 @@
 package uk.ac.warwick.userlookup;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.log4j.Logger;
+import org.apache.http.HttpResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -22,7 +23,7 @@ import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
  */
 public abstract class XMLResponseHandler<T> extends ClearGroupResponseHandler implements ResultAwareWebServiceResponseHandler<T> {
 
-	private static final Logger LOGGER = Logger.getLogger(XMLResponseHandler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(XMLResponseHandler.class);
 
 	private ContentHandler _parser;
 	
@@ -30,9 +31,9 @@ public abstract class XMLResponseHandler<T> extends ClearGroupResponseHandler im
 		this._parser = handler;
 	}
 
-	public final void processResults(final InputStream fromServer) throws HandlerException {
+	public final void processResults(final HttpResponse response) throws HandlerException {
 		LOGGER.debug("Parsing XML result from server");
-		doParse(fromServer, _parser);
+		doParse(response, _parser);
 		LOGGER.debug("Finished parsing XML result from server");
 		collectResult(_parser);
 	}
@@ -44,7 +45,7 @@ public abstract class XMLResponseHandler<T> extends ClearGroupResponseHandler im
 	 */
 	protected abstract void collectResult(ContentHandler parser);
 
-	private final void doParse(final InputStream inputStream, final ContentHandler xmlParser) {
+	private final void doParse(final HttpResponse response, final ContentHandler xmlParser) {
 
 		SAXParserFactory factory = SAXParserFactory.newInstance();		
 		try {
@@ -52,7 +53,7 @@ public abstract class XMLResponseHandler<T> extends ClearGroupResponseHandler im
 			SAXParser parser = factory.newSAXParser();
 			XMLReader reader = parser.getXMLReader();
 			reader.setContentHandler(xmlParser);
-			reader.parse(new InputSource(inputStream));
+			reader.parse(new InputSource(response.getEntity().getContent()));
 		} catch (final IOException e) {
 			LOGGER.error("IOException: " + e.getMessage());
 		} catch (final ParserConfigurationException e) {

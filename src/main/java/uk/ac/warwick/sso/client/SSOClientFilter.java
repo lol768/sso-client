@@ -23,7 +23,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.opensaml.SAMLException;
 import org.opensaml.SAMLNameIdentifier;
 import org.opensaml.SAMLSubject;
@@ -68,7 +69,7 @@ public final class SSOClientFilter implements Filter {
 
 	public static final String PROXY_TICKET_COOKIE_NAME = "SSO-Proxy";
 
-	private static final Logger LOGGER = Logger.getLogger(SSOClientFilter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SSOClientFilter.class);
 
 	private SSOConfiguration _config;
 

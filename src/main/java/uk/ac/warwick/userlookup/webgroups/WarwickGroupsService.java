@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.userlookup.Group;
 import uk.ac.warwick.userlookup.GroupService;
@@ -42,7 +43,7 @@ public class WarwickGroupsService implements GroupService {
 		void execute(final String urlPath, final ResultAwareWebServiceResponseHandler<?> handler) throws WebServiceException;
 	}
 
-	private static final Logger LOGGER = Logger.getLogger(WarwickGroupsService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WarwickGroupsService.class);
 
 	private WebServiceTimeoutConfig _timeoutConfig;
 

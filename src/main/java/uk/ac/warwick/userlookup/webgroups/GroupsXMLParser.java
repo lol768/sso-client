@@ -5,7 +5,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -20,7 +21,7 @@ public final class GroupsXMLParser extends DefaultHandler {
 
 	private GroupImpl _currentGroup;
 
-	private static final Logger LOGGER = Logger.getLogger(GroupsXMLParser.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(GroupsXMLParser.class);
 	
 	private StringBuilder charBuffer = new StringBuilder();
 

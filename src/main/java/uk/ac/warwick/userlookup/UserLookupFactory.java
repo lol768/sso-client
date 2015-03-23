@@ -1,6 +1,7 @@
 package uk.ac.warwick.userlookup;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This can be used instead of UserLookup.getInstance() if
@@ -15,7 +16,7 @@ import org.apache.log4j.Logger;
  */
 public final class UserLookupFactory {
 	
-	private static final Logger LOGGER = Logger.getLogger(UserLookupFactory.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserLookupFactory.class);
 	
 	private static UserLookupInterface _self;
 	

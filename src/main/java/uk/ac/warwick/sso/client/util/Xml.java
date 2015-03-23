@@ -7,13 +7,14 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public final class Xml {
-	private static final Logger LOGGER = Logger.getLogger(Xml.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Xml.class);
 	
 	private static boolean supportsSetFeature = true;
 

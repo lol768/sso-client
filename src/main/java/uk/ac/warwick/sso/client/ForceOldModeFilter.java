@@ -14,7 +14,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This filter only makes sense if you are using a new-mode application. By
@@ -28,7 +29,7 @@ import org.apache.log4j.Logger;
  */
 public class ForceOldModeFilter implements Filter {
 
-	private static final Logger LOGGER = Logger.getLogger(ForceOldModeFilter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ForceOldModeFilter.class);
 
 	public static final String ALLOW_OLD_KEY = "SSO_ALLOW_OLD_MODE";
 

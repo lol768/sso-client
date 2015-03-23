@@ -13,6 +13,7 @@ import java.util.TimeZone;
 
 import javax.xml.parsers.DocumentBuilder;
 
+import org.apache.http.HttpResponse;
 import org.apache.xml.security.utils.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -96,10 +97,11 @@ public final class OAuthServiceResponse {
         attrs.appendChild(argument);
     }
     
-    public static OAuthServiceResponse fromXML(InputStream is) {        
+    public static OAuthServiceResponse fromXML(HttpResponse response) {
         try {
         	DocumentBuilder builder = Xml.newDocumentBuilder();
-            
+
+            InputStream is = response.getEntity().getContent();
             Document doc = builder.parse(is);
             is.close();
             

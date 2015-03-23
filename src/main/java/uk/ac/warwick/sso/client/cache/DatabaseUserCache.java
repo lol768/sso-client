@@ -18,7 +18,8 @@ import java.util.Date;
 
 import javax.sql.DataSource;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -33,7 +34,7 @@ import uk.ac.warwick.sso.client.SSOToken;
 
 public class DatabaseUserCache implements UserCache {
 
-	private static final Logger LOGGER = Logger.getLogger(DatabaseUserCache.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseUserCache.class);
 
 	private DataSource _dataSource;
 

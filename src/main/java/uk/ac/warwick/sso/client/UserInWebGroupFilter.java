@@ -18,7 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
 import uk.ac.warwick.userlookup.GroupService;
@@ -37,7 +38,7 @@ import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
  */
 public class UserInWebGroupFilter implements Filter {
 
-	private static final Logger LOGGER = Logger.getLogger(UserInWebGroupFilter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserInWebGroupFilter.class);
 
 	private String _group;
 

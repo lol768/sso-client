@@ -19,11 +19,12 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Enumeration;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KeyStoreHelper {
 
-	private static final Logger LOGGER = Logger.getLogger(KeyStoreHelper.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(KeyStoreHelper.class);
 
 	public KeyStore createKeyStore(final URL url, final String password) throws KeyStoreException, NoSuchAlgorithmException,
 			CertificateException, IOException {

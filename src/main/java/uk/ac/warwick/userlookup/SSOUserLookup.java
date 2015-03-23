@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
@@ -31,7 +32,7 @@ final class SSOUserLookup implements UserFilter {
 	//This should match the prefix that SSO expects.
 	public static final String FILTER_PARAM_PREFIX = "f_";
 	
-	private static final Logger LOGGER = Logger.getLogger(SSOUserLookup.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SSOUserLookup.class);
 	
 	private String _ssosUrl;
 	private String _apiKey;
@@ -89,7 +90,7 @@ final class SSOUserLookup implements UserFilter {
 			exception = e;
 			error = "Exception while contacting SSOS";
 		}
-		LOGGER.warn(exception);
+		LOGGER.warn(error, exception);
 		throw new UserLookupException(error, exception);
 	}
 	

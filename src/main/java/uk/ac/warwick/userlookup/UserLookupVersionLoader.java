@@ -8,11 +8,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class UserLookupVersionLoader {
 
-	private static final Logger LOGGER = Logger.getLogger(UserLookupVersionLoader.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserLookupVersionLoader.class);
 
 	private static String version;
 	

@@ -1,10 +1,11 @@
 package uk.ac.warwick.sso.client.trusted;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.warwick.sso.client.SSOClientFilter;
 import uk.ac.warwick.sso.client.SSOConfigLoader;
 import uk.ac.warwick.sso.client.SSOConfiguration;
-import uk.ac.warwick.sso.client.oauth.OAuthServiceImpl;
 import uk.ac.warwick.sso.client.tags.SSOLinkGenerator;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookupFactory;
@@ -18,7 +19,7 @@ import java.io.IOException;
 
 public class TrustedApplicationFilter implements Filter {
 
-    private static final Logger LOGGER = Logger.getLogger(TrustedApplicationFilter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TrustedApplicationFilter.class);
 
     private String configSuffix = "";
 

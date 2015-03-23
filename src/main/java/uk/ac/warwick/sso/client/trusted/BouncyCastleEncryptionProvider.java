@@ -1,6 +1,7 @@
 package uk.ac.warwick.sso.client.trusted;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Base64;
 import org.joda.time.DateTime;
@@ -19,7 +20,7 @@ public class BouncyCastleEncryptionProvider implements EncryptionProvider {
 
     public static final Provider PROVIDER = new BouncyCastleProvider();
 
-    private static final Logger LOGGER = Logger.getLogger(BouncyCastleEncryptionProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BouncyCastleEncryptionProvider.class);
 
     private static final String ASYM_CIPHER = "RSA/NONE/NoPadding";
 

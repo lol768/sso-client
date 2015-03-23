@@ -11,7 +11,8 @@ import java.util.Date;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.opensaml.SAMLAssertion;
 import org.opensaml.SAMLAuthenticationStatement;
 import org.opensaml.SAMLException;
@@ -28,7 +29,7 @@ import uk.ac.warwick.util.cache.CacheEntry;
 
 public class ShireCommand {
 
-	private static final Logger LOGGER = Logger.getLogger(ShireCommand.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ShireCommand.class);
 
 	private Configuration _config;
 
@@ -101,7 +102,6 @@ public class ShireCommand {
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("Auth Statement:" + authStatement.toString());
 			SAMLSubject subject = authStatement.getSubject();
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("Subject name:" + subject.getName().toString());
-			if (LOGGER.isDebugEnabled()) LOGGER.debug("Subject name:" + subject.getName().getName());
 	
 			User user = getUserFromAuthSubject(subject);
 	

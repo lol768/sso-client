@@ -18,7 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
 import uk.ac.warwick.userlookup.User;
@@ -30,7 +31,7 @@ import uk.ac.warwick.userlookup.User;
  */
 public class ForceLoginFilter implements Filter {
 
-	private static final Logger LOGGER = Logger.getLogger(ForceLoginFilter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ForceLoginFilter.class);
 
 	public final void init(final FilterConfig ctx) throws ServletException {
 		// nothing

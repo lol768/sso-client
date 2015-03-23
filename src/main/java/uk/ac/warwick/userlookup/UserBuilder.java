@@ -3,10 +3,11 @@ package uk.ac.warwick.userlookup;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class UserBuilder {
-	public static final org.apache.log4j.Logger LOGGER = Logger.getLogger(UserBuilder.class);
+	public static final Logger LOGGER = LoggerFactory.getLogger(UserBuilder.class);
 	
 	public User populateUser(final Map<String,String> results) {
 		if (LOGGER.isDebugEnabled()) {

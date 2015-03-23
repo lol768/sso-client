@@ -15,7 +15,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService;
 import uk.ac.warwick.util.cache.*;
@@ -77,7 +78,7 @@ public class UserLookup implements UserLookupInterface {
 	public static final String GROUP_MEMBER_CACHE_NAME = "WebgroupMemberCache";
 	public static final String USER_GROUPS_CACHE_NAME = "UserGroupsCache";
 	
-	private static final Logger LOGGER = Logger.getLogger(UserLookup.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserLookup.class);
 
 
 	private static UserLookup INSTANCE;
@@ -344,7 +345,7 @@ public class UserLookup implements UserLookupInterface {
 			User user = getUserByTokenCache().get(TOKEN_PREFIX + token);
 			return user;
 		} catch (CacheEntryUpdateException e) {
-			LOGGER.warn(e);
+			LOGGER.warn("Couldn't get user by token", e);
 			return new UnverifiedUser(e);
 		}
 	}
@@ -368,7 +369,7 @@ public class UserLookup implements UserLookupInterface {
 		try {
 			return getUserByUserIdCache().get(userId);
 		} catch (CacheEntryUpdateException e) {
-			LOGGER.warn(e);
+			LOGGER.warn("Couldn't get user by user ID", e);
 			return new UnverifiedUser(e);
 		}
 	}
@@ -389,7 +390,7 @@ public class UserLookup implements UserLookupInterface {
 		try {
 			return getUserByUserIdCache().get(new ArrayList<String>(distinctIds));
 		} catch (CacheEntryUpdateException e) {
-			LOGGER.warn(e);
+			LOGGER.warn("Couldn't get users by user IDs", e);
 			Map<String,User> unverifiedUsers = new HashMap<String, User>();
 			for (String id : distinctIds) {
 				unverifiedUsers.put(id, new UnverifiedUser(e));
