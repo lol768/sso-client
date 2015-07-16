@@ -2,7 +2,7 @@
  * Created on 06-Dec-2005
  *
  */
-package uk.ac.warwick.sso.client.cache;
+package uk.ac.warwick.sso.client.cache.spring;
 
 import static java.lang.Integer.*;
 import static uk.ac.warwick.userlookup.UserLookup.*;
@@ -31,6 +31,9 @@ import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 
 import uk.ac.warwick.sso.client.SSOToken;
+import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
+import uk.ac.warwick.sso.client.cache.UserCache;
+import uk.ac.warwick.sso.client.cache.UserCacheItem;
 
 public class DatabaseUserCache implements UserCache {
 

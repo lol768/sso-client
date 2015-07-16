@@ -6,7 +6,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
 import org.apache.commons.codec.binary.Base64;
-import org.springframework.util.Assert;
 
 /**
  * Salted hash used for client-side caching of passwords.
@@ -53,7 +52,11 @@ abstract class SaltedDigest {
 		final byte[] bytes = new byte[SALT_LENGTH];
 		new Random().nextBytes(bytes);
 		final String salt = base64(bytes).substring(0, SALT_LENGTH);
-		Assert.isTrue(salt.length() == SALT_LENGTH, "Salt wrong length - was " + salt.length());
+
+		if (salt.length() != SALT_LENGTH) {
+			throw new IllegalStateException("Salt wrong length - was " + salt.length());
+		}
+
 		return salt;
 	}
 

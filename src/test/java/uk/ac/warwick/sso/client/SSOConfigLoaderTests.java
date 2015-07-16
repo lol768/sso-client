@@ -7,7 +7,7 @@ package uk.ac.warwick.sso.client;
 import org.jmock.cglib.MockObjectTestCase;
 import org.springframework.mock.web.MockServletContext;
 
-import uk.ac.warwick.sso.client.cache.DatabaseUserCache;
+import uk.ac.warwick.sso.client.cache.spring.DatabaseUserCache;
 import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
 
 public final class SSOConfigLoaderTests extends MockObjectTestCase {

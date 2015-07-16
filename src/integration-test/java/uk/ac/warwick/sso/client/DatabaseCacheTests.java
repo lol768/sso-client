@@ -10,7 +10,7 @@ import junit.framework.TestCase;
 
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-import uk.ac.warwick.sso.client.cache.DatabaseUserCache;
+import uk.ac.warwick.sso.client.cache.spring.DatabaseUserCache;
 import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
 import uk.ac.warwick.sso.client.cache.TwoLevelUserCache;
 import uk.ac.warwick.sso.client.cache.UserCache;

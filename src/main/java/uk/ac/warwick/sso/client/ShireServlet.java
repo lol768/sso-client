@@ -1,12 +1,9 @@
-/*
- * Created on 11-Mar-2005
- *
- */
 package uk.ac.warwick.sso.client;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Writer;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -17,13 +14,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.FileCopyUtils;
 
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
 import uk.ac.warwick.util.cache.Cache;
 import uk.ac.warwick.util.cache.Caches;
+import uk.ac.warwick.util.core.StringUtils;
 
 import static uk.ac.warwick.userlookup.UserLookup.getConfigProperty;
 
@@ -77,10 +74,18 @@ public class ShireServlet extends HttpServlet {
 		res.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 		if (getMessage == null) {
 			InputStream page = getClass().getResourceAsStream("shireget.html");
-			getMessage = FileCopyUtils.copyToString(new InputStreamReader(page));
+			getMessage = StringUtils.copyToString(new InputStreamReader(page));
 		}
 		res.setContentType("text/html");
-		FileCopyUtils.copy(getMessage, res.getWriter());
+
+		Writer out = res.getWriter();
+		try {
+			out.write(getMessage);
+		} finally {
+			try {
+				out.close();
+			} catch (IOException ex) {}
+		}
 	}
 
 	protected final void doPost(final HttpServletRequest req, final HttpServletResponse res) throws ServletException, IOException {
@@ -100,11 +105,6 @@ public class ShireServlet extends HttpServlet {
         return command;
 	}
 
-	/**
-	 * @param req
-	 * @throws IOException
-	 * @throws HttpException
-	 */
 	private void process(final HttpServletRequest req, final HttpServletResponse res) {
 
 		String saml64 = req.getParameter("SAMLResponse");
@@ -173,8 +173,7 @@ public class ShireServlet extends HttpServlet {
 	private Cookie getCookie(final Cookie[] cookies, final String name) {
 
 		if (cookies != null) {
-			for (int i = 0; i < cookies.length; i++) {
-				Cookie cookie = cookies[i];
+			for (Cookie cookie: cookies) {
 				if (cookie.getName().equals(name)) {
 					return cookie;
 				}

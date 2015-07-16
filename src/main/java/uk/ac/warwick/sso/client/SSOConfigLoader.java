@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.warwick.sso.client.cache.DatabaseUserCache;
+import uk.ac.warwick.sso.client.cache.spring.DatabaseUserCache;
 import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
 import uk.ac.warwick.sso.client.cache.UserCache;
 

@@ -8,12 +8,12 @@ import java.util.Date;
 
 import javax.xml.parsers.DocumentBuilder;
 
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
+import uk.ac.warwick.util.core.StringUtils;
 
 
 /**
