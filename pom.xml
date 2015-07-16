@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>uk.ac.warwick</groupId>
 		<artifactId>warwick</artifactId>
-		<version>4</version>
+		<version>5</version>
 	</parent>
 
 	<groupId>uk.ac.warwick.sso</groupId>
@@ -35,7 +35,7 @@
 		<repository>
 			<id>nexus</id>
 			<name>Internal Nexus Repository</name>
-			<url>http://mvn.elab.warwick.ac.uk/nexus/content/groups/public</url>
+			<url>https://mvn.elab.warwick.ac.uk/nexus/content/groups/public</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
