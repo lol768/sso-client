@@ -120,8 +120,6 @@ public class OAuthServiceRequestTest {
 	private MockHttpServletRequest createHttpRequest(String signedXML)
 			throws UnsupportedEncodingException, IOException,
 			InvalidKeySpecException, NoSuchAlgorithmException {
-		FileCopyUtils.copy(new StringReader(signedXML), new FileWriter(new File("/tmp/request.xml")));
-		
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setContent(signedXML.getBytes("UTF-8"));
 		request.setMethod("POST");
