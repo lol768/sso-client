@@ -4,8 +4,10 @@
  */
 package uk.ac.warwick.userlookup.webgroups;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,6 +30,7 @@ import uk.ac.warwick.userlookup.HttpMethodWebService.GetMethodFactory;
 import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
 import uk.ac.warwick.userlookup.HttpMethodWebService.WebServiceException;
 import uk.ac.warwick.util.cache.Cache;
+import uk.ac.warwick.util.core.StringUtils;
 
 public class WarwickGroupsService implements GroupService {
 
@@ -36,10 +39,8 @@ public class WarwickGroupsService implements GroupService {
 	public static final String TYPE = "WarwickGroups";
 
 	private String _version;
-	
-	
 
-	public static interface ExecuteAndParseEngine {
+	interface ExecuteAndParseEngine {
 		void execute(final String urlPath, final ResultAwareWebServiceResponseHandler<?> handler) throws WebServiceException;
 	}
 
@@ -65,29 +66,24 @@ public class WarwickGroupsService implements GroupService {
 	};
 
 	public WarwickGroupsService() {
-		// default constructor
-
 		if (_version == null || _version.equals("")) {
 			_version = UserLookupVersionLoader.getVersion();
 		}
-
 	}
 
 	public WarwickGroupsService(final String serviceLocation) {
+		this();
 		_serviceLocation = serviceLocation;
-
-		if (_version == null || _version.equals("")) {
-			_version = UserLookupVersionLoader.getVersion();
-		}
 	}
 
 	public List<Group> getGroupsForUser(final String userId) throws GroupServiceException {
-		if (getServiceLocation() == null || getServiceLocation().trim().length() == 0) {
-			LOGGER.warn("URI to Webgroups is invalid - check configuration");
-			throw new GroupServiceException("URI to Webgroups is invalid - check configuration");
+		assertServiceLocationExists();
+
+		if (!StringUtils.hasText(userId) || hasInvalidCharacters(userId)) {
+			return Collections.emptyList();
 		}
 
-		String urlPath = getServiceLocation() + "/query" + "/user/" + userId + "/groups";
+		String urlPath = getServiceLocation() + "/query/user/" + encodePathElement(userId) + "/groups";
 		try {
 			return doQuery(urlPath);
 		} catch (WebServiceException e) {
@@ -96,12 +92,13 @@ public class WarwickGroupsService implements GroupService {
 	}
 
 	public List<Group> getGroupsForDeptCode(final String deptCode) throws GroupServiceException {
-		if (getServiceLocation() == null || getServiceLocation().trim().length() == 0) {
-			LOGGER.warn("URI to Webgroups is invalid - check configuration");
-			throw new GroupServiceException("URI to Webgroups is invalid - check configuration");
+		assertServiceLocationExists();
+
+		if (!StringUtils.hasText(deptCode) || hasInvalidCharacters(deptCode)) {
+			return Collections.emptyList();
 		}
 
-		String urlPath = getServiceLocation() + "/query/search/deptcode/" + deptCode;
+		String urlPath = getServiceLocation() + "/query/search/deptcode/" + encodePathElement(deptCode);
 		try {
 			return doQuery(urlPath);
 		} catch (WebServiceException e) {
@@ -110,16 +107,13 @@ public class WarwickGroupsService implements GroupService {
 	}
 
 	public List<Group> getGroupsForQuery(final String search) throws GroupServiceException {
-		if (getServiceLocation() == null || getServiceLocation().trim().length() == 0) {
-			LOGGER.warn("URI to Webgroups is invalid - check configuration");
-			throw new GroupServiceException("URI to Webgroups is invalid - check configuration");
-		}
+		assertServiceLocationExists();
 
-		if (search == null || search.trim().equals("")) {
+		if (!StringUtils.hasText(search) || hasInvalidCharacters(search)) {
 			return Collections.emptyList();
 		}
 
-		String urlPath = getServiceLocation() + "/query/search/name/" + search.trim();
+		String urlPath = getServiceLocation() + "/query/search/name/" + encodePathElement(search);
 		try {
 			return doQuery(urlPath);
 		} catch (WebServiceException e) {
@@ -127,93 +121,69 @@ public class WarwickGroupsService implements GroupService {
 		}
 	}
 
-	/**
-	 * @param urlPath
-	 * @return
-	 */
-	private List<Group> doQuery(String urlPath) throws HttpMethodWebService.WebServiceException {
-		GroupsXMLResponseHandler handler = new GroupsXMLResponseHandler();
-		engine.execute(urlPath, handler);
-		return new ArrayList<Group>(handler.getResult());
-	}
-
 	public final Group getGroupByName(String groupName) throws GroupNotFoundException, GroupServiceException {
-		if (getServiceLocation() == null || getServiceLocation().trim().length() == 0) {
-			LOGGER.warn("URI to Webgroups is invalid - check configuration");
-			throw new GroupServiceException("URI to Webgroups is invalid - check configuration");
-		}
-		if (groupName == null || groupName.trim().equals("")) {
+		assertServiceLocationExists();
+		if (!StringUtils.hasText(groupName) || hasInvalidCharacters(groupName)) {
 			throw new GroupNotFoundException("(null)");
 		}
 
-		groupName = groupName.trim();
-		groupName = groupName.replaceAll(" ", "%20");
+		final String urlPath = getServiceLocation() + "/query/group/" + encodePathElement(groupName) + "/details";
 
-		String urlPath = getServiceLocation() + "/query" + "/group/" + groupName + "/details";
-		GroupsXMLResponseHandler handler = new GroupsXMLResponseHandler();
 		try {
-			engine.execute(urlPath, handler);
+			Collection<Group> groups = doQuery(urlPath);
+			if (groups.isEmpty()) {
+				LOGGER.warn("Group not found:" + groupName);
+				throw new GroupNotFoundException(groupName);
+			}
+			return groups.iterator().next();
 		} catch (WebServiceException e) {
 			throw new GroupServiceException(SERVER_ERROR_MESSAGE, e);
 		}
-		Collection<Group> groups = handler.getResult();
-		if (groups.isEmpty()) {
-			LOGGER.warn("Group not found:" + groupName);
-			throw new GroupNotFoundException(groupName);
-		}
-		return (Group) groups.iterator().next();
+
 	}
 
 	public boolean isUserInGroup(final String userId, final String group) throws GroupServiceException {
-		if (getServiceLocation() == null || getServiceLocation().trim().length() == 0) {
-			LOGGER.warn("URI to Webgroups is invalid - check configuration");
-			throw new GroupServiceException("URI to Webgroups is invalid - check configuration");
+		assertServiceLocationExists();
+		if (!StringUtils.hasText(userId) || hasInvalidCharacters(userId)) {
+			LOGGER.debug("User is [%s], so returning false for isInGroup", userId);
+			return false;
 		}
-		if ("".equals(userId)) {
-			LOGGER.debug("User is blank, so returning false for isInGroup");
+		if (!StringUtils.hasText(group) || hasInvalidCharacters(group)) {
+			LOGGER.debug("Group is [%s], so returning false for isInGroup", group);
 			return false;
 		}
 
-		String urlPath = getServiceLocation() + "/query" + "/user/" + userId + "/member/" + group;
-		BooleanResponseHandler handler = new BooleanResponseHandler();
+		final String urlPath = getServiceLocation() + "/query/user/" + encodePathElement(userId) + "/member/" + encodePathElement(group);
+
 		try {
+			BooleanResponseHandler handler = new BooleanResponseHandler();
 			engine.execute(urlPath, handler);
+			return handler.getResult();
 		} catch (WebServiceException e) {
 			throw new GroupServiceException(SERVER_ERROR_MESSAGE, e);
 		}
-		return handler.getResult();
 	}
 
 	public List<String> getUserCodesInGroup(final String groupName) throws GroupServiceException {
-		if (getServiceLocation() == null || getServiceLocation().trim().length() == 0) {
-			LOGGER.warn("URI to Webgroups is invalid - check configuration");
-			throw new GroupServiceException("URI to Webgroups is invalid - check configuration");
-		}
-
-		Group group;
+		assertServiceLocationExists();
 		try {
-			group = getGroupByName(groupName);
+			return getGroupByName(groupName).getUserCodes();
 		} catch (GroupNotFoundException e) {
 			return Collections.emptyList();
 		}
-
-		return group.getUserCodes();
 	}
 
 	public List<Group> getRelatedGroups(final String groupName) throws GroupServiceException {
-		if (getServiceLocation() == null || getServiceLocation().trim().length() == 0) {
-			LOGGER.warn("URI to Webgroups is invalid - check configuration");
-			throw new GroupServiceException("URI to Webgroups is invalid - check configuration");
+		assertServiceLocationExists();
+
+		if (!StringUtils.hasText(groupName) || hasInvalidCharacters(groupName)) {
+			return Collections.emptyList();
 		}
 
-		String urlPath = getServiceLocation() + "/query" + "/group/" + groupName + "/groups";
+		final String urlPath = getServiceLocation() + "/query/group/" + encodePathElement(groupName) + "/groups";
 
 		try {
-			List<Group> groups = doQuery(urlPath);
-			if (groups.isEmpty()) {
-				return Collections.emptyList();
-			}
-			return groups;
+			return doQuery(urlPath);
 		} catch (WebServiceException e) {
 			throw new GroupServiceException(SERVER_ERROR_MESSAGE, e);
 		}
@@ -221,11 +191,58 @@ public class WarwickGroupsService implements GroupService {
 
 	public List<String> getGroupsNamesForUser(final String userId) throws GroupServiceException {
 		Collection<Group> groups = getGroupsForUser(userId);
-		Set<String> groupNames = new HashSet<String>();
+		Set<String> groupNames = new HashSet<>();
 		for (Group group : groups) {
 			groupNames.add(group.getName());
 		}
-		return new ArrayList<String>(groupNames);
+		return new ArrayList<>(groupNames);
+	}
+
+	public GroupInfo getGroupInfo(String name) throws GroupNotFoundException, GroupServiceException {
+		if (!StringUtils.hasText(name) || hasInvalidCharacters(name)) {
+			throw new GroupNotFoundException(name);
+		}
+		String urlPath = getServiceLocation() + "/query/group/" + encodePathElement(name) + "/info";
+		GroupsInfoXMLResponseHandler handler = new GroupsInfoXMLResponseHandler();
+		try {
+			engine.execute(urlPath, handler);
+		} catch (WebServiceException e) {
+			throw new GroupServiceException(SERVER_ERROR_MESSAGE, e);
+		}
+		return handler.getGroupInfo();
+	}
+
+	/**
+	 * Executes a query that returns a list of groups.
+	 */
+	private List<Group> doQuery(String urlPath) throws HttpMethodWebService.WebServiceException {
+		GroupsXMLResponseHandler handler = new GroupsXMLResponseHandler();
+		engine.execute(urlPath, handler);
+		return new ArrayList<>(handler.getResult());
+	}
+
+	private String encodePathElement(String str) {
+		try {
+			return URLEncoder.encode(str.trim().replace('+',' '), "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// Sorry, your runtime is terrible.
+			throw new RuntimeException("UTF-8 encoding not present in JRE");
+		}
+	}
+
+	/**
+	 * If the string has characters that are absolutely not allowed in
+	 * any URL path parameters.
+	 */
+	private boolean hasInvalidCharacters(String input) {
+		return input.contains("/") || input.contains("%2F");
+	}
+
+	private void assertServiceLocationExists() throws GroupServiceException {
+		if (getServiceLocation() == null || getServiceLocation().trim().length() == 0) {
+			LOGGER.warn("URI to Webgroups is invalid - check configuration");
+			throw new GroupServiceException("URI to Webgroups is invalid - check configuration");
+		}
 	}
 
 	public final void setTimeoutConfig(final WebServiceTimeoutConfig timeoutConfig) {
@@ -262,17 +279,6 @@ public class WarwickGroupsService implements GroupService {
 
 	public final void setVersion(final String version) {
 		_version = version;
-	}
-
-	public GroupInfo getGroupInfo(String name) throws GroupNotFoundException, GroupServiceException {
-		String urlPath = getServiceLocation() + "/query" + "/group/" + name + "/info";
-		GroupsInfoXMLResponseHandler handler = new GroupsInfoXMLResponseHandler();
-		try {
-			engine.execute(urlPath, handler);
-		} catch (WebServiceException e) {
-			throw new GroupServiceException(SERVER_ERROR_MESSAGE, e);
-		}
-		return handler.getGroupInfo();
 	}
 
 	public Map<String, Set<Cache<?, ?>>> getCaches() {
