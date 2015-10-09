@@ -1,0 +1,2 @@
+GET        /acs        @warwick.sso.AssertionConsumer.get
+POST       /acs        @warwick.sso.AssertionConsumer.post

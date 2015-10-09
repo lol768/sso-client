@@ -1,0 +1,85 @@
+package warwick.sso
+
+import java.io.{ObjectOutputStream, IOException, ObjectInputStream}
+import java.sql.{Date, Blob, ResultSet}
+import javax.inject.{Named, Inject}
+
+import org.joda.time.DateTime
+import play.api.Logger
+import play.api.db._
+
+import uk.ac.warwick.sso.client.{SSOConfiguration, SSOToken}
+import uk.ac.warwick.sso.client.cache.{UserCacheItem, UserCache}
+
+import scala.util.Try
+
+class JdbcUserCache @Inject() (
+     config: SSOConfiguration,
+     @Named("sso-client") db: Database,
+     @Named("InMemory") delegate: UserCache
+  ) extends UserCache {
+
+  var databaseEnabled: Boolean = true
+
+  private val logger = Logger(getClass)
+  private val timeout: Int = config.getInt("ssoclient.sessioncache.database.timeout.secs")
+
+  override def put(key: SSOToken, value: UserCacheItem): Unit =
+    if (databaseEnabled) {
+      remove(key)
+      db.withConnection { conn =>
+        val stmt = conn.prepareStatement("insert into objectcache (key, objectdata, createddate) values (?,?,?)")
+        val blob = conn.createBlob()
+        val output = blob.setBinaryStream(0)
+        val oos = new ObjectOutputStream(output)
+        oos.writeObject(value)
+        stmt.setString(1, key.getValue)
+        stmt.setBlob(2, blob)
+        stmt.setDate(3, new Date(new DateTime().getMillis))
+
+        stmt.executeUpdate()
+      }
+    } else {
+      delegate.put(key, value)
+    }
+
+
+  override def remove(ssoToken: SSOToken): Unit = ???
+
+  override def get(ssoToken: SSOToken): UserCacheItem =
+    if (databaseEnabled) {
+      db.withConnection { implicit conn =>
+        val stmt = conn.prepareStatement("select objectdata from objectcache where key = ?")
+        stmt.setString(1, ssoToken.getValue)
+        val results = stmt.executeQuery()
+        val item: Option[UserCacheItem] = readItem(results)
+
+        item match {
+          case None => null
+          case Some(item) if expired(item) => remove(ssoToken); null
+          case Some(item) => item
+        }
+      }
+    } else {
+      delegate.get(ssoToken)
+    }
+
+  private def readItem(results: ResultSet): Option[UserCacheItem] =
+    readBlob(results, "objectdata").flatMap { blob =>
+      try {
+        Option(new ObjectInputStream(blob.getBinaryStream).readObject().asInstanceOf[UserCacheItem])
+      } catch {
+        case e: IOException | ClassNotFoundException =>
+        logger.error("Could not get cache item back from database", e)
+        None
+      }
+    }
+
+  private def readBlob(results: ResultSet, name: String) =
+  if (results.next()) Option(results.getBlob(name))
+  else None
+
+
+
+  private def expired(it: UserCacheItem) = new DateTime(it.getInTime).plusSeconds(timeout).isBeforeNow
+}
