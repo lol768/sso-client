@@ -10,6 +10,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import sun.misc.BASE64Encoder;
+import uk.ac.warwick.sso.client.core.OnCampusServiceImpl;
 import uk.ac.warwick.userlookup.*;
 
 public class SSOClientFilterTest extends TestCase {

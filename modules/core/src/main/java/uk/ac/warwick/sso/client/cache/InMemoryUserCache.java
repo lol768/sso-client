@@ -5,7 +5,8 @@
 package uk.ac.warwick.sso.client.cache;
 
 import static java.lang.Integer.*;
-import static uk.ac.warwick.userlookup.UserLookup.*;
+
+import uk.ac.warwick.sso.client.SSOConfiguration;
 import uk.ac.warwick.sso.client.SSOToken;
 import uk.ac.warwick.userlookup.UserLookup;
 import uk.ac.warwick.util.cache.*;
@@ -18,15 +19,17 @@ import uk.ac.warwick.util.cache.*;
  */
 public class InMemoryUserCache extends BasicCacheAdapter {
 
-	private static final int DEFAULT_MAX_ENTRIES = parseInt(getConfigProperty("ssoclient.sessioncache.memory.max-size"));;
+	private final SSOConfiguration configuration;
 
-	private static final int DEFAULT_TIME_OUT = parseInt(getConfigProperty("ssoclient.sessioncache.memory.timeout.secs"));
-
-	public InMemoryUserCache() {
-		super(newCache());
+	public InMemoryUserCache(SSOConfiguration config) {
+		super(newCache(config));
+		this.configuration = config;
 	}
 
-	private static Cache<SSOToken, UserCacheItem> newCache() {
+	private static Cache<SSOToken, UserCacheItem> newCache(SSOConfiguration conf) {
+		final int DEFAULT_MAX_ENTRIES = parseInt(conf.getString("ssoclient.sessioncache.memory.max-size"));;
+		final int DEFAULT_TIME_OUT = parseInt(conf.getString("ssoclient.sessioncache.memory.timeout.secs"));
+
 		// used only for putting new values in. This should access the same map
 		// that UserLookup uses for storing users.
 		
@@ -39,7 +42,7 @@ public class InMemoryUserCache extends BasicCacheAdapter {
 			public boolean shouldBeCached(UserCacheItem item) {
 				return item != null;
 			}
-		}, DEFAULT_TIME_OUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
+		}, DEFAULT_TIME_OUT, Caches.CacheStrategy.valueOf(conf.getString("ssoclient.cache.strategy")));
 
 		newCache.setMaxSize(DEFAULT_MAX_ENTRIES); //ignored if we are using Ehcache.
 		return newCache;

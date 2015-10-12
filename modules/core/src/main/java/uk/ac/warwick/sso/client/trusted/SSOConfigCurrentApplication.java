@@ -25,15 +25,17 @@ public class SSOConfigCurrentApplication extends AbstractTrustedApplication impl
     private final PrivateKey privateKey;
 
     // Note that we can't cache for very long, because otherwise the certificate will be stale!
-    private final Cache<CacheKey, EncryptedCertificate> cache = Caches.newCache(
-        CERTIFICATE_CACHE_NAME,
-        new CacheEntryFactory(),
-        parseInt(getConfigProperty("ssoclient.trusted.cache.certificate.timeout.secs")),
-        Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy"))
-    );
+    private final Cache<CacheKey, EncryptedCertificate> cache;
 
     public SSOConfigCurrentApplication(SSOConfiguration config) throws Exception {
         super(config);
+
+        cache = Caches.newCache(
+                CERTIFICATE_CACHE_NAME,
+                new CacheEntryFactory(),
+                config.getInt("ssoclient.trusted.cache.certificate.timeout.secs"),
+                Caches.CacheStrategy.valueOf(config.getString("ssoclient.cache.strategy"))
+        );
 
         this.privateKey = encryptionProvider.toPrivateKey(Base64.decode(config.getString("trustedapps.privatekey")));
     }

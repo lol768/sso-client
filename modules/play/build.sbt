@@ -19,7 +19,7 @@ resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven"
 
 
 val appDeps = Seq(
-  "uk.ac.warwick.sso" % "sso-client" % coreVersion,
+  "uk.ac.warwick.sso" % "sso-client-core" % coreVersion,
   jdbc
 )
 libraryDependencies ++= appDeps

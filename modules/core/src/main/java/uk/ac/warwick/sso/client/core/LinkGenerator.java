@@ -126,8 +126,8 @@ public class LinkGenerator {
             LOGGER.debug("Target from _request.getRequestURL()=" + target);
         }
 
-        String uriHeader = _config.getString("shire.uri-header");
-        String urlParamKey = _config.getString("shire.urlparamkey");
+        String uriHeader = _config.getString("shire.uri-header", null);
+        String urlParamKey = _config.getString("shire.urlparamkey", null);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("shire.uriHeader:" + uriHeader);
             LOGGER.debug("shire.urlparamkey:" + urlParamKey);

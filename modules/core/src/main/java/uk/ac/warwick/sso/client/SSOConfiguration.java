@@ -50,10 +50,11 @@ public class SSOConfiguration extends CompositeConfiguration {
 	public SSOConfiguration(Configuration delegate){
 		addConfiguration(delegate);
 		addDefaultConfiguration();
+		setThrowExceptionOnMissing(true);
 		
-		String loginLocation = getString(LOGIN_LOCATION_KEY);
+		String loginLocation = getString(LOGIN_LOCATION_KEY, null);
 		if (loginLocation == null) {
-			String mode = getString("mode");
+			String mode = getString("mode", null);
 			if ("new".equals(mode)) {
 				addProperty(LOGIN_LOCATION_KEY, "https://websignon.warwick.ac.uk/origin/hs");
 			} else if ("old".equals(mode)) {
@@ -77,9 +78,9 @@ public class SSOConfiguration extends CompositeConfiguration {
 	 * DER. 
 	 */
 	private void initialiseAuthenticationDetails() {
-		String keystoreLocation = getString("shire.keystore.location");
-		String keystorePassword = getString("shire.keystore.password");
-		String keystoreAlias = getString("shire.keystore.shire-alias");
+		String keystoreLocation = getString("shire.keystore.location", null);
+		String keystorePassword = getString("shire.keystore.password", null);
+		String keystoreAlias = getString("shire.keystore.shire-alias", null);
 		KeyStoreHelper helper = new KeyStoreHelper();
 		Certificate[] certificateChain;
 		PrivateKey key;
@@ -107,9 +108,9 @@ public class SSOConfiguration extends CompositeConfiguration {
 					throw new RuntimeException("Error reading certificate from keystore", e);
 				}
 			} else {
-				String certLocation = getString("credentials.certificate");
-				String keyLocation = getString("credentials.key");
-				String chainLocation = getString("credentials.chain");
+				String certLocation = getString("credentials.certificate", null);
+				String keyLocation = getString("credentials.key", null);
+				String chainLocation = getString("credentials.chain", null);
 				
 				ArrayList<Certificate> certificates = new ArrayList<Certificate>();
 				
@@ -163,12 +164,12 @@ public class SSOConfiguration extends CompositeConfiguration {
 		}
 		
 		authenticationDetails = new KeyAuthentication(key, certificateChain);
-		String cacertsLocation = getString("cacertskeystore.location");
+		String cacertsLocation = getString("cacertskeystore.location", null);
 		try {
 			URL cacertsURL = cacertsLocation==null ? null : new URL(cacertsLocation);
 			authenticationDetails.setCacerts(
 					cacertsURL,
-					getString("cacertskeystore.password")
+					getString("cacertskeystore.password", null)
 			);
 		} catch (MalformedURLException e) {
 			throw new IllegalArgumentException("cacertskeystore.location was an invalid URL", e);

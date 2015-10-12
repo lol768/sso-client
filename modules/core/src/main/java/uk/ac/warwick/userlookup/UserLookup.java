@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.warwick.sso.client.core.*;
 import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService;
 import uk.ac.warwick.util.cache.*;
 import uk.ac.warwick.util.collections.Pair;
@@ -113,6 +114,7 @@ public class UserLookup implements UserLookupInterface {
 
 	private int userIdCacheTimeout = DEFAULT_USERID_CACHE_TIMEOUT;
 
+	@Deprecated
 	public static UserLookup getInstance() {
 		if (INSTANCE == null) {
 			LOGGER.warn("UserLookup not initialized - creating new lookup with default settings...");
@@ -264,26 +266,6 @@ public class UserLookup implements UserLookupInterface {
 		if (_version == null || _version.equals("")) {
 			_version = UserLookupVersionLoader.getVersion();
 		}
-	}
-
-	public static final String generateRandomTicket() {
-		SecureRandom generator;
-		try {
-			generator = SecureRandom.getInstance("SHA1PRNG");
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
-		}
-		final int numRandomChars = 30;
-		final int numAlphaChars = 25;
-		final int hexStart = 97;
-		byte[] randomBytes = new byte[numRandomChars];
-		for (int i = 0; i < numRandomChars; i++) {
-			byte myByte = (byte) (generator.nextInt(numAlphaChars) + hexStart);
-			randomBytes[i] = myByte;
-		}
-		String newToken = new String(randomBytes);
-
-		return "sbr" + newToken;
 	}
 
 	/**
@@ -731,12 +713,16 @@ public class UserLookup implements UserLookupInterface {
 	 * If you provide UserLookup with a Properties object here, it will
 	 * use it to check for configuration properties instead of using system
 	 * properties.
+	 *
+	 * @deprecated
 	 */
+	@Deprecated
 	public static void setConfigProperties(Properties props) {
 		LOGGER.info("Using configuration from a Properties object instead of System properties");
 		configProperties = props;
 	}
-	
+
+	@Deprecated
 	public static String getConfigProperty(String propertyName) {
 		if (defaultProperties == null) {
 			synchronized(defaultPropertiesLock) {
@@ -765,7 +751,8 @@ public class UserLookup implements UserLookupInterface {
 		
 		return value;
 	}
-	
+
+	@Deprecated
 	public static String getConfigProperty(String propertyName, String def) {
 		String result = getConfigProperty(propertyName);
 		if (result == null) {

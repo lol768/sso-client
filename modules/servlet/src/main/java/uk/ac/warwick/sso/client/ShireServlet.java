@@ -74,7 +74,7 @@ public class ShireServlet extends HttpServlet {
 	protected final void doGet(final HttpServletRequest req, final HttpServletResponse res) throws ServletException, IOException {
 		res.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 		if (getMessage == null) {
-			InputStream page = getClass().getResourceAsStream("shireget.html");
+			InputStream page = getClass().getResourceAsStream("/shireget.html");
 			getMessage = StringUtils.copyToString(new InputStreamReader(page));
 		}
 		res.setContentType("text/html");
@@ -167,7 +167,7 @@ public class ShireServlet extends HttpServlet {
 		}
 
 		if (getUserIdCache() == null) {
-			_userIdCache = Caches.newCache(UserLookup.USER_CACHE_NAME, null, 0, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
+			_userIdCache = Caches.newCache(UserLookup.USER_CACHE_NAME, null, 0, Caches.CacheStrategy.valueOf(UserLookup.getConfigProperty("ssoclient.cache.strategy")));
 		}
 	}
 

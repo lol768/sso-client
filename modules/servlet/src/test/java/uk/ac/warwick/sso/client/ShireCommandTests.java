@@ -36,6 +36,7 @@ public class ShireCommandTests extends TestCase {
 		ShireCommand command = new ShireCommand(Caches.<String, User>newCache(UserLookup.USER_CACHE_NAME, null, 0));
 
 		Configuration config = new XMLConfiguration(getClass().getResource("sso-config.xml"));
+		SSOConfiguration ssoConfig = new SSOConfiguration(config);
 
 		MockAttributeAuthorityResponseFetcher fetcher = new MockAttributeAuthorityResponseFetcher();
 		fetcher.setConfig(new SSOConfiguration(config));
@@ -53,8 +54,8 @@ public class ShireCommandTests extends TestCase {
 		
 		System.err.println(saml64);
 
-		command.setConfig(config);
-		command.setCache(new InMemoryUserCache());
+		command.setConfig(ssoConfig);
+		command.setCache(new InMemoryUserCache(ssoConfig));
 		Cookie cookie = command.process(saml64, target);
 
 		assertNotNull(cookie);

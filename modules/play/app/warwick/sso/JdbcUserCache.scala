@@ -13,9 +13,13 @@ import uk.ac.warwick.sso.client.cache.{UserCacheItem, UserCache}
 
 import scala.util.Try
 
+/**
+ * Implementation of UserCache that saves to the database.
+ * It is used when cluster.enabled is true.
+ */
 class JdbcUserCache @Inject() (
      config: SSOConfiguration,
-     @Named("sso-client") db: Database,
+     @Named("SSOClientDB") db: Database,
      @Named("InMemory") delegate: UserCache
   ) extends UserCache {
 
@@ -69,9 +73,9 @@ class JdbcUserCache @Inject() (
       try {
         Option(new ObjectInputStream(blob.getBinaryStream).readObject().asInstanceOf[UserCacheItem])
       } catch {
-        case e: IOException | ClassNotFoundException =>
-        logger.error("Could not get cache item back from database", e)
-        None
+        case e @ (_:IOException | _:ClassNotFoundException) =>
+          logger.error("Could not get cache item back from database", e)
+          None
       }
     }
 

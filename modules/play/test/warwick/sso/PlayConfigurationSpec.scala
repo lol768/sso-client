@@ -1,15 +1,25 @@
 package warwick.sso
 
 import com.google.common.collect.Iterators
+import org.apache.commons.configuration.Configuration
 import org.scalatestplus.play.PlaySpec
+import uk.ac.warwick.sso.client.SSOConfiguration
 import warwick.sso.TestConfiguration.fromResource
 
 class PlayConfigurationSpec extends PlaySpec {
 
   val conf = new PlayConfiguration(fromResource("spec.conf"))
+  val ssoConf = new SSOConfiguration(conf)
 
-  "PlayConfigurationSpec" should {
+  "PlayConfiguration" should {
+    passSpec(conf)
+  }
 
+  "SSOConfiguration wrapping PlayConfiguration" should {
+    passSpec(ssoConf)
+  }
+
+  def passSpec(conf: Configuration) : Unit = {
     "return a found value from getString" in {
       conf.getString("professor.name", "Gelb") must be ("Brian")
     }
@@ -28,5 +38,8 @@ class PlayConfigurationSpec extends PlaySpec {
       conf.subset("professor").getString("name") must be ("Brian")
     }
 
+    "return booleans" in {
+      conf.getBoolean("professor.billions") must be (true)
+    }
   }
 }

@@ -25,7 +25,6 @@ import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.core.*;
 import uk.ac.warwick.sso.client.core.OnCampusService;
 import uk.ac.warwick.userlookup.*;
-import uk.ac.warwick.userlookup.OnCampusServiceImpl;
 
 /**
  * SSOClientFilter is responsible for checking cookies for an existing session,
@@ -113,7 +112,7 @@ public final class SSOClientFilter implements Filter {
 		if (handler == null) {
 			handler = new SSOClientHandler(_config, getUserLookup());
 			// legacy campus service contains a core instance, so pull it out
-			OnCampusService coreCampusService = ((OnCampusServiceImpl) getUserLookup().getOnCampusService()).coreImpl();
+			OnCampusService coreCampusService = getUserLookup().getOnCampusService();
 			handler.setOnCampusService(coreCampusService);
 		}
 
@@ -163,25 +162,23 @@ public final class SSOClientFilter implements Filter {
 	}
 
 	public static String getUserKey() {
-		String userKey = null;
+		String userKey = USER_KEY;
 
 		if (SSOConfiguration.getConfig() != null) {
-			userKey = SSOConfiguration.getConfig().getString("shire.filteruserkey");
+			userKey = getUserKey(SSOConfiguration.getConfig());
 		} else {
 			LOGGER.warn("No SSOConfiguration object found, this request probably didn't go through the SSOClientFilter");
 		}
 
-		if (userKey == null) {
-			userKey = USER_KEY;
-		}
 		return userKey;
 	}
 
+	private static String getUserKey(SSOConfiguration config) {
+		return config.getString("shire.filteruserkey", USER_KEY);
+	}
+
 	private void setUserAndAttributes(final User user, final HeaderSettingHttpServletRequest request, final HttpServletResponse response) {
-		String userKey = _config.getString("shire.filteruserkey");
-		if (userKey == null) {
-			userKey = USER_KEY;
-		}
+		String userKey = getUserKey(_config);
 
 		request.setAttribute(userKey, user);
 

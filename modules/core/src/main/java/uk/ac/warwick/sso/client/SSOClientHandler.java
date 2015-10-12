@@ -28,8 +28,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
-import static uk.ac.warwick.userlookup.UserLookup.getConfigProperty;
-
 /**
  * Framework-agnostic spinoff of SSOClientFilter.
  * SSOClientFilter now holds one of these and delegates to it to
@@ -188,7 +186,7 @@ public class SSOClientHandler {
                 public boolean shouldBeCached(UserAndHash uah) {
                     return uah.getUser().isFoundUser();
                 }
-            }, BASIC_AUTH_CACHE_TIME_SECONDS, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
+            }, BASIC_AUTH_CACHE_TIME_SECONDS, Caches.CacheStrategy.valueOf(getConfig().getString("ssoclient.cache.strategy")));
         }
         return _basicAuthCache;
     }
@@ -237,8 +235,8 @@ public class SSOClientHandler {
             LOGGER.debug("Target=" + target);
 
             // prevent ssoclientfilter from sitting in front of shire and logout servlets
-            String shireLocation = _config.getString("shire.location");
-            String logoutLocation = _config.getString("logout.location");
+            String shireLocation = _config.getString("shire.location", null);
+            String logoutLocation = _config.getString("logout.location", null);
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("shire.location=" + shireLocation);
@@ -270,7 +268,7 @@ public class SSOClientHandler {
 
             if (allowBasic && isBasicAuthRequest(request)) {
                 user = doBasicAuth(request);
-            } else if (_config.getString("mode").equals("old") || request.getAttribute(ForceOldModeFilter.ALLOW_OLD_KEY) != null) {
+            } else if (_config.getString("mode").equals("old") || request.getAttribute("SSO_ALLOW_OLD_MODE") != null) {
                 // do old style single sign on via WarwickSSO cookie
                 user = doGetUserByOldSSO(cookies);
             } else if (postCookies) {

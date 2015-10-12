@@ -30,6 +30,7 @@ import org.springframework.jdbc.object.SqlUpdate;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 
+import uk.ac.warwick.sso.client.SSOConfiguration;
 import uk.ac.warwick.sso.client.SSOToken;
 import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
 import uk.ac.warwick.sso.client.cache.UserCache;
@@ -39,11 +40,11 @@ public class DatabaseUserCache implements UserCache {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseUserCache.class);
 
+	private final SSOConfiguration config;
+
 	private DataSource _dataSource;
 
-	private static final int DEFAULT_TIME_OUT = parseInt(getConfigProperty("ssoclient.sessioncache.database.timeout.secs"));
-
-	private int _timeout = DEFAULT_TIME_OUT;
+	private int _timeout;
 
 	private String _keyName = "key";
 	
@@ -52,12 +53,14 @@ public class DatabaseUserCache implements UserCache {
 	// A delegate user cache to be used when a database is in read-only mode
 	private final UserCache _delegate;
 	
-	public DatabaseUserCache() {
-		this(new InMemoryUserCache());
+	public DatabaseUserCache(SSOConfiguration config) {
+		this(config, new InMemoryUserCache(config));
 	}
 	
-	public DatabaseUserCache(UserCache delegate) {
+	public DatabaseUserCache(SSOConfiguration config, UserCache delegate) {
+		this.config = config;
 		this._delegate = delegate;
+		this._timeout = config.getInt("ssoclient.sessioncache.database.timeout.secs");
 	}
 
 	public final UserCacheItem get(final SSOToken key) {

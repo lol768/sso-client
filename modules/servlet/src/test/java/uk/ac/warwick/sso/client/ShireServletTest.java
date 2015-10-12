@@ -35,7 +35,8 @@ public class ShireServletTest extends TestCase {
 			return;
 		}
 	}
-	
+
+	@Override
 	protected void setUp() throws Exception {
 		servlet = new ShireServlet();
 		
@@ -51,6 +52,7 @@ public class ShireServletTest extends TestCase {
 		response = new MockHttpServletResponse();
 	}
 
+	@Override
 	protected void tearDown() throws Exception {
 		
 	}

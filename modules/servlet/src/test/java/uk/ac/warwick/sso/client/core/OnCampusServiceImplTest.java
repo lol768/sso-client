@@ -1,13 +1,11 @@
-package uk.ac.warwick.userlookup;
+package uk.ac.warwick.sso.client.core;
 
 import java.util.Arrays;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-
 import junit.framework.TestCase;
 
-import org.springframework.mock.web.MockHttpServletRequest;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.springframework.util.StringUtils;
 
 public class OnCampusServiceImplTest extends TestCase {
@@ -24,25 +22,22 @@ public class OnCampusServiceImplTest extends TestCase {
 	private static final String X_FORWARDED_FOR = "X-FORWARDED-FOR";
 	
 	private OnCampusService service;
-	private MockHttpServletRequest request;
-	private HttpServletRequest noHeaderCheckRequest;
+	private HttpRequest request;
+
+	private JUnit4Mockery m = new JUnit4Mockery();
 	
 	protected void setUp() throws Exception {
 		service = new OnCampusServiceImpl();
 		resetRequest();
 	}
+
+	@Override
+	public void tearDown() {
+		m.assertIsSatisfied();
+	}
 	
 	private void resetRequest() {
-		request = new MockHttpServletRequest();
-		//request wrapper which explodes if you try to check XFF
-		noHeaderCheckRequest = new HttpServletRequestWrapper(request){
-			public String getHeader(String name) {
-				if (name.equals(X_FORWARDED_FOR)) {
-					fail("Shouldn't have checked the header!");
-				}
-				return super.getHeader(name);
-			}
-		};
+		request = m.mock(HttpRequest.class);
 	}
 
 	/**
@@ -51,8 +46,11 @@ public class OnCampusServiceImplTest extends TestCase {
 	 * without any Apache rewrite.
 	 */
 	public void testDirectOnCampus() throws Exception {
-		request.setRemoteAddr(ONCAMPUS_USER);
-		assertTrue(service.isOnCampus(request));
+		m.checking(new Expectations() {{
+			allowing(request).getRemoteAddr(); will(returnValue(ONCAMPUS_USER));
+			allowing(request).getHeader(X_FORWARDED_FOR); will(returnValue(null));
+		}});
+		assertTrue("Should be on campus", service.isOnCampus(request));
 	}
 	
 	/**
@@ -63,18 +61,22 @@ public class OnCampusServiceImplTest extends TestCase {
 	 * The test assert that it doesn't even try to check the headers.
 	 */
 	public void testDirectOffCampus() throws Exception {
-		request.setRemoteAddr(OFFCAMPUS_USER);
-		assertFalse(service.isOnCampus(noHeaderCheckRequest));
-		
-		request.addHeader(X_FORWARDED_FOR, SITEBUILDER);
-		assertFalse(service.isOnCampus(noHeaderCheckRequest));
+		m.checking(new Expectations() {{
+			allowing(request).getRemoteAddr(); will(returnValue(OFFCAMPUS_USER));
+			never(request).getHeader(X_FORWARDED_FOR);
+		}});
+
+		assertFalse(service.isOnCampus(request));
 	}
 	
 	// typical request through Apache rewrite. only one ip entry so it
 	// can be absolutely trusted since our Apache wrote it.
 	public void testOnCampusThroughSingleProxy() throws Exception {
-		request.setRemoteAddr(LOCALHOST);
-		request.addHeader(X_FORWARDED_FOR, ONCAMPUS_USER);
+		m.checking(new Expectations() {{
+			allowing(request).getRemoteAddr(); will(returnValue(LOCALHOST));
+			one(request).getHeader(X_FORWARDED_FOR); will(returnValue(ONCAMPUS_USER));
+		}});
+
 		assertTrue(service.isOnCampus(request));
 	}
 	
@@ -83,14 +85,20 @@ public class OnCampusServiceImplTest extends TestCase {
 	 * own proxy.
 	 */
 	public void testThroughTwoApachesOnCampus() throws Exception {
-		request.setRemoteAddr(LOCALHOST);
-		request.addHeader(X_FORWARDED_FOR, xff(new String[] {ONCAMPUS_USER, SITEBUILDER}));
+		m.checking(new Expectations() {{
+			allowing(request).getRemoteAddr(); will(returnValue(LOCALHOST));
+			one(request).getHeader(X_FORWARDED_FOR); will(returnValue(xff(new String[] {ONCAMPUS_USER, SITEBUILDER})));
+		}});
+
 		assertTrue(service.isOnCampus(request));
 	}
 	
 	public void testThroughTwoApachesOffCampus() throws Exception {
-		request.setRemoteAddr(LOCALHOST);
-		request.addHeader(X_FORWARDED_FOR, xff(new String[] {OFFCAMPUS_USER, SITEBUILDER}));
+		m.checking(new Expectations() {{
+			allowing(request).getRemoteAddr(); will(returnValue(LOCALHOST));
+			one(request).getHeader(X_FORWARDED_FOR); will(returnValue(xff(new String[] {OFFCAMPUS_USER, SITEBUILDER})));
+		}});
+
 		assertFalse(service.isOnCampus(request));
 	}
 	
@@ -98,14 +106,19 @@ public class OnCampusServiceImplTest extends TestCase {
 	 * Silly example but possible, and it should handle the case. A request gets rewritten through
 	 * many servers (all our own) before finally landing in a local apache.
 	 */
-	public void testManyApaches() throws Exception {
-		request.setRemoteAddr(LOCALHOST);
-		request.addHeader(X_FORWARDED_FOR, xff(new String[] {ONCAMPUS_USER, WEBSIGNON, SITEBUILDER, SEARCH}));
+	public void testManyApachesOnCampus() throws Exception {
+		m.checking(new Expectations() {{
+			allowing(request).getRemoteAddr(); will(returnValue(LOCALHOST));
+			one(request).getHeader(X_FORWARDED_FOR); will(returnValue(xff(new String[] {ONCAMPUS_USER, WEBSIGNON, SITEBUILDER, SEARCH})));
+		}});
 		assertTrue(service.isOnCampus(request));
-		
-		resetRequest();
-		request.setRemoteAddr(LOCALHOST);
-		request.addHeader(X_FORWARDED_FOR, xff(new String[] {OFFCAMPUS_USER, WEBSIGNON, SITEBUILDER, SEARCH}));
+	}
+
+	public void testManyApachesOffCampus() throws Exception {
+		m.checking(new Expectations() {{
+			allowing(request).getRemoteAddr(); will(returnValue(LOCALHOST));
+			one(request).getHeader(X_FORWARDED_FOR); will(returnValue(xff(new String[] {OFFCAMPUS_USER, WEBSIGNON, SITEBUILDER, SEARCH})));
+		}});
 		assertFalse(service.isOnCampus(request));
 	}
 	
@@ -118,8 +131,11 @@ public class OnCampusServiceImplTest extends TestCase {
 	 * then we're not oncampus (except when wwwcache is involved, which we're testing separately).
 	 */
 	public void testUnknownInChain() throws Exception {
-		request.setRemoteAddr(LOCALHOST);
-		request.addHeader(X_FORWARDED_FOR, xff(new String[] {ONCAMPUS_USER, OFFCAMPUS_USER, SITEBUILDER}));
+		m.checking(new Expectations() {{
+			allowing(request).getRemoteAddr(); will(returnValue(LOCALHOST));
+			one(request).getHeader(X_FORWARDED_FOR); will(returnValue(xff(new String[] {ONCAMPUS_USER, OFFCAMPUS_USER, SITEBUILDER})));
+		}});
+
 		assertFalse(service.isOnCampus(request));
 	}
 	
@@ -131,8 +147,10 @@ public class OnCampusServiceImplTest extends TestCase {
 	 */
 	public void testWwwcache() throws Exception {
 		//assume the nearest request is a proxying Apache
-		request.setRemoteAddr(LOCALHOST);
-		request.addHeader(X_FORWARDED_FOR, xff(new String[]{OFFCAMPUS_USER, OFFCAMPUS_USER2, WWWCACHE}));
+		m.checking(new Expectations() {{
+			allowing(request).getRemoteAddr(); will(returnValue(LOCALHOST));
+			one(request).getHeader(X_FORWARDED_FOR); will(returnValue(xff(new String[] {OFFCAMPUS_USER, OFFCAMPUS_USER2, WWWCACHE})));
+		}});
 		assertTrue(service.isOnCampus(request));
 	}
 	
@@ -141,8 +159,10 @@ public class OnCampusServiceImplTest extends TestCase {
 	 * trust x-forwarded-for, so let's return false. 
 	 */
 	public void testWwwcacheNotFirst() throws Exception {
-		request.setRemoteAddr(LOCALHOST);
-		request.addHeader(X_FORWARDED_FOR, xff(new String[]{OFFCAMPUS_USER, WWWCACHE, OFFCAMPUS_USER2}));
+		m.checking(new Expectations() {{
+			allowing(request).getRemoteAddr(); will(returnValue(LOCALHOST));
+			one(request).getHeader(X_FORWARDED_FOR); will(returnValue(xff(new String[] {OFFCAMPUS_USER, WWWCACHE, OFFCAMPUS_USER2})));
+		}});
 		assertFalse(service.isOnCampus(request));
 	}
 	
@@ -152,8 +172,11 @@ public class OnCampusServiceImplTest extends TestCase {
 	 * anyway, but it can't hurt to be thorough (except for that one time...)
 	 */
 	public void testWwwcacheDirect() throws Exception {
-		request.setRemoteAddr(WWWCACHE);
-		request.addHeader(X_FORWARDED_FOR, OFFCAMPUS_USER);
+		m.checking(new Expectations() {{
+			allowing(request).getRemoteAddr(); will(returnValue(WWWCACHE));
+			//one(request).getHeader(X_FORWARDED_FOR); will(returnValue(xff(new String[] {X_FORWARDED_FOR, OFFCAMPUS_USER})));
+			never(request).getHeader(X_FORWARDED_FOR);
+		}});
 		assertTrue(service.isOnCampus(request));
 	}
 	

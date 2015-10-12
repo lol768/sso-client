@@ -62,7 +62,7 @@ public class OnCampusServiceImpl implements OnCampusService {
     private List<String> getIpChain(HttpRequest request) {
         LinkedList<String> result = new LinkedList<String>();
         String header = request.getHeader(X_FORWARDED_FOR);
-        if (header != null) {
+        if (header != null && !header.isEmpty()) {
             String[] xff = header.split(",\\s*");
             for (int i=0; i<xff.length; i++) {
                 result.addFirst(xff[i]);

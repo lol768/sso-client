@@ -134,25 +134,23 @@ public class SSOConfigLoader implements ServletContextListener {
 		servletContext.setAttribute(SSO_CACHE_KEY + configSuffix, cache);
 	}
 
-	private UserCache getCache(Configuration config) {
-
+	private UserCache getCache(SSOConfiguration config) {
 		if (config.containsKey("cluster.enabled") && config.getBoolean("cluster.enabled")) {
 			final String dsName = config.getString("cluster.datasource");
 			// key name is an override for the 'key' field in the objectcache database. This is for compatibility
 			// reasons so that MySql can work
 			final String keyName = config.getString("cluster.keyname");
-			return getClusteredCache(dsName, keyName);
+			return getClusteredCache(dsName, keyName, config);
 		}
 		LOGGER.info("Loading standard InMemoryUserCache");
-		return new InMemoryUserCache();
-
+		return new InMemoryUserCache(config);
 	}
 
-	private UserCache getClusteredCache(final String dsName, final String keyName) {
+	private UserCache getClusteredCache(final String dsName, final String keyName, SSOConfiguration config) {
 
 		LOGGER.info("Loading clustered DatabaseUserCache");
 
-		DatabaseUserCache dbCache = new DatabaseUserCache();
+		DatabaseUserCache dbCache = new DatabaseUserCache(config);
 		if (StringUtils.isNotEmpty(keyName)) {
 			dbCache.setKeyName(keyName);
 		}

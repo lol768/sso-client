@@ -3,6 +3,8 @@ package uk.ac.warwick.userlookup;
 import java.util.List;
 import java.util.Map;
 
+import uk.ac.warwick.sso.client.core.*;
+
 /**
  * Interface to UserLookup, so that applications can 
  * proxy the interface.

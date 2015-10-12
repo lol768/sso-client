@@ -1,6 +1,6 @@
 package warwick.sso
 
-import javax.inject.Inject
+import javax.inject.{Provider, Inject}
 
 import org.slf4j.LoggerFactory
 import play.api.data._
@@ -33,7 +33,7 @@ object AssertionConsumer {
  */
 class AssertionConsumer @Inject() (
     config: SSOConfiguration,
-    shireCommandProvider: ShireCommandProvider
+    shireCommandProvider: Provider[ShireCommand]
   ) extends Controller {
   import AssertionConsumer._
 

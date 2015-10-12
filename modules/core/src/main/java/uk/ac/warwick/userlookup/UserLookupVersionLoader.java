@@ -31,7 +31,7 @@ public final class UserLookupVersionLoader {
 				Properties props = new Properties();
 				props.load(resourceAsStream);
 				version = props.getProperty("version");
-			} catch (IOException e1) {
+			} catch (NullPointerException | IOException e1) {
 				LOGGER.warn("Couldn't find userlookup version, returning empty string");
 				version = "";
 			}

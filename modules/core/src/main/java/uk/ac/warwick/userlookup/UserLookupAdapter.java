@@ -1,5 +1,7 @@
 package uk.ac.warwick.userlookup;
 
+import uk.ac.warwick.sso.client.core.*;
+
 import uk.ac.warwick.util.cache.Cache;
 
 import java.util.List;

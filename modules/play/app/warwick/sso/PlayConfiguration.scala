@@ -25,7 +25,11 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
   override def getList(s: String): util.List[_] = getList(s, Collections.EMPTY_LIST)
   override def getList(s: String, orElse: util.List[_]): util.List[_] = conf.getStringList(s).getOrElse(orElse)
 
-  override def getProperty(s: String): AnyRef = conf.getObject(s).map(_.unwrapped).orNull
+  override def getProperty(s: String): AnyRef =
+    conf.entrySet
+      .find { case (k, v) => k == s }
+      .map { case (k, v) => v.unwrapped }
+      .orNull
 
   override def getKeys: util.Iterator[String] = conf.keys.iterator.asJava
   override def getKeys(prefix: String): util.Iterator[String] = conf.getConfig(prefix).get.keys.iterator.asJava

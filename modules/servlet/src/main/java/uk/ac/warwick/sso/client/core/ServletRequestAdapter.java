@@ -17,7 +17,7 @@ public class ServletRequestAdapter implements HttpRequest {
     @Override
     public List<String> getParameter(String name) {
         if (req.getParameterMap().containsKey(name)) {
-            return Arrays.asList(req.getParameterMap().get(name));
+            return (List<String>)Arrays.asList(req.getParameterMap().get(name));
         } else {
             return Collections.emptyList();
         }
