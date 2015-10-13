@@ -36,6 +36,7 @@ class AssertionConsumer @Inject() (
     shireCommandProvider: Provider[ShireCommand]
   ) extends Controller {
   import AssertionConsumer._
+  import PlayHttpRequest._
 
   def get = Action {
     MethodNotAllowed
@@ -48,6 +49,9 @@ class AssertionConsumer @Inject() (
     )
   }
 
+  /**
+   * Processes a POSTed form of SAML from Websignon.
+   */
   def handle(request: Request[AnyContent], data: SamlData): Result = {
     val command = shireCommandProvider.get()
     command.setAaFetcher(new AttributeAuthorityResponseFetcherImpl(config))
@@ -89,19 +93,7 @@ class AssertionConsumer @Inject() (
     xff.getOrElse( request.remoteAddress )
   }
 
-  def toPlayCookie(cookie: uk.ac.warwick.sso.client.core.Cookie) : Cookie =
-    Cookie(
-      name = cookie.getName,
-      value = cookie.getValue,
-      // -1 means "until browser close", convert that to None
-      maxAge =
-        if (cookie.isDelete) Some(0)
-        else Option(cookie.getMaxAge).filter(_ >= 0),
-      path = cookie.getPath,
-      domain = Option(cookie.getDomain),
-      secure = cookie.isSecure,
-      httpOnly = cookie.isHttpOnly
-    )
+
 
 }
 

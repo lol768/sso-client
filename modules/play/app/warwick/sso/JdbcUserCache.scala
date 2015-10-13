@@ -16,6 +16,11 @@ import scala.util.Try
 /**
  * Implementation of UserCache that saves to the database.
  * It is used when cluster.enabled is true.
+ *
+ * It is analogous to DatabaseUserCache from the origin SSOClient,
+ * which used Spring JDBC support to do almost exactly the same stuff.
+ * This just uses Play's JDBC support instead and is enabled for
+ * dependency injection.
  */
 class JdbcUserCache @Inject() (
      config: SSOConfiguration,
@@ -48,7 +53,7 @@ class JdbcUserCache @Inject() (
     }
 
 
-  override def remove(ssoToken: SSOToken): Unit = ???
+  override def remove(ssoToken: SSOToken): Unit = ??? // FIXME !!!!
 
   override def get(ssoToken: SSOToken): UserCacheItem =
     if (databaseEnabled) {

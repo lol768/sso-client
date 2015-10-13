@@ -41,15 +41,15 @@ import uk.ac.warwick.userlookup.*;
  */
 public final class SSOClientFilter implements Filter {
 
-	private static final int BASIC_AUTH_CACHE_TIME_SECONDS = SSOClientHandler.BASIC_AUTH_CACHE_TIME_SECONDS;
+	private static final int BASIC_AUTH_CACHE_TIME_SECONDS = SSOClientHandlerImpl.BASIC_AUTH_CACHE_TIME_SECONDS;
 
-	private static final String WARWICK_SSO = SSOClientHandler.WARWICK_SSO;
+	private static final String WARWICK_SSO = SSOClientHandlerImpl.WARWICK_SSO;
 
-	public static final String USER_KEY = SSOClientHandler.USER_KEY;
+	public static final String USER_KEY = SSOClientHandlerImpl.USER_KEY;
 
-	public static final String GLOBAL_LOGIN_COOKIE_NAME = SSOClientHandler.GLOBAL_LOGIN_COOKIE_NAME;
+	public static final String GLOBAL_LOGIN_COOKIE_NAME = SSOClientHandlerImpl.GLOBAL_LOGIN_COOKIE_NAME;
 
-	public static final String PROXY_TICKET_COOKIE_NAME = SSOClientHandler.PROXY_TICKET_COOKIE_NAME;
+	public static final String PROXY_TICKET_COOKIE_NAME = SSOClientHandlerImpl.PROXY_TICKET_COOKIE_NAME;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SSOClientFilter.class);
 
@@ -110,7 +110,7 @@ public final class SSOClientFilter implements Filter {
 		final HeaderSettingHttpServletRequest request = new HeaderSettingHttpServletRequest((HttpServletRequest)servletRequest);
 		final HttpServletResponse response = (HttpServletResponse) servletResponse;
 		if (handler == null) {
-			handler = new SSOClientHandler(_config, getUserLookup());
+			handler = new SSOClientHandlerImpl(_config, getUserLookup());
 			// legacy campus service contains a core instance, so pull it out
 			OnCampusService coreCampusService = getUserLookup().getOnCampusService();
 			handler.setOnCampusService(coreCampusService);
