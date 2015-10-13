@@ -2,12 +2,13 @@ package warwick.sso
 
 import java.util
 
+import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.http.message.BasicHeader
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.mvc.{Cookie, Results}
 import play.api.test.FakeRequest
-import uk.ac.warwick.sso.client.SSOClientHandler
+import uk.ac.warwick.sso.client.{SSOConfiguration, SSOClientHandler}
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 
@@ -20,7 +21,7 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results {
 
     val handler = mock[SSOClientHandler]
     val response = new Response
-    val client = new SsoClientImpl(handler)
+    val client = new SsoClientImpl(handler, new SSOConfiguration(new PropertiesConfiguration()))
     val action = client.Authenticated { request => Ok("Great") }
     val noRunAction = client.Authenticated { request => fail("Shouldn't run this block") }
 

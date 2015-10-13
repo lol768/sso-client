@@ -1,34 +1,56 @@
 package warwick.sso
 
-import javax.inject.Inject
+import javax.inject.{Provider, Inject}
 
-import play.api.mvc.{Results, Result, Request, ActionBuilder}
-import play.api.mvc.Security.AuthenticatedRequest
-import uk.ac.warwick.sso.client.SSOClientHandler
-import uk.ac.warwick.sso.client.core.Response
+import play.api.mvc._
+import uk.ac.warwick.sso.client.{SSOConfiguration, SSOClientHandler}
+import uk.ac.warwick.sso.client.core.{LinkGenerator, Response}
 import uk.ac.warwick.userlookup.User
 import scala.collection.JavaConverters._
 
 import scala.concurrent.Future
 
+trait LoginContext {
+  val user: User
+  def loginUrl(target: Option[String]): String
+}
+
+class LoginContextImpl(linkGenerator: LinkGenerator, val user: User) extends LoginContext {
+  def loginUrl(target: Option[String]) = {
+    target.foreach(linkGenerator.setTarget)
+    linkGenerator.getLoginUrl
+  }
+}
+
+class AuthenticatedRequest[A, U](val context: U, request: Request[A]) extends WrappedRequest[A](request)
+
 trait SsoClient {
-  type AuthRequest[A] = AuthenticatedRequest[A, User]
+
+  type AuthRequest[A] = AuthenticatedRequest[A, LoginContext]
 
   /**
    * Fetches any existing user session and provides it as an AuthenticatedRequest which has a User.
    */
   val Authenticated: ActionBuilder[AuthRequest]
+
+  def linkGenerator(request: Request[_]): LinkGenerator
 }
 
 
 class SsoClientImpl @Inject() (
-    handler: SSOClientHandler
+    handler: SSOClientHandler,
+    configuration: SSOConfiguration
   ) extends SsoClient {
 
   import play.api.libs.concurrent.Execution.Implicits._
 
-  lazy val Authenticated = new ActionBuilder[({type R[A] = AuthenticatedRequest[A, User]})#R] {
-    override def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A, User]) => Future[Result]): Future[Result] = {
+  def linkGenerator(request: Request[_]) = {
+    val req = new PlayHttpRequest(request)
+    new LinkGenerator(configuration, req)
+  }
+
+  lazy val Authenticated = new ActionBuilder[({type R[A] = AuthenticatedRequest[A, LoginContext]})#R] {
+    override def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A, LoginContext]) => Future[Result]): Future[Result] = {
       val req = new PlayHttpRequest(request)
       val response: Future[Response] = Future { handler.handle(req) }
 
@@ -36,7 +58,8 @@ class SsoClientImpl @Inject() (
       response.flatMap { response =>
         val result = if (response.isContinueRequest) {
           val user = response.getUser
-          block(new AuthenticatedRequest(user, request))
+          val ctx = new LoginContextImpl(linkGenerator(request), user)
+          block(new AuthenticatedRequest(ctx, request))
         } else {
           // Handler wants to do a redirect or something
           Future.successful(Results.Redirect(response.getRedirect))
