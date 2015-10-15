@@ -2,16 +2,14 @@ package warwick.sso
 
 import javax.inject._
 
-import com.google.inject.name.Names
-import com.google.inject.{Exposed, PrivateModule, Provides, AbstractModule}
-import org.apache.commons.lang.StringUtils
-import play.api.{Configuration, Environment}
+import com.google.inject.{Exposed, PrivateModule, Provides}
+import play.api.Configuration
 import play.api.db.{DBApi, Database}
 import uk.ac.warwick.sso.client._
-import uk.ac.warwick.sso.client.cache.{InMemoryUserCache, UserCacheItem, UserCache}
-import uk.ac.warwick.sso.client.core.{OnCampusServiceImpl, OnCampusService}
-import uk.ac.warwick.userlookup.{UserLookupInterface, UserLookup, User}
-import uk.ac.warwick.util.cache.{Caches, Cache}
+import uk.ac.warwick.sso.client.cache.{InMemoryUserCache, UserCache}
+import uk.ac.warwick.sso.client.core.{OnCampusService, OnCampusServiceImpl}
+import uk.ac.warwick.userlookup.{UserLookup, UserLookupInterface}
+import uk.ac.warwick.util.cache.{Cache, Caches}
 
 /**
  * Guice module for setting up all the relevant SSO Client
@@ -58,7 +56,7 @@ class SSOClientModule extends PrivateModule {
   def shireCommand(
       config: SSOConfiguration,
       userCache: UserCache,
-      userIdCache: Cache[String, User]
+      userIdCache: Cache[String, uk.ac.warwick.userlookup.User]
       ) : ShireCommand =
     new ShireCommand(config, userCache, userIdCache)
 
@@ -68,7 +66,7 @@ class SSOClientModule extends PrivateModule {
   def inMemoryCache(conf: SSOConfiguration): UserCache = new InMemoryUserCache(conf)
 
   @Provides
-  def userIdCache(conf: SSOConfiguration): Cache[String, User] =
+  def userIdCache(conf: SSOConfiguration): Cache[String, uk.ac.warwick.userlookup.User] =
     Caches.newCache(UserLookup.USER_CACHE_NAME, null, 0, Caches.CacheStrategy.valueOf(conf.getString("ssoclient.cache.strategy")))
 
   @Provides

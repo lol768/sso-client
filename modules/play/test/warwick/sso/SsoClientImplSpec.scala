@@ -1,6 +1,6 @@
 package warwick.sso
 
-import java.util
+import java.util.Arrays._
 
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.http.message.BasicHeader
@@ -36,7 +36,7 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results {
     }
 
     "convert headers" in {
-      response.setHeaders(util.Arrays.asList(new BasicHeader("alan", "sugar")))
+      response.setHeaders(asList(new BasicHeader("alan", "sugar")))
       val result = action.apply(FakeRequest())
       headers(of=result).get("alan").get must be ("sugar")
     }

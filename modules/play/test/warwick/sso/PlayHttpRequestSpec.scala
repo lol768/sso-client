@@ -49,7 +49,7 @@ class PlayHttpRequestSpec extends PlaySpec with GeneratorDrivenPropertyChecks {
     }
 
     "getRequestURL" in {
-      req.getRequestURL must be ("https://example.org/cool/website?querykey=a&querykey=b&bodykey=overriden")
+      req.getRequestURL must be ("https://example.org/cool/website")
 
       new PlayHttpRequest(FakeRequest("GET", "/").withHeaders("Host" -> "example.com"))
         .getRequestURL must be ("http://example.com/")

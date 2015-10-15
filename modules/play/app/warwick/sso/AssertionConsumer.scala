@@ -6,10 +6,7 @@ import org.slf4j.LoggerFactory
 import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc._
-import uk.ac.warwick.sso.client.{SSOException, AttributeAuthorityResponseFetcherImpl, ShireCommand, SSOConfiguration}
-import uk.ac.warwick.sso.client.cache.UserCache
-import uk.ac.warwick.userlookup.User
-import uk.ac.warwick.util.cache.Cache
+import uk.ac.warwick.sso.client.{AttributeAuthorityResponseFetcherImpl, ShireCommand, SSOConfiguration}
 
 import scala.util.{Failure, Success, Try}
 

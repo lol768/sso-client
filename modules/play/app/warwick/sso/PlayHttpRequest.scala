@@ -36,7 +36,7 @@ class PlayHttpRequest(req: Request[_]) extends HttpRequest {
     val sb = new StringBuilder
     sb.append(if (req.secure) "https://" else "http://")
     sb.append(req.host)
-    sb.append(req.uri)
+    sb.append(req.path)
     sb.toString
   }
 

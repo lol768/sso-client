@@ -39,9 +39,10 @@ class JdbcUserCache @Inject() (
       db.withConnection { conn =>
         val stmt = conn.prepareStatement("insert into objectcache (key, objectdata, createddate) values (?,?,?)")
         val blob = conn.createBlob()
-        val output = blob.setBinaryStream(0)
+        val output = blob.setBinaryStream(1)
         val oos = new ObjectOutputStream(output)
         oos.writeObject(value)
+        oos.close()
         stmt.setString(1, key.getValue)
         stmt.setBlob(2, blob)
         stmt.setDate(3, new Date(new DateTime().getMillis))
@@ -53,7 +54,17 @@ class JdbcUserCache @Inject() (
     }
 
 
-  override def remove(ssoToken: SSOToken): Unit = ??? // FIXME !!!!
+  override def remove(ssoToken: SSOToken): Unit = {
+    if (databaseEnabled) {
+      db.withConnection { conn =>
+        val stmt = conn.prepareStatement("delete from objectcache where key = ?")
+        stmt.setString(1, ssoToken.getValue)
+        stmt.execute()
+      }
+    } else {
+      delegate.remove(ssoToken)
+    }
+  }
 
   override def get(ssoToken: SSOToken): UserCacheItem =
     if (databaseEnabled) {
@@ -87,8 +98,6 @@ class JdbcUserCache @Inject() (
   private def readBlob(results: ResultSet, name: String) =
   if (results.next()) Option(results.getBlob(name))
   else None
-
-
 
   private def expired(it: UserCacheItem) = new DateTime(it.getInTime).plusSeconds(timeout).isBeforeNow
 }
