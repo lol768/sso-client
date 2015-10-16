@@ -20,4 +20,4 @@ Generating distributables without pushing to Nexus
 
 The dist profile will put JARs in a dist directory off the project root:
 
-    $ mvn -Pdist
+    $ mvn -Pdist --projects modules/servlet
