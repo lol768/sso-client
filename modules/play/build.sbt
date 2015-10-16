@@ -10,15 +10,10 @@ organization := "uk.ac.warwick.sso"
 name := """sso-client-play"""
 version := coreVersion
 
-credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
-
-
 // Check local Maven, so we can install ssoclient locally and depend on it during build.
 resolvers += "Local Maven Repository" at Path.userHome.asFile.toURI.toURL + ".m2/repository"
 resolvers += DefaultMavenRepository
-resolvers += "nexus" at "https://mvn.elab.warwick.ac.uk/nexus/content/groups/public"
 resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven"
-
 
 val appDeps = Seq(
   "uk.ac.warwick.sso" % "sso-client-core" % coreVersion,
@@ -38,5 +33,3 @@ val testDeps = Seq(
 ).map(_ % Test)
 libraryDependencies ++= testDeps
 
-
-routesGenerator := InjectedRoutesGenerator
