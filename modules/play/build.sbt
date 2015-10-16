@@ -12,6 +12,7 @@ version := coreVersion
 
 // Check local Maven, so we can install ssoclient locally and depend on it during build.
 resolvers += "Local Maven Repository" at Path.userHome.asFile.toURI.toURL + ".m2/repository"
+resolvers += WarwickNexus
 resolvers += DefaultMavenRepository
 resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven"
 
