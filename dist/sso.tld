@@ -33,5 +33,10 @@
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
+	<tag>
+		<name>csrftoken</name>
+		<tag-class>uk.ac.warwick.sso.client.tags.CSRFTokenTag</tag-class>
+		<description>Returns the CSRF token of the currently logged in user, or an empty string if not logged in</description>
+	</tag>
 
 </taglib>
