@@ -7,6 +7,7 @@ package uk.ac.warwick.sso.client;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
+import java.util.UUID;
 
 import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
@@ -27,6 +28,8 @@ import uk.ac.warwick.util.cache.Cache;
 import uk.ac.warwick.util.cache.CacheEntry;
 
 public class ShireCommand {
+
+	public static final String CSRF_TOKEN_PROPERTY_NAME = "urn:websignon:csrf";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ShireCommand.class);
 
@@ -113,6 +116,7 @@ public class ShireCommand {
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("Subject name:" + subject.getName().toString());
 	
 			User user = getUserFromAuthSubject(subject);
+			user.getExtraProperties().put(CSRF_TOKEN_PROPERTY_NAME, UUID.randomUUID().toString());
 	
 			if (user.getExtraProperty("urn:websignon:ipaddress") != null) {
 				if (user.getExtraProperty("urn:websignon:ipaddress").equals(getRemoteHost())) {
