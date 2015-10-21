@@ -7,6 +7,7 @@ package uk.ac.warwick.sso.client;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
+import java.util.UUID;
 
 import javax.servlet.http.Cookie;
 
@@ -27,6 +28,8 @@ import uk.ac.warwick.userlookup.cache.Cache;
 import uk.ac.warwick.userlookup.cache.Entry;
 
 public class ShireCommand {
+
+	public static final String CSRF_TOKEN_PROPERTY_NAME = "urn:websignon:csrf";
 
 	private static final Logger LOGGER = Logger.getLogger(ShireCommand.class);
 
@@ -104,6 +107,7 @@ public class ShireCommand {
 			if (LOGGER.isDebugEnabled()) LOGGER.debug("Subject name:" + subject.getName().getName());
 	
 			User user = getUserFromAuthSubject(subject);
+			user.getExtraProperties().put(CSRF_TOKEN_PROPERTY_NAME, UUID.randomUUID().toString());
 	
 			if (user.getExtraProperty("urn:websignon:ipaddress") != null) {
 				if (user.getExtraProperty("urn:websignon:ipaddress").equals(getRemoteHost())) {
