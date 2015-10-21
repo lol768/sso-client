@@ -1,9 +1,6 @@
 package uk.ac.warwick.sso.client;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 import uk.ac.warwick.userlookup.User;
 
 import javax.servlet.*;
@@ -15,7 +12,7 @@ public class CSRFFilter extends AbstractShireSkippingFilter {
 
     public static final String CSRF_HTTP_HEADER = "X-CSRF-Token";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CSRFFilter.class);
+    private static final Logger LOGGER = Logger.getLogger(CSRFFilter.class);
 
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         if (request.getMethod().equalsIgnoreCase("post")) {
@@ -35,17 +32,17 @@ public class CSRFFilter extends AbstractShireSkippingFilter {
                         providedToken = request.getHeader(CSRF_HTTP_HEADER);
                     }
 
-                    if (StringUtils.isEmpty(providedToken)) {
+                    if (providedToken == null || providedToken.length() == 0) {
                         LOGGER.info("No CSRF token was provided in the POST; denying request");
 
                         response.setHeader("X-Error", "No CSRF token");
-                        response.setStatus(HttpStatus.SC_BAD_REQUEST);
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                         return;
                     } else if (!providedToken.equals(csrfToken)) {
                         LOGGER.warn("Provided CSRF token does not match stored CSRF token; denying request");
 
                         response.setHeader("X-Error", "Wrong CSRF token");
-                        response.setStatus(HttpStatus.SC_BAD_REQUEST);
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                         return;
                     } else {
                         LOGGER.debug("Allowing CSRF request through as token matches");
