@@ -163,6 +163,7 @@ public class ShireCommand {
 		Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), token.getValue());
 		cookie.setPath(_config.getString("shire.sscookie.path"));
 		cookie.setDomain(_config.getString("shire.sscookie.domain"));
+		cookie.setHttpOnly(true);
 		// create cookie so that service can retrieve user from cache
 		return cookie;
 	}

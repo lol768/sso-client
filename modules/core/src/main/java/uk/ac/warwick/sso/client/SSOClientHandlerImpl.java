@@ -371,6 +371,7 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
         cookie.setPath(_config.getString("shire.sscookie.path"));
         cookie.setDomain(_config.getString("shire.sscookie.domain"));
         cookie.setMaxAge(0);
+        cookie.setHttpOnly(true);
         response.addCookie(cookie);
     }
 

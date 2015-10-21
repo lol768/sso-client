@@ -137,6 +137,7 @@ public class ShireServlet extends HttpServlet {
 			ltc.setDomain(".warwick.ac.uk");
 			ltc.setPath("/");
 			ltc.setMaxAge(0);
+			ltc.setHttpOnly(true);
 			res.addCookie(ltc);
 			LOGGER.debug("User being redirected to target but they didn't get a new SSC so we are clearing the SSO-LTC");
 		} else {
