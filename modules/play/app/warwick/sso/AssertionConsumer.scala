@@ -61,7 +61,7 @@ class AssertionConsumer @Inject() (
         None
     }
 
-    val redirect = TemporaryRedirect(data.target).withHeaders(
+    val redirect = Found(data.target).withHeaders(
       "P3P" -> "CP=\"CAO PSA OUR\""
     )
 
