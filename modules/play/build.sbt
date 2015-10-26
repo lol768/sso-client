@@ -1,5 +1,5 @@
 
-def libraryVersion = "2.7"
+def libraryVersion = "2.8-SNAPSHOT"
 
 lazy val play = (project in file(".")).enablePlugins(PlayScala)
 

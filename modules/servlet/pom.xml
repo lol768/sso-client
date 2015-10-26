@@ -6,13 +6,13 @@
 	<parent>
 		<groupId>uk.ac.warwick.sso</groupId>
 		<artifactId>sso-client-project</artifactId>
-		<version>2.7</version>
+		<version>1.1</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
 	<groupId>uk.ac.warwick.sso</groupId>
 	<artifactId>sso-client</artifactId>
-	<version>2.7</version>
+	<version>${ssoclient.version}</version>
 	<packaging>jar</packaging>
 
 	<name>SSO Client for Servlet API</name>
@@ -452,7 +452,7 @@
 		<dependency>
 			<groupId>uk.ac.warwick.sso</groupId>
 			<artifactId>sso-client-core</artifactId>
-			<version>${ssoclient.core.version}</version>
+			<version>${version}</version>
 		</dependency>
 
         <dependency>
