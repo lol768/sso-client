@@ -24,9 +24,11 @@ class SSOClientModule extends PrivateModule {
     bind(classOf[SSOClientHandler]).to(classOf[SSOClientHandlerImpl])
     bind(classOf[OnCampusService]).to(classOf[OnCampusServiceImpl])
     bind(classOf[UserLookupService])
+    bind(classOf[LogoutController])
 
     // public beans
     expose(classOf[AssertionConsumer])
+    expose(classOf[LogoutController])
     expose(classOf[SsoClient])
     expose(classOf[UserLookupService])
   }

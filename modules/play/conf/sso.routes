@@ -1,2 +1,4 @@
-GET        /acs        @warwick.sso.AssertionConsumer.get
-POST       /acs        @warwick.sso.AssertionConsumer.post
+GET         /acs        @warwick.sso.AssertionConsumer.get
+POST        /acs        @warwick.sso.AssertionConsumer.post
+
+POST        /logout     @warwick.sso.LogoutController.post
