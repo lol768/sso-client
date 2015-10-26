@@ -13,7 +13,7 @@
 
     <groupId>uk.ac.warwick.sso</groupId>
     <artifactId>sso-client-core</artifactId>
-    <version>2.7-SNAPSHOT</version>
+    <version>2.7</version>
 
     <name>SSO Client Core</name>
 
