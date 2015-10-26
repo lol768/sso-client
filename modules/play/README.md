@@ -61,3 +61,13 @@ Then use Guice injection to get access to one of the provided beans. `SsoClient`
 builders that you can use in your controllers to get the current `User`. `UserLookupService` is just a
 Scala-friendly interface to UserLookup, letting you find users by usercode and University ID.
 
+    class SecretController @Inject() (sso: SsoClient) extends Controller {
+
+      def suspicious = sso.Lenient { request =>
+        request.context.user match {
+          Some(user) => Ok(s"Welcome to the secret area!")
+          None => Ok("Nobody here but us chickens.")
+        }
+      }
+
+    }
