@@ -55,7 +55,7 @@ script will look like this:
      
      
     # --- !Downs
-    DROP TABLE objectcache;%
+    DROP TABLE objectcache;
     
 Then use Guice injection to get access to one of the provided beans. `SsoClient` provides some `Action`
 builders that you can use in your controllers to get the current `User`. `UserLookupService` is just a
