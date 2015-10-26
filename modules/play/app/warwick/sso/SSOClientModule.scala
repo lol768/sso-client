@@ -16,8 +16,6 @@ import uk.ac.warwick.util.cache.{Cache, Caches}
  * objects. As this is a private module, most of the beans
  * are not available to an app using this module except where
  * they are explicitly exposed.
- *
- * Beans you might be interested in:
  */
 class SSOClientModule extends PrivateModule {
   override def configure(): Unit = {
@@ -25,14 +23,15 @@ class SSOClientModule extends PrivateModule {
     bind(classOf[SsoClient]).to(classOf[SsoClientImpl])
     bind(classOf[SSOClientHandler]).to(classOf[SSOClientHandlerImpl])
     bind(classOf[OnCampusService]).to(classOf[OnCampusServiceImpl])
+    bind(classOf[UserLookupService])
 
     // public beans
     expose(classOf[AssertionConsumer])
     expose(classOf[SsoClient])
+    expose(classOf[UserLookupService])
   }
 
   @Provides
-  @Exposed
   def userlookup() : UserLookupInterface = new UserLookup()
 
   @Provides @Named("SSOClientDB")
@@ -44,7 +43,8 @@ class SSOClientModule extends PrivateModule {
   @Provides
   def config(conf: Configuration): SSOConfiguration = {
     new SSOConfiguration(new PlayConfiguration(
-      conf.getConfig("sso-client").getOrElse(throw new RuntimeException("Expecting sso-client section of config"))
+      conf.getConfig("sso-client")
+        .getOrElse(throw new RuntimeException("SSO Client configuration should be under an 'sso-client' section of your Play config."))
     ))
   }
 

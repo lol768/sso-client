@@ -89,7 +89,7 @@ class JdbcUserCache @Inject() (
       try {
         Option(new ObjectInputStream(blob.getBinaryStream).readObject().asInstanceOf[UserCacheItem])
       } catch {
-        case e @ (_:IOException | _:ClassNotFoundException) =>
+        case e: Exception =>
           logger.error("Could not get cache item back from database", e)
           None
       }

@@ -3,13 +3,9 @@ package warwick.sso
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatestplus.play.PlaySpec
 import uk.ac.warwick.userlookup.{AnonymousUser, UserBuilder}
-import warwick.sso.UserType._
 
 import scala.collection.JavaConverters._
 
-/**
- * Created by nick on 14/10/15.
- */
 class UserSpec extends PlaySpec {
   import TableDrivenPropertyChecks._
 
@@ -20,21 +16,24 @@ class UserSpec extends PlaySpec {
     "convert user type from old User" in {
 
       val users = Table(
-        ("Attributes", "UserType"),
-        (Map("warwickitsclass" -> "PG(R)"), PostgradResearch),
-        (Map("warwickcategory" -> "R"), PostgradResearch),
-        (Map("warwickitsclass" -> "PG(R)", "warwickcategory" -> "T"), PostgradResearch), // itsclass takes priority
-        (Map("warwickitsclass" -> "PG(T)", "warwickcategory" -> "R"), PostgradTeaching),
-        (Map("warwickitsclass" -> "Staff", "warwickcategory" -> "X"), Staff),
-        (Map("warwickitsclass" -> "PG(T)", "warwickcategory" -> "R", "urn:websignon:usertype"->"Alumni"), Alumni),
-        (Map("warwickitsclass" -> "Student"), Student)
+        ("Attributes", "staff or pgr", "pgr", "student"),
+        (Map("warwickitsclass" -> "PG(R)"), true, true, false),
+        (Map("warwickcategory" -> "R"), true, true, false),
+        (Map("warwickitsclass" -> "PG(R)", "warwickcategory" -> "T"), true, true, false), // itsclass takes priority
+        (Map("warwickitsclass" -> "PG(T)", "warwickcategory" -> "R"), false, false, false),
+        (Map("warwickitsclass" -> "Staff", "warwickcategory" -> "X"), false, false, false),
+        (Map("warwickitsclass" -> "Student"), false, false, false) // we only check "student" for studentness
       )
 
-      forAll(users) { (attrs, userType) =>
+      forAll(users) { (attrs, stafforpgr, pgr, student) =>
         val oldUser = new UserBuilder().populateUser(attrs.asJava)
+        oldUser.setStaff(stafforpgr)
+        oldUser.setStudent(student)
         oldUser.setUserId("Something")
         val user = User(oldUser)
-        user.userType must be (userType)
+        user.isStudent must be (student)
+        user.isStaffOrPGR must be (stafforpgr)
+        user.isStaffNotPGR must be (stafforpgr && !pgr)
       }
 
     }

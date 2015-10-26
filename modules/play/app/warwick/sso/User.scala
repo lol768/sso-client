@@ -13,18 +13,6 @@ case class Name(val first: Option[String], val last: Option[String]) {
 }
 case class Department(shortName: Option[String], name: Option[String], code: Option[String])
 
-sealed trait UserType
-object UserType {
-  /** Staff BUT NOT PG */
-  case object Staff extends UserType
-  /** Student BUT NOT PG */
-  case object Student extends UserType
-  case object PostgradTeaching extends UserType
-  case object PostgradResearch extends UserType
-  case object Alumni extends UserType
-  case object Unrecognised extends UserType
-}
-
 /**
  * A more Scala version of Userlookup's User.
  */
@@ -34,7 +22,24 @@ case class User(
   name: Name,
   email: Option[String],
   department: Option[Department],
-  userType: UserType,
+
+  isStaffOrPGR: Boolean,
+  isStaffNotPGR: Boolean,
+  isStudent: Boolean,
+  isAlumni: Boolean,
+
+  /** Does this represent a user that exists? */
+  isFound: Boolean,
+  /**
+   * If `isFound` and `isVerified` are both false,
+   * this means there was some server problem looking up this
+   * user and we can't be sure that they definitely don't exist.
+   */
+  isVerified: Boolean,
+  /**
+   * Matches the logindisabled attribute on the user.
+   */
+  isLoginDisabled: Boolean,
 
   /**
    * Please don't use this to implement app logic.
@@ -57,29 +62,23 @@ object User {
     name = Name(notEmptyOption(u.getFirstName), notEmptyOption(u.getLastName)),
     email = notEmptyOption(u.getEmail),
     department = Some(Department(notEmptyOption(u.getShortDepartment), notEmptyOption(u.getDepartment), notEmptyOption(u.getDepartmentCode))),
-    userType = userTypeOf(u),
+
+    isStaffOrPGR = u.isStaff,
+    isStaffNotPGR = u.isStaff && !isPGR(u),
+    isStudent    = u.isStudent,
+    isAlumni = u.isAlumni,
+
+    isFound = u.isFoundUser,
+    isVerified = u.isVerified,
+    isLoginDisabled = u.isLoginDisabled,
 
     rawProperties = u.getExtraProperties.asScala.toMap
   )
 
-  def userTypeOf(u: uk.ac.warwick.userlookup.User): UserType = {
-    import UserType._
+  def isPGR(u: uk.ac.warwick.userlookup.User): Boolean = {
     val attributes = u.getExtraProperties
-    val legacyUserType = attributes.get("urn:websignon:usertype")
-
-    if (legacyUserType == "Alumni" || attributes.get("alumni") == "true") {
-      Alumni
-    } else {
-      (attributes.get("warwickitsclass"), attributes.get("warwickcategory")) match {
-        case ("PG(R)", _) => PostgradResearch
-        case ("PG(T)", _) => PostgradTeaching
-        case ("Staff", _) => Staff
-        case ("Student", _) => Student
-        case (_, "R") => PostgradResearch
-        case (_, "T") => PostgradTeaching
-        case _ => Unrecognised
-      }
-    }
+    import attributes.get
+    get("warwickitsclass") == "PG(R)" || get("warwickcategory") == "R"
   }
 
   def hasUsercode(user: uk.ac.warwick.userlookup.User): Boolean = StringUtils.hasText(user.getUserId)

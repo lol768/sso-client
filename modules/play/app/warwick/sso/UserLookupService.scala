@@ -15,7 +15,8 @@ import User.hasUsercode
 trait UserLookupService {
 
   /**
-   * @return A Map from usercode to user. If a code did not match a user,
+   * @return A Try[Map] from usercode to user. If a code did not match a user,
+   * we don't return it.
    */
   def getUsers(codes: Seq[Usercode]): Try[Map[Usercode, User]]
   def getUsers(ids: Seq[UniversityID], includeDisabled: Boolean = false): Try[Map[UniversityID, User]]
@@ -44,18 +45,15 @@ class UserLookupServiceImpl @Inject() (userLookupInterface: UserLookupInterface)
   }
 
   override def getUsers(ids: Seq[UniversityID], includeDisabled: Boolean = false): Try[Map[UniversityID, User]] = Try {
+    // TODO Websignon supports batch lookup by university ID - implement SSO-1472 to avoid making N requests
     ids.flatMap { id =>
-      // TODO Websignon supports batch lookup by university ID - implement SSO-1472 to avoid making N requests
-
-      // Maybe a user with a usercode
-      val u = Option(userLookupInterface.getUserByWarwickUniId(id.string, includeDisabled))
-        .filter(hasUsercode).map(User.apply)
-
-      for {
-        user <- u
-        id <- user.universityId
-      } yield (id -> user)
-    }.toMap
+      Option(userLookupInterface.getUserByWarwickUniId(id.string, includeDisabled)).filter(hasUsercode)
+    }
+    .map(User.apply)
+    .flatMap { user =>
+      user.universityId.map { id => (id -> user) }
+    }
+    .toMap
   }
 
 }
