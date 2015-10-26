@@ -4,7 +4,7 @@ import Defaults._
 resolvers += "nexus" at "https://mvn.elab.warwick.ac.uk/nexus/content/groups/public"
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
-addSbtPlugin("uk.ac.warwick" % "play-warwick" % "0.1-SNAPSHOT")
+addSbtPlugin("uk.ac.warwick" % "play-warwick" % "[0.1, 1.0[")
 
 // The Typesafe repository
 resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
