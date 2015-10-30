@@ -7,19 +7,30 @@ import uk.ac.warwick.sso.client.core.{Cookie, HttpRequest}
 import scala.collection.JavaConverters._
 
 /**
- * Implements the HttpRequest interface from sso-client-core, wrapping
- * Play's native request object so that we can pass it into the core
- * handler code.
+ * Extension of PlayHttpRequestHeader that takes a full request, and so
+ * has access to POST parameters.
  */
-class PlayHttpRequest(req: Request[_]) extends HttpRequest {
-  import PlayHttpRequest._
-
-  private def bodyParams: Map[String, Seq[String]] = req.body match {
+class PlayHttpRequest[A](req: Request[A]) extends PlayHttpRequestHeader(req) {
+  override def bodyParams = req.body match {
     case AnyContentAsFormUrlEncoded(data) => data
     case AnyContentAsMultipartFormData(data) => data.asFormUrlEncoded
     case b : MultipartFormData[_] => b.asFormUrlEncoded
     case _ => Map.empty
   }
+}
+
+/**
+ * Implements the HttpRequest interface from sso-client-core, wrapping
+ * Play's native request object so that we can pass it into the core
+ * handler code.
+ *
+ * This version only takes headers, and so won't return any POST parameters,
+ * since they're in the body.
+ */
+class PlayHttpRequestHeader(req: RequestHeader) extends HttpRequest {
+  import PlayHttpRequest._
+
+  protected def bodyParams: Map[String, Seq[String]] = Map.empty
 
   override def getParameter(s: String): util.List[String] =
     bodyParams.get(s)

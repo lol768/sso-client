@@ -43,7 +43,28 @@ trait SsoClient {
    */
   val Strict: ActionBuilder[AuthRequest]
 
-  def linkGenerator(request: Request[_]): LinkGenerator
+  /** The type of block you can pass to withUser. */
+  type TryAcceptResult[A] = Future[Either[Result, A]]
+
+  /**
+   * This is for use with WebSockets, which don't use Actions. A Controller method might look like this:
+   *
+   *     def userMessages = WebSocket.tryAcceptWithActor[JsValue, JsValue] { req =>
+   *       client.withUser(req) { loginContext =>
+   *         Future.successful(Right(A.props(loginContext) _))
+   *       }
+   *     }
+   *
+   * Where `object A { def props(ctx: LoginContext)(out: ActorRef): Props }` is defined. The first param
+   * list is for yu to pass any dependencies to the actor, and the second is kept to be called by the
+   * WebSocket class as it requires an `ActorRef => Props` function.
+   *
+   * Obviously you can do proper Future stuff if you need to, and you can return a Left[Result] if you
+   * want to immediately return an HTTP response, though most clients disconnect if you do this.
+   */
+  def withUser[A](request: RequestHeader)(block: LoginContext => TryAcceptResult[A]): TryAcceptResult[A]
+
+  def linkGenerator(request: RequestHeader): LinkGenerator
 }
 
 
@@ -55,8 +76,8 @@ class SsoClientImpl @Inject() (
   import play.api.libs.concurrent.Execution.Implicits._
   import play.api.mvc.Results._
 
-  def linkGenerator(request: Request[_]) = {
-    val req = new PlayHttpRequest(request)
+  def linkGenerator(request: RequestHeader) = {
+    val req = new PlayHttpRequestHeader(request)
     new LinkGenerator(configuration, req)
   }
 
@@ -106,5 +127,18 @@ class SsoClientImpl @Inject() (
         }
       }
     }
+  }
+
+  override def withUser[A](req: RequestHeader)(block: (LoginContext) => TryAcceptResult[A])
+      : TryAcceptResult[A] = {
+
+    val request = new PlayHttpRequestHeader(req)
+    val response = Future{ handler.handle(request) }
+    response.flatMap { response =>
+      val user = Option(response.getUser).filter(User.hasUsercode)
+      val ctx = new LoginContextImpl(linkGenerator(req), user.map(User.apply))
+      block(ctx)
+    }
+
   }
 }
