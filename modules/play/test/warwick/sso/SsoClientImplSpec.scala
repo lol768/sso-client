@@ -32,6 +32,8 @@ object WebsocketTesting {
     */
   class C(client: SsoClient) extends Controller {
     import play.api.Play.current
+    import scala.concurrent.ExecutionContext.Implicits.global
+
     def actor = WebSocket.tryAcceptWithActor[JsValue, JsValue] { req =>
       client.withUser(req) { loginContext =>
         Future.successful(Right(A.props(loginContext) _))
