@@ -64,7 +64,7 @@ trait SsoClient {
    */
   def withUser[A](request: RequestHeader)(block: LoginContext => TryAcceptResult[A]): TryAcceptResult[A]
 
-  def linkGenerator(request: RequestHeader): LinkGenerator
+  //def linkGenerator(request: RequestHeader): LinkGenerator
 }
 
 
@@ -76,7 +76,7 @@ class SsoClientImpl @Inject() (
   import play.api.libs.concurrent.Execution.Implicits._
   import play.api.mvc.Results._
 
-  def linkGenerator(request: RequestHeader) = {
+  private def linkGenerator(request: RequestHeader) = {
     val req = new PlayHttpRequestHeader(request)
     new LinkGenerator(configuration, req)
   }

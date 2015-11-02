@@ -1,43 +1,57 @@
 
 def libraryVersion = "2.8-SNAPSHOT"
 
-lazy val play = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file("."))
+  .aggregate(library, testing)
 
-// Can add 2.12 to this as and when we need to support that
-// then you prepend + to a task to cross-run it, e.g. sbt +publish
-crossScalaVersions := Seq("2.11.6")
+lazy val library = (project in file("library")).enablePlugins(PlayScala)
+  .settings(commonSettings : _*)
+  .settings(repositorySettings : _*)
+  .settings(
+    name := """sso-client-play""",
+    libraryDependencies ++= appDeps ++ testDeps
+  )
 
-scalaVersion := "2.11.6"
-publishMavenStyle := true
-compileOrder := CompileOrder.ScalaThenJava // maybe faster?
+// Helper library for other apps' tests.
+lazy val testing = (project in file("testing")).enablePlugins(PlayScala)
+  .dependsOn(library)
+  .settings(commonSettings : _*)
+  .settings(repositorySettings : _*)
+  .settings(
+    name := """sso-client-play-testing""",
+    libraryDependencies ++= appDeps ++ testDeps
+  )
 
-organization := "uk.ac.warwick.sso"
-name := """sso-client-play"""
-version := libraryVersion
+lazy val commonSettings = Seq(
+  // Can add 2.12 to this as and when we need to support that
+  // then you prepend + to a task to cross-run it, e.g. sbt +publish
+  crossScalaVersions := Seq("2.11.6"),
 
-// Check local Maven, so we can install ssoclient locally and depend on it during build.
-resolvers += "Local Maven Repository" at Path.userHome.asFile.toURI.toURL + ".m2/repository"
-resolvers += WarwickNexus
-resolvers += DefaultMavenRepository
-resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven"
+  scalaVersion := "2.11.6",
+  publishMavenStyle := true,
+  compileOrder := CompileOrder.ScalaThenJava, // maybe faster?
 
-repositorySettings
+  organization := "uk.ac.warwick.sso",
+  version := libraryVersion,
 
-val appDeps = Seq[ModuleID](
+  // Check local Maven, so we can install ssoclient locally and depend on it during build.
+  resolvers += "Local Maven Repository" at Path.userHome.asFile.toURI.toURL + ".m2/repository",
+  resolvers += WarwickNexus,
+  resolvers += DefaultMavenRepository,
+  resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven"
+)
+
+lazy val appDeps = Seq[ModuleID](
   "uk.ac.warwick.sso" % "sso-client-core" % libraryVersion,
   jdbc,
   "xerces" % "xercesImpl" % "2.11.0",
   "xalan" % "xalan" % "2.7.1"
 )
-libraryDependencies ++= appDeps
 
-//dependencyOverrides += "xml-apis" % "xml-apis" % "1.4.01"
-
-val testDeps = Seq[ModuleID](
+lazy val testDeps = Seq[ModuleID](
   "org.scalatest" %% "scalatest" % "2.2.1",
   "org.scalatestplus" %% "play" % "1.4.0-M3",
   "org.scalacheck" %% "scalacheck" % "1.12.5",
   "org.mockito" % "mockito-all" % "1.10.19"
 ).map(_ % Test)
-libraryDependencies ++= testDeps
 
