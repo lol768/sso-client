@@ -8,11 +8,11 @@ import org.mockito.Matchers._
 import org.mockito.Mockito._
 
 import scala.collection.JavaConverters._
+import scala.util.{Failure, Success}
 
 class UserLookupServiceImplSpec extends PlaySpec with MockitoSugar {
 
-  "UserLookupService" should {
-
+  class Context {
     val userlookup = mock[UserLookupInterface](withSettings().defaultAnswer(RETURNS_SMART_NULLS))
     val service = new UserLookupServiceImpl(userlookup)
     val usercodes = List(Usercode("heron"), Usercode("cuslaj"))
@@ -23,22 +23,25 @@ class UserLookupServiceImplSpec extends PlaySpec with MockitoSugar {
     ritchieUser.setWarwickId("1170836")
 
     val anon = new AnonymousUser
+  }
+  
+  "UserLookupService" should {
 
-    "searchUsers" in {
+    "searchUsers" in new Context {
       val filters = Map("species" -> "foulBird")
       when (userlookup.findUsersWithFilter(filters.asJava, false)) thenReturn List(heronUser, anon).asJava
 
       service.searchUsers(filters, false).get must be(Seq(User(heronUser)))
     }
 
-    "getUsers by usercode" in {
+    "getUsers by usercode" in new Context {
       when(userlookup.getUsersByUserIds(Arrays.asList("heron", "cuslaj"))) thenReturn {
         Map("heron" -> heronUser, "cuslaj" -> ritchieUser, "bob" -> anon).asJava
       }
       service.getUsers(usercodes).get must be(Map(Usercode("heron") -> User(heronUser), Usercode("cuslaj") -> User(ritchieUser)))
     }
 
-    "getUsers by university ID" in {
+    "getUsers by university ID" in new Context {
       val ids = UniversityID("gleb") :: universityIds
       when(userlookup.getUserByWarwickUniId("heron", false)) thenReturn heronUser
       when(userlookup.getUserByWarwickUniId("1170836", false)) thenReturn ritchieUser
@@ -47,6 +50,22 @@ class UserLookupServiceImplSpec extends PlaySpec with MockitoSugar {
         UniversityID("heron") -> User(heronUser).copy(universityId = Some(UniversityID("heron"))),
         UniversityID("1170836") -> User(ritchieUser).copy(universityId = Some(UniversityID("1170836")))
       ))
+    }
+
+    "basicAuth success" in new Context {
+      when(userlookup.getUserByIdAndPassNonLoggingIn("api-tabula","12345")) thenReturn heronUser
+      service.basicAuth("api-tabula", "12345").get.get.usercode must be (Usercode("heron"))
+    }
+
+    "basicAuth failure" in new Context {
+      val anError = new RuntimeException("Argh!")
+      when(userlookup.getUserByIdAndPassNonLoggingIn("api-tabula","12345")) thenThrow anError
+      service.basicAuth("api-tabula", "12345") must be (Failure(anError))
+    }
+
+    "basicAuth no user" in new Context {
+      when(userlookup.getUserByIdAndPassNonLoggingIn("api-tabula","12345")) thenReturn anon
+      service.basicAuth("api-tabula", "12345") must be (Success(None))
     }
 
     //FIXME spec for unverified users returned from userlookup - should be a Try failure

@@ -88,6 +88,10 @@ public class WebUserLookup implements UserLookupBackend {
 		if (s.indexOf("/sentry") == -1) {
 			s += "/sentry";
 		}
+		// Catch any insecure requests (but ignore localhost, for tests)
+		if (s != null && !s.startsWith("https:") && !s.startsWith("http://127.0.0.1")) {
+			throw new IllegalArgumentException("Websignon URL not HTTPS: " + s);
+		}
 		return s;
 	}
 

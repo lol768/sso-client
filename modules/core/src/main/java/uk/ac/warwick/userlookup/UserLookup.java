@@ -548,14 +548,6 @@ public class UserLookup implements UserLookupInterface {
 	public final void setSsosUrl(final String ssosUrl) {
 		_ssosUrl = ssosUrl;
 	}
-	
-	/**
-	 * Deprecated since UserLookup no longer calls LDAP directly.
-	 * @deprecated
-	 */
-	public final void setLdapUrl(final String ignored) {
-		LOGGER.error("setLdapUrl() is deprecated and no longer does anything. You should stop using it.");
-	}
 
 	/**
 	 * Time in milliseconds to allow for a connection to the single sign on
