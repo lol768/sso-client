@@ -3,6 +3,10 @@ def libraryVersion = "2.8-SNAPSHOT"
 
 lazy val root = (project in file("."))
   .aggregate(library, testing)
+  .settings(
+    publish := {},
+    publishArtifact := false
+  )
 
 lazy val library = (project in file("library")).enablePlugins(PlayScala)
   .settings(commonSettings : _*)
