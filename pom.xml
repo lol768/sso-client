@@ -12,7 +12,7 @@
 
     <groupId>uk.ac.warwick.sso</groupId>
     <artifactId>sso-client-project</artifactId>
-    <version>${ssoclient.version}</version>
+    <version>2.8</version>
     <packaging>pom</packaging>
 
     <name>SSO Client Project</name>
@@ -27,7 +27,6 @@
     </build>
 
     <properties>
-        <ssoclient.version>2.8</ssoclient.version>
         <org.springframework.version>4.1.4.RELEASE</org.springframework.version>
         <jetty.version>7.0.1.v20091125</jetty.version>
         <warwickutils.version>20150910</warwickutils.version>
