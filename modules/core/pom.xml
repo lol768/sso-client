@@ -15,7 +15,9 @@
     <artifactId>sso-client-core</artifactId>
     <version>${ssoclient.version}</version>
 
-    <name>SSO Client Core</name>
+    <properties>
+        <maven.deploy.skip>false</maven.deploy.skip>
+    </properties>
 
     <build>
         <plugins>

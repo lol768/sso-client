@@ -32,6 +32,9 @@
         <jetty.version>7.0.1.v20091125</jetty.version>
         <warwickutils.version>20150910</warwickutils.version>
         <ssoclient.artifacts.dir>/tmp</ssoclient.artifacts.dir>
+
+        <!-- set to false in subprojects, just so we don't deploy this parent project -->
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <repositories>

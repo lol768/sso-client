@@ -24,9 +24,9 @@
 	<!-- I N C E P T I O N -->
 	<inceptionYear>2005</inceptionYear>
 
-	<!--<modules>-->
-		<!--<module>modules/core</module>-->
-	<!--</modules>-->
+	<properties>
+		<maven.deploy.skip>false</maven.deploy.skip>
+	</properties>
 
 	<!-- Need to add the local repository in order to get the parent pom -->
 	<repositories>
