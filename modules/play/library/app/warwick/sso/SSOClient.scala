@@ -4,7 +4,7 @@ import javax.inject.{Provider, Inject}
 
 import play.api.mvc._
 import uk.ac.warwick.sso.client.{SSOConfiguration, SSOClientHandler}
-import uk.ac.warwick.sso.client.core.{LinkGenerator, Response}
+import uk.ac.warwick.sso.client.core.{Response, LinkGenerator, LinkGeneratorImpl}
 import scala.collection.JavaConverters._
 
 import scala.concurrent.Future
@@ -28,7 +28,7 @@ class LoginContextImpl(linkGenerator: LinkGenerator, val user: Option[User], val
 
 class AuthenticatedRequest[A](val context: LoginContext, val request: Request[A]) extends WrappedRequest[A](request)
 
-trait SsoClient {
+trait SSOClient {
 
   type AuthRequest[A] = AuthenticatedRequest[A]
 
@@ -64,21 +64,21 @@ trait SsoClient {
    */
   def withUser[A](request: RequestHeader)(block: LoginContext => TryAcceptResult[A]): TryAcceptResult[A]
 
-  //def linkGenerator(request: RequestHeader): LinkGenerator
+  def linkGenerator(request: RequestHeader): LinkGenerator
 }
 
 
-class SsoClientImpl @Inject() (
+class SSOClientImpl @Inject()(
     handler: SSOClientHandler,
     configuration: SSOConfiguration
-  ) extends SsoClient {
+  ) extends SSOClient {
 
   import play.api.libs.concurrent.Execution.Implicits._
   import play.api.mvc.Results._
 
-  private def linkGenerator(request: RequestHeader) = {
+  def linkGenerator(request: RequestHeader) = {
     val req = new PlayHttpRequestHeader(request)
-    new LinkGenerator(configuration, req)
+    new LinkGeneratorImpl(configuration, req)
   }
 
   lazy val Strict = Lenient andThen RequireLogin

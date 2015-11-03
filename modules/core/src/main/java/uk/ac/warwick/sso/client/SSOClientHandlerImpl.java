@@ -214,7 +214,7 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
             LOGGER.debug("Found global login cookie (" + loginTicketCookie.getValue()
                     + "), but not a valid SSC for range request - sending 407");
         } else {
-            LinkGenerator generator = new LinkGenerator(_config, request);
+            LinkGenerator generator = new LinkGeneratorImpl(_config, request);
             String loginLink = generator.getLoginUrl();
             response.setRedirect(loginLink);
 
@@ -468,7 +468,7 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
      * @return
      */
     private URL getTarget(final HttpRequest request) {
-        LinkGenerator generator = new LinkGenerator(_config, request);
+        LinkGenerator generator = new LinkGeneratorImpl(_config, request);
         try {
             return new URL(generator.getTarget());
         } catch (MalformedURLException e) {

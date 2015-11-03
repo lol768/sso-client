@@ -1,7 +1,6 @@
 package warwick.sso
 
-import play.api.{Mode, Environment, Configuration}
-
+import play.api.{Environment, Configuration}
 
 object TestConfiguration {
   def fromResource(name: String): Configuration = Configuration.load(

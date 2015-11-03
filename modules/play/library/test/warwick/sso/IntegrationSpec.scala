@@ -32,7 +32,7 @@ class IntegrationSpec extends PlaySpec with Results {
 
       val assertionConsumer = app.injector.instanceOf[AssertionConsumer]
 
-      val client = app.injector.instanceOf[SsoClient]
+      val client = app.injector.instanceOf[SSOClient]
 
     }
   }

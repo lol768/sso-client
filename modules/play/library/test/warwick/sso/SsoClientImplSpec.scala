@@ -30,7 +30,7 @@ object WebsocketTesting {
   /** Example of using SSOClient in a websocket. This code isn't actually executed,
     * but it's nice to know that it compiles
     */
-  class C(client: SsoClient) extends Controller {
+  class C(client: SSOClient) extends Controller {
     import play.api.Play.current
     import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -55,7 +55,7 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results {
   class Context {
     val handler = mock[SSOClientHandler]
     val response = new Response
-    val client: SsoClient = new SsoClientImpl(handler, new SSOConfiguration(new PropertiesConfiguration()))
+    val client: SSOClient = new SSOClientImpl(handler, new SSOConfiguration(new PropertiesConfiguration()))
     val action = client.Lenient { request => Ok("Great") }
     val noRunAction = client.Lenient { request => fail("Shouldn't run this block") }
 

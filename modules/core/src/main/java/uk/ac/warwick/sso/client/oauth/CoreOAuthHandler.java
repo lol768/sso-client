@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.warwick.sso.client.SSOConfiguration;
 import uk.ac.warwick.sso.client.core.HttpRequest;
 import uk.ac.warwick.sso.client.core.LinkGenerator;
+import uk.ac.warwick.sso.client.core.LinkGeneratorImpl;
 import uk.ac.warwick.sso.client.core.Response;
 import uk.ac.warwick.sso.client.oauth.OAuthService;
 import uk.ac.warwick.sso.client.oauth.OAuthToken;
@@ -44,7 +45,7 @@ public class CoreOAuthHandler {
             response.setUser(existingUser);
             response.setContinueRequest(true);
         } else {
-            final LinkGenerator linkGenerator = new LinkGenerator(getConfig(), request);
+            final LinkGenerator linkGenerator = new LinkGeneratorImpl(getConfig(), request);
             final String requestedUrl = linkGenerator.getTarget();
 
             final OAuthMessage message = getMessage(request, requestedUrl);

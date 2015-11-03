@@ -10,21 +10,21 @@ lazy val root = (project in file("."))
 
 lazy val library = (project in file("library")).enablePlugins(PlayScala)
   .settings(commonSettings : _*)
-  .settings(repositorySettings : _*)
   .settings(
     name := """sso-client-play""",
     libraryDependencies ++= appDeps ++ testDeps
   )
+  .settings(repositorySettings : _*)
 
 // Helper library for other apps' tests.
 lazy val testing = (project in file("testing")).enablePlugins(PlayScala)
   .dependsOn(library)
   .settings(commonSettings : _*)
-  .settings(repositorySettings : _*)
   .settings(
     name := """sso-client-play-testing""",
     libraryDependencies ++= appDeps ++ testDeps
   )
+  .settings(repositorySettings : _*)
 
 lazy val commonSettings = Seq(
   // Can add 2.12 to this as and when we need to support that

@@ -20,17 +20,19 @@ import uk.ac.warwick.util.cache.{Cache, Caches}
 class SSOClientModule extends PrivateModule {
   override def configure(): Unit = {
     bind(classOf[AssertionConsumer])
-    bind(classOf[SsoClient]).to(classOf[SsoClientImpl])
+    bind(classOf[SSOClient]).to(classOf[SSOClientImpl])
     bind(classOf[SSOClientHandler]).to(classOf[SSOClientHandlerImpl])
     bind(classOf[OnCampusService]).to(classOf[OnCampusServiceImpl])
     bind(classOf[UserLookupService])
     bind(classOf[LogoutController])
+    bind(classOf[BasicAuth]).to(classOf[BasicAuthImpl])
 
     // public beans
     expose(classOf[AssertionConsumer])
     expose(classOf[LogoutController])
-    expose(classOf[SsoClient])
+    expose(classOf[SSOClient])
     expose(classOf[UserLookupService])
+    expose(classOf[BasicAuth])
   }
 
   @Provides
