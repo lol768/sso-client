@@ -3,8 +3,7 @@ package uk.ac.warwick.userlookup;
 import static java.lang.Integer.*;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -78,6 +77,7 @@ public class UserLookup implements UserLookupInterface {
 	public static final String IN_GROUP_CACHE_NAME = "InWebgroupCache";
 	public static final String GROUP_MEMBER_CACHE_NAME = "WebgroupMemberCache";
 	public static final String USER_GROUPS_CACHE_NAME = "UserGroupsCache";
+	public static final String AUTH_CACHE_NAME = "UserAuthCache";
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserLookup.class);
 
@@ -87,6 +87,8 @@ public class UserLookup implements UserLookupInterface {
 	private Cache<String,User> _userByTokenCache;
 
 	private Cache<String,User> _userByUserIdCache;
+
+	private CacheWithDataInitialisation<String, Pair<String, User>, String> _authCache;
 
 	private String _ssosUrl;
 	
@@ -125,6 +127,40 @@ public class UserLookup implements UserLookupInterface {
 
 	public UserLookup() {
 		_onCampusService = new OnCampusServiceImpl();
+
+		final String cacheStrategy = getConfigProperty("ssoclient.cache.strategy");
+
+		// Basic Auth lookup cache.
+		// Note that we only return the password digest as a value - the factory itself can't
+		// check if it matched the input password, so you need to do that on get.
+		_authCache = Caches.newDataInitialisatingCache(
+			AUTH_CACHE_NAME,
+			new CacheEntryFactoryWithDataInitialisation<String, Pair<String, User>, String>() {
+				@Override public Pair<String, User> create(String username, String password) throws CacheEntryUpdateException {
+					try {
+						User u = getSpecificUserLookupType().getUserByUserIdAndPassNonLoggingIn(username, password);
+						return Pair.of(CacheDigests.digest(password), u);
+					} catch (UserLookupException e) {
+						throw new CacheEntryUpdateException("Error authenticating with credentials", e);
+					}
+				}
+
+				@Override public boolean shouldBeCached(Pair<String, User> val) {
+					return val.getRight().isFoundUser();
+				}
+
+				@Override public Map<String, Pair<String, User>> create(List<String> keys) throws CacheEntryUpdateException {
+					throw new UnsupportedOperationException();
+				}
+
+				@Override public boolean isSupportsMultiLookups() {
+					return false;
+				}
+
+			},
+			parseInt(getConfigProperty("ssoclient.cache.auth.timeout.secs")),
+			Caches.CacheStrategy.valueOf(cacheStrategy)
+		);
 		
 		_userByTokenCache = Caches.newCache(USER_CACHE_NAME, new SingularCacheEntryFactory<String, User>() {
             public User create(String key) throws CacheEntryUpdateException {
@@ -396,31 +432,6 @@ public class UserLookup implements UserLookupInterface {
 		this._backend = backend;
 	}
 
-	/**
-	 * @deprecated
-	 * 
-	 * @param user
-	 * @param pass
-	 * @return
-	 * @throws UserLookupException
-	 */
-	public final User getUserByIdAndPass(final String uncheckedUserId, final String uncheckedPass) throws UserLookupException {
-
-		LOGGER.debug("Trying SSO for user " + uncheckedUserId);
-
-		if (uncheckedUserId == null || uncheckedPass == null || uncheckedUserId.equals("")) {
-			return new AnonymousUser();
-		}
-
-		String userId = uncheckedUserId.trim();
-		String pass = uncheckedPass.trim();
-
-		User user = getSpecificUserLookupType().signIn(userId, pass);
-
-		return user;
-
-	}
-
 
 	public final User getUserByIdAndPassNonLoggingIn(final String uncheckedUserId, final String uncheckedPass)
 			throws UserLookupException {
@@ -434,6 +445,20 @@ public class UserLookup implements UserLookupInterface {
 		String userId = uncheckedUserId.trim();
 		String pass = uncheckedPass.trim();
 
+		try {
+			// Cache stores pair of password digest and user, so we need to
+			// check the password and digest match
+			final Pair<String, User> result = _authCache.get(userId, pass);
+			if (result.getLeft().equals(CacheDigests.digest(pass))) {
+				return result.getRight();
+			}
+		} catch (CacheEntryUpdateException e) {
+			LOGGER.error("Error using basic auth cache for " + userId, e);
+		}
+
+		/**
+		 * We get here if there was a CacheEntryUpdateException, or if the password was wrong.
+		 */
 		return getSpecificUserLookupType().getUserByUserIdAndPassNonLoggingIn(userId, pass);
 
 	}
@@ -589,8 +614,6 @@ public class UserLookup implements UserLookupInterface {
 
 	/**
 	 * You can set this here, or use the system property "userlookup.tokencachetimeout"
-	 * 
-	 * @param userCacheSize
 	 */
 	public final void setTokenCacheTimeout(final int userCacheTimeout) {
 		getUserByTokenCache().setTimeout(userCacheTimeout);
@@ -607,8 +630,6 @@ public class UserLookup implements UserLookupInterface {
 
 	/**
 	 * You can set this here, or use the system property "userlookup.useridcachetimeout"
-	 * 
-	 * @param userCacheSize
 	 */
 	public final void setUserIdCacheTimeout(final int userCacheTimeout) {
 		//getUserByUserIdCache().setTimeout(userCacheTimeout);
@@ -763,9 +784,14 @@ public class UserLookup implements UserLookupInterface {
 		return _userByUserIdCache;
 	}
 
+	Cache<String, Pair<String, User>> getAuthCache() {
+		return _authCache;
+	}
+
 	void shutdown() {
 		_userByTokenCache.shutdown();
 		_userByUserIdCache.shutdown();
+		_authCache.shutdown();
 	}
 
 	/**

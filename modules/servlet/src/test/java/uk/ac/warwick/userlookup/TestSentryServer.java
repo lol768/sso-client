@@ -62,6 +62,8 @@ public class TestSentryServer extends AbstractHandler {
 
 	private List<Map<String,String>> results = new ArrayList<Map<String,String>>();
 
+	private String successType = "4";
+
 	private UserResolver userResolver;
 
 	private boolean onlyIfFound;
@@ -263,7 +265,7 @@ public class TestSentryServer extends AbstractHandler {
 		results.put("user", user.getUserId());
 		if (user.isFoundUser()) {
 			results.put("name", user.getFullName());
-			results.put("returnType", "4");
+			results.put("returnType", successType);
 		} else if (user.isVerified()) {
 			results.put("returnType", "54");
 		} else {
@@ -328,5 +330,9 @@ public class TestSentryServer extends AbstractHandler {
 			columnToLdapMappings.put("Surname","sn");
 		}
 		return columnToLdapMappings;
+	}
+
+	public void setSuccessType(String t) {
+		this.successType = t;
 	}
 }

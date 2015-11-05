@@ -1,5 +1,6 @@
 package warwick.sso
 
+import java.util.Properties
 import javax.inject._
 
 import com.google.inject.{Exposed, PrivateModule, Provides}
@@ -10,6 +11,8 @@ import uk.ac.warwick.sso.client.cache.{InMemoryUserCache, UserCache}
 import uk.ac.warwick.sso.client.core.{OnCampusService, OnCampusServiceImpl}
 import uk.ac.warwick.userlookup.{UserLookup, UserLookupInterface}
 import uk.ac.warwick.util.cache.{Cache, Caches}
+
+import scala.collection.JavaConverters._
 
 /**
  * Guice module for setting up all the relevant SSO Client
@@ -36,7 +39,18 @@ class SSOClientModule extends PrivateModule {
   }
 
   @Provides
-  def userlookup() : UserLookupInterface = new UserLookup()
+  def userlookup(ssoConfig: SSOConfiguration) : UserLookupInterface = {
+    UserLookup.setConfigProperties(makeProps(ssoConfig))
+    new UserLookup()
+  }
+
+  private[sso] def makeProps(ssoConfig: SSOConfiguration): Properties = {
+    val props = new Properties()
+    for (key <- ssoConfig.getKeys.asScala.asInstanceOf[Iterator[String]]) {
+      props.setProperty(key, ssoConfig.getProperty(key).toString)
+    }
+    props
+  }
 
   @Provides @Named("SSOClientDB")
   def db(ssoConfig: SSOConfiguration, api: DBApi): Database =

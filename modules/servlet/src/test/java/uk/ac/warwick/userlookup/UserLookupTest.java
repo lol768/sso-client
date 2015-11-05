@@ -13,8 +13,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.jmock.Mockery;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import uk.ac.warwick.util.collections.Pair;
 
 @SuppressWarnings("unchecked")
 public class UserLookupTest {
@@ -27,6 +29,10 @@ public class UserLookupTest {
 		 sentry = new TestSentryServer();
 		 ul = new UserLookup();
 		 ul.setSsosUrl(sentry.getPath());
+	}
+
+	@After public void after() {
+		ul.shutdown();
 	}
 	
 	/**
@@ -98,5 +104,25 @@ public class UserLookupTest {
 				assertThat(result, hasEntry(is("whoareyou"), is(anonymous()) ));
 			}
 		});
+	}
+
+	@Test public void basicAuth() throws Exception {
+		sentry.setSuccessType("2");
+		sentry.willReturnUsers(user("reg"));
+		sentry.run(new Runnable() { public void run() {
+			try {
+				assertFalse(ul.getAuthCache().contains("reg"));
+
+				User user = ul.getUserByIdAndPassNonLoggingIn("reg", "r3g");
+
+				assertEquals("reg", user.getUserId());
+				assertTrue(ul.getAuthCache().contains("reg"));
+				Pair<String, User> result = ul.getAuthCache().get("reg");
+				assertEquals("reg", result.getRight().getUserId());
+				assertEquals(CacheDigests.digest("r3g"), result.getLeft());
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}});
 	}
 }
