@@ -3,35 +3,34 @@ def libraryVersion = "2.9"
 
 lazy val root = (project in file("."))
   .aggregate(library, testing)
+  .settings(commonSettings :_*)
   .settings(
     publish := {},
     publishArtifact := false
   )
 
 lazy val library = (project in file("library")).enablePlugins(PlayScala)
-  .settings(commonSettings : _*)
+  .settings(commonSettings :_*)
   .settings(
     name := """sso-client-play""",
     libraryDependencies ++= appDeps ++ testDeps
   )
-  .settings(repositorySettings : _*)
+  .settings(repositorySettings :_*)
 
 // Helper library for other apps' tests.
 lazy val testing = (project in file("testing")).enablePlugins(PlayScala)
   .dependsOn(library)
-  .settings(commonSettings : _*)
+  .settings(commonSettings :_*)
   .settings(
     name := """sso-client-play-testing""",
     libraryDependencies ++= appDeps ++ testDeps
   )
-  .settings(repositorySettings : _*)
+  .settings(repositorySettings :_*)
 
 lazy val commonSettings = Seq(
-  // Can add 2.12 to this as and when we need to support that
-  // then you prepend + to a task to cross-run it, e.g. sbt +publish
+  scalaVersion := "2.11.6",
   crossScalaVersions := Seq("2.11.6"),
 
-  scalaVersion := "2.11.6",
   publishMavenStyle := true,
   compileOrder := CompileOrder.ScalaThenJava, // maybe faster?
 
