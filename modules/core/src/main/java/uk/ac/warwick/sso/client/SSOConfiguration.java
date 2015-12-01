@@ -21,11 +21,9 @@ import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.NoSuchElementException;
 
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.*;
 
 import uk.ac.warwick.sso.client.internal.KeyAndCertUtils;
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
@@ -46,8 +44,12 @@ public class SSOConfiguration extends CompositeConfiguration {
 	private static final String LOGIN_LOCATION_KEY = "origin.login.location";
 	
 	private KeyAuthentication authenticationDetails;
+
+	// These properties come first so they override any other properties.
+	private BaseConfiguration overrides = new BaseConfiguration();
 	
 	public SSOConfiguration(Configuration delegate){
+		addConfiguration(overrides);
 		addConfiguration(delegate);
 		addDefaultConfiguration();
 		setThrowExceptionOnMissing(true);
@@ -61,8 +63,20 @@ public class SSOConfiguration extends CompositeConfiguration {
 				addProperty(LOGIN_LOCATION_KEY, "https://websignon.warwick.ac.uk/origin/slogin");
 			}
 		}
+
+		// Copy some properties to legacy locations, so we can use the newer property name
+		// without breaking compatibility.
+		copyString("origin.location", "userlookup.ssosUrl");
+		copyString("webgroups.location", "userlookup.groupservice.location");
 	}
-	
+
+	private void copyString(String from, String to) {
+		final String value = getString(from, null);
+		if (value != null) {
+			overrides.addProperty(to, value);
+		}
+	}
+
 	void addDefaultConfiguration() {
 		try {
 			addConfiguration( new PropertiesConfiguration(SSOConfiguration.class.getResource("/default-ssoclient.properties")) );

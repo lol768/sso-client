@@ -66,12 +66,18 @@ public class SSOConfigurationTest {
 	
 	@Test public void defaultValues() throws Exception {
 		BaseConfiguration configuration = new BaseConfiguration();
-		configuration.addProperty("mode", "new");		
+		configuration.addProperty("mode", "new");
+		configuration.addProperty("webgroups.location", "Walsall");
+		configuration.addProperty("origin.location", "Kenya");
 		SSOConfiguration config = new SSOConfiguration(configuration);
 		
 		assertEquals(config.getString("origin.originid"), "urn:mace:eduserv.org.uk:athens:provider:warwick.ac.uk");
 		assertEquals(config.getString("origin.login.location"), "https://websignon.warwick.ac.uk/origin/hs");
 		assertEquals(config.getString("origin.logout.location"), "https://websignon.warwick.ac.uk/origin/logout");
 		assertEquals(config.getString("origin.attributeauthority.location"), "https://websignon.warwick.ac.uk/origin/aa");
+
+		// Can override the old properties via the new properties
+		assertEquals("Walsall", config.getString("userlookup.groupservice.location"));
+		assertEquals("Kenya", config.getString("userlookup.ssosUrl"));
 	}
 }
