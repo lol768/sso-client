@@ -3,7 +3,7 @@ package warwick.sso
 import java.util.Properties
 import javax.inject._
 
-import com.google.inject.{Exposed, PrivateModule, Provides}
+import com.google.inject.{Scopes, Exposed, PrivateModule, Provides}
 import play.api.Configuration
 import play.api.db.{DBApi, Database}
 import uk.ac.warwick.sso.client._
@@ -22,13 +22,13 @@ import scala.collection.JavaConverters._
  */
 class SSOClientModule extends PrivateModule {
   override def configure(): Unit = {
-    bind(classOf[AssertionConsumer])
-    bind(classOf[SSOClient]).to(classOf[SSOClientImpl])
-    bind(classOf[SSOClientHandler]).to(classOf[SSOClientHandlerImpl])
-    bind(classOf[OnCampusService]).to(classOf[OnCampusServiceImpl])
-    bind(classOf[UserLookupService])
-    bind(classOf[LogoutController])
-    bind(classOf[BasicAuth]).to(classOf[BasicAuthImpl])
+    bind(classOf[AssertionConsumer]).in(Scopes.SINGLETON)
+    bind(classOf[SSOClient]).to(classOf[SSOClientImpl]).in(Scopes.SINGLETON)
+    bind(classOf[SSOClientHandler]).to(classOf[SSOClientHandlerImpl]).in(Scopes.SINGLETON)
+    bind(classOf[OnCampusService]).to(classOf[OnCampusServiceImpl]).in(Scopes.SINGLETON)
+    bind(classOf[UserLookupService]).in(Scopes.SINGLETON)
+    bind(classOf[LogoutController]).in(Scopes.SINGLETON)
+    bind(classOf[BasicAuth]).to(classOf[BasicAuthImpl]).in(Scopes.SINGLETON)
 
     // public beans
     expose(classOf[AssertionConsumer])
@@ -38,6 +38,7 @@ class SSOClientModule extends PrivateModule {
     expose(classOf[BasicAuth])
   }
 
+  @Singleton
   @Provides
   def userlookup(ssoConfig: SSOConfiguration) : UserLookupInterface = {
     UserLookup.setConfigProperties(makeProps(ssoConfig))
@@ -56,7 +57,7 @@ class SSOClientModule extends PrivateModule {
   def db(ssoConfig: SSOConfiguration, api: DBApi): Database =
     api.database(ssoConfig.getString("cluster.db", "default"))
 
-
+  @Singleton
   @Exposed
   @Provides
   def config(conf: Configuration): SSOConfiguration = {
@@ -66,6 +67,7 @@ class SSOClientModule extends PrivateModule {
     ))
   }
 
+  @Singleton
   @Provides
   def aaFetcher(conf: SSOConfiguration): AttributeAuthorityResponseFetcher =
     new AttributeAuthorityResponseFetcherImpl(conf)
@@ -83,10 +85,12 @@ class SSOClientModule extends PrivateModule {
   @Named("InMemory")
   def inMemoryCache(conf: SSOConfiguration): UserCache = new InMemoryUserCache(conf)
 
+  @Singleton
   @Provides
   def userIdCache(conf: SSOConfiguration): Cache[String, uk.ac.warwick.userlookup.User] =
     Caches.newCache(UserLookup.USER_CACHE_NAME, null, 0, Caches.CacheStrategy.valueOf(conf.getString("ssoclient.cache.strategy")))
 
+  @Singleton
   @Provides
   def userCache(
        config: SSOConfiguration,
