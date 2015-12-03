@@ -3,6 +3,7 @@ package warwick.sso
 import java.util.Properties
 import javax.inject._
 
+import uk.ac.warwick.sso.client.trusted.{SSOConfigTrustedApplicationsManager, TrustedApplicationsManager}
 import com.google.inject.{Scopes, Exposed, PrivateModule, Provides}
 import play.api.Configuration
 import play.api.db.{DBApi, Database}
@@ -29,6 +30,9 @@ class SSOClientModule extends PrivateModule {
     bind(classOf[UserLookupService]).in(Scopes.SINGLETON)
     bind(classOf[LogoutController]).in(Scopes.SINGLETON)
     bind(classOf[BasicAuth]).to(classOf[BasicAuthImpl]).in(Scopes.SINGLETON)
+    bind(classOf[TrustedApplicationsManager])
+      .toConstructor(classOf[SSOConfigTrustedApplicationsManager].getConstructor(classOf[SSOConfiguration]))
+      .in(Scopes.SINGLETON)
 
     // public beans
     expose(classOf[AssertionConsumer])
