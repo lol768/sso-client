@@ -20,6 +20,8 @@ public class SSOConfigTrustedApplicationsManager implements TrustedApplicationsM
 
     private final EncryptionProvider encryptionProvider = new BouncyCastleEncryptionProvider();
 
+    private boolean disabled;
+
     private final CurrentApplication application;
 
     private final ImmutableMap<String, TrustedApplication> trustedApplications;
@@ -30,6 +32,15 @@ public class SSOConfigTrustedApplicationsManager implements TrustedApplicationsM
     }
 
     public SSOConfigTrustedApplicationsManager(SSOConfiguration config) throws Exception {
+        if (!config.getBoolean("trustedapps.enabled", true)) {
+            // We allow disabling so the SSOClientModule can load the manager unconditionally -
+            // if an app doesn't want trustedapps support, it can mark it as disabled.
+            disabled = true;
+            application = null;
+            trustedApplications = null;
+            return;
+        }
+
         // Get current application first by getting the providerID and then the public key
         SSOConfigCurrentApplication currentApp = new SSOConfigCurrentApplication(config);
         this.application = currentApp;
@@ -77,5 +88,6 @@ public class SSOConfigTrustedApplicationsManager implements TrustedApplicationsM
     {
         return trustedApplications.get(id);
     }
+
 
 }
