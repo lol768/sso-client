@@ -65,6 +65,17 @@ public class SSOLinkGeneratingTests extends TestCase {
 		assertTrue(g.getPermissionDeniedLink().contains("permdenied"));
 	}
 
+	public final void testEmptyQueryString() throws Exception {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setQueryString("");
+
+		SSOLoginLinkGenerator g = new SSOLoginLinkGenerator();
+		g.setRequest(request);
+		g.setConfig(config);
+
+		assertFalse(g.getTarget().endsWith("?"));
+	}
+
 	public final void testSSOLoginLinkGenerator() throws Exception {
 
 		SSOLoginLinkGenerator generator = new SSOLoginLinkGenerator();

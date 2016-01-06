@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.sso.client.SSOConfiguration;
+import uk.ac.warwick.util.core.StringUtils;
 
 public class SSOLinkGenerator {
 
@@ -57,7 +58,7 @@ public class SSOLinkGenerator {
 		}
 
 		target = getRequest().getRequestURL().toString();
-		if (getRequest().getQueryString() != null) {
+		if (getRequest().getQueryString() != null && StringUtils.hasText(getRequest().getQueryString())) {
 			target += "?" + getRequest().getQueryString();
 		}
 		if (LOGGER.isDebugEnabled()) {
@@ -73,7 +74,7 @@ public class SSOLinkGenerator {
 		
 		// SSO-770 accept the requested URI as a header
 		if (uriHeader != null && getRequest().getHeader(uriHeader) != null) {
-			
+
 			target = getRequest().getHeader(uriHeader);
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Found target from header - " + uriHeader + ": " + target);
