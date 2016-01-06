@@ -121,7 +121,7 @@ public class LinkGeneratorImpl implements LinkGenerator {
         }
 
         target = getRequest().getRequestURL();
-        if (getRequest().getQueryString() != null) {
+        if (getRequest().getQueryString() != null && !getRequest().getQueryString().isEmpty()) {
             target += "?" + getRequest().getQueryString();
         }
         if (LOGGER.isDebugEnabled()) {
