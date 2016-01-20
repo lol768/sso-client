@@ -15,11 +15,11 @@ object MasqueradeController {
 }
 
 class MasqueradeController @Inject()(
-  ssoClient: SSOClient,
-  configuration: Configuration,
-  userLookupService: UserLookupService,
-  userLookup: UserLookupInterface
-) extends Controller {
+                                      ssoClient: SSOClient,
+                                      configuration: Configuration,
+                                      userLookupService: UserLookupService,
+                                      userLookup: UserLookupInterface
+                                    ) extends Controller {
 
   import MasqueradeController._
 
@@ -28,13 +28,15 @@ class MasqueradeController @Inject()(
       .transform(s => Usercode(s), (u: Usercode) => u.string)
   )
 
-  val masqueradeCookieName = configuration.getString("sso-client.shire.masqcookie.name")
-  val masqueradeGroupName = configuration.getString("sso-client.shire.masquerade.group")
+  val masqueradeGroupName = configuration.getString("sso-client.masquerade.group")
 
-  // Enable masquerading by setting the masquerade group
-  if (masqueradeGroupName.isDefined && masqueradeCookieName.isEmpty) {
-    throw new IllegalStateException("Masquerade group set but masqcookie name not set")
-  }
+  val masqueradeCookieName = configuration.getString("sso-client.masquerade.cookie.name")
+    .getOrElse("masqueradeAs")
+  val masqueradeCookiePath = configuration.getString("sso-client.masquerade.cookie.path")
+    .orElse(configuration.getString("sso-client.shire.sscookie.path"))
+    .getOrElse("/")
+  val masqueradeCookieDomain = configuration.getString("sso-client.masquerade.cookie.domain")
+    .orElse(configuration.getString("sso-client.shire.sscookie.domain"))
 
   def masquerade = ssoClient.Strict { implicit request =>
     request.context.actualUser.map { actualUser =>
@@ -49,7 +51,7 @@ class MasqueradeController @Inject()(
             } else if (!userExists(usercode)) {
               error(s"Usercode '${usercode.string}' does not exist")
             } else {
-              redirectBack().withCookies(Cookie(masqueradeCookieName.get, usercode.string))
+              redirectBack().withCookies(masqueradeAs(usercode))
             }
           }
         )
@@ -58,9 +60,24 @@ class MasqueradeController @Inject()(
   }
 
   def unmask = Action { implicit request =>
-    masqueradeGroupName.map(_ => redirectBack().discardingCookies(DiscardingCookie(masqueradeCookieName.get)))
+    masqueradeGroupName.map(_ => redirectBack().discardingCookies(discardMasqueradeAs()))
       .getOrElse(NotFound(MasqueradeNotEnabled))
   }
+
+  private def masqueradeAs(usercode: Usercode): Cookie =
+    Cookie(
+      name = masqueradeCookieName,
+      value = usercode.string,
+      domain = masqueradeCookieDomain,
+      path = masqueradeCookiePath
+    )
+
+  private def discardMasqueradeAs(): DiscardingCookie =
+    DiscardingCookie(
+      name = masqueradeCookieName,
+      domain = masqueradeCookieDomain,
+      path = masqueradeCookiePath
+    )
 
   private def redirectBack()(implicit request: Request[_]): Result =
     Redirect(request.headers.get(REFERER).getOrElse("/"))

@@ -347,8 +347,8 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
         }
 
         try {
-            Cookie masqueradeCookie = getCookie(cookies, _config.getString("shire.masqcookie.name"));
-            String masqueradeGroup = _config.getString("shire.masquerade.group");
+            Cookie masqueradeCookie = getCookie(cookies, _config.getString("masquerade.cookie.name"));
+            String masqueradeGroup = _config.getString("masquerade.group");
 
             if (masqueradeCookie != null) {
                 if (getUserLookup().getGroupService().isUserInGroup(actualUser.getUserId(), masqueradeGroup)) {
