@@ -23,12 +23,14 @@ class MockSSOClient @Inject()(
     block(loginContext)
 
   override def linkGenerator(request: RequestHeader) = new LinkGenerator {
+    private var target: Option[String] = None
+
     private def url(junk: String) = "https://signon.example.com/" + junk
     override def getLoginUrl: String = url("login")
     override def getLogoutUrl: String = url("logout")
     override def getNotLoggedInLink: String = url("login?notloggedin")
     override def getPermissionDeniedLink(loggedIn: Boolean): String = url("login?permdenied")
-    override def setTarget(s: String): Unit = ???
-    override def getTarget: String = request.uri
+    override def setTarget(s: String): Unit = target = Option(s)
+    override def getTarget: String = target.getOrElse(request.uri)
   }
 }
