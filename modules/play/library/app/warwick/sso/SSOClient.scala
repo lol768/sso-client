@@ -17,7 +17,7 @@ trait LoginContext {
     */
   val actualUser: Option[User]
   def loginUrl(target: Option[String]): String
-  def isMasquerading: Boolean = user.contains(actualUser)
+  def isMasquerading: Boolean = user != actualUser
 }
 
 class LoginContextImpl(linkGenerator: LinkGenerator, val user: Option[User], val actualUser: Option[User] = None) extends LoginContext {
