@@ -47,6 +47,8 @@ public final class SSOClientFilter implements Filter {
 
 	public static final String USER_KEY = SSOClientHandlerImpl.USER_KEY;
 
+	public static final String ACTUAL_USER_KEY = SSOClientHandlerImpl.ACTUAL_USER_KEY;
+
 	public static final String GLOBAL_LOGIN_COOKIE_NAME = SSOClientHandlerImpl.GLOBAL_LOGIN_COOKIE_NAME;
 
 	public static final String PROXY_TICKET_COOKIE_NAME = SSOClientHandlerImpl.PROXY_TICKET_COOKIE_NAME;
@@ -128,7 +130,11 @@ public final class SSOClientFilter implements Filter {
 		}
 
 		if (res.getUser() != null) {
-			setUserAndAttributes(res.getUser(), request, response);
+			putUserIntoKey(res.getUser(), request, getUserKey(_config));
+		}
+
+		if (res.getActualUser() != null) {
+			putUserIntoKey(res.getActualUser(), request, getActualUserKey(_config));
 		}
 
 		if (res.isContinueRequest()) {
@@ -177,9 +183,11 @@ public final class SSOClientFilter implements Filter {
 		return config.getString("shire.filteruserkey", USER_KEY);
 	}
 
-	private void setUserAndAttributes(final User user, final HeaderSettingHttpServletRequest request, final HttpServletResponse response) {
-		String userKey = getUserKey(_config);
+	private static String getActualUserKey(SSOConfiguration config) {
+		return config.getString("shire.filteractualuserkey", ACTUAL_USER_KEY);
+	}
 
+	private void putUserIntoKey(final User user, final HeaderSettingHttpServletRequest request, final String userKey) {
 		request.setAttribute(userKey, user);
 
 		request.setRemoteUser(user.getUserId());
