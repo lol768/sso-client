@@ -673,7 +673,7 @@ public final class SSOClientFilter implements Filter {
 		_userLookup = userLookup;
 	}
 
-	public Configuration getConfig() {
+	public SSOConfiguration getConfig() {
 		return _config;
 	}
 
