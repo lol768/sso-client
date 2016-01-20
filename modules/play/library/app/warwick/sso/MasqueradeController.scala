@@ -5,7 +5,7 @@ import play.api.Configuration
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
-import uk.ac.warwick.userlookup.UserLookup
+import uk.ac.warwick.userlookup.UserLookupInterface
 
 object MasqueradeController {
   val ErrorFlashKey = "MasqueradeError"
@@ -18,7 +18,7 @@ class MasqueradeController @Inject()(
   ssoClient: SSOClient,
   configuration: Configuration,
   userLookupService: UserLookupService,
-  userLookup: UserLookup
+  userLookup: UserLookupInterface
 ) extends Controller {
 
   import MasqueradeController._
