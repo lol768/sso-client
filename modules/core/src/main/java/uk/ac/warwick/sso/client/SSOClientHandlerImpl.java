@@ -50,6 +50,8 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
 
     public static final String PROXY_TICKET_COOKIE_NAME = "SSO-Proxy";
 
+    public static final String DEFAULT_MASQUERADE_COOKIE_NAME = "masqueradeAs";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(SSOClientHandlerImpl.class);
 
     private SSOConfiguration _config;
@@ -346,11 +348,12 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
             return actualUser;
         }
 
-        try {
-            Cookie masqueradeCookie = getCookie(cookies, _config.getString("masquerade.cookie.name"));
-            String masqueradeGroup = _config.getString("masquerade.group");
+        Cookie masqueradeCookie = getCookie(cookies, _config.getString("masquerade.cookie.name", DEFAULT_MASQUERADE_COOKIE_NAME));
 
-            if (masqueradeCookie != null) {
+        if (masqueradeCookie != null) {
+            try {
+                String masqueradeGroup = _config.getString("masquerade.group");
+
                 if (getUserLookup().getGroupService().isUserInGroup(actualUser.getUserId(), masqueradeGroup)) {
                     User apparentUser = getUserLookup().getUserByUserId(masqueradeCookie.getValue());
                     if (apparentUser.isFoundUser()) {
@@ -358,11 +361,11 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
                         return apparentUser;
                     }
                 }
+            } catch (GroupServiceException e) {
+                LOGGER.warn("Error checking membership of " + actualUser.getUserId() + " in masquerade group", e);
+            } catch (NoSuchElementException e) {
+                // Masquerade group is not configured
             }
-        } catch (GroupServiceException e) {
-            LOGGER.warn("Error checking membership of " + actualUser.getUserId() + " in masquerade group", e);
-        } catch (NoSuchElementException e) {
-            // Some masquerade configuration is missing (not an error)
         }
 
         return actualUser;

@@ -5,6 +5,8 @@ import play.api.Configuration
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
+import uk.ac.warwick.sso.client.SSOClientHandlerImpl
+import uk.ac.warwick.sso.client.SSOClientHandlerImpl.DEFAULT_MASQUERADE_COOKIE_NAME
 import uk.ac.warwick.userlookup.UserLookupInterface
 
 object MasqueradeController {
@@ -31,7 +33,7 @@ class MasqueradeController @Inject()(
   val masqueradeGroupName = configuration.getString("sso-client.masquerade.group")
 
   val masqueradeCookieName = configuration.getString("sso-client.masquerade.cookie.name")
-    .getOrElse("masqueradeAs")
+    .getOrElse(DEFAULT_MASQUERADE_COOKIE_NAME)
   val masqueradeCookiePath = configuration.getString("sso-client.masquerade.cookie.path")
     .orElse(configuration.getString("sso-client.shire.sscookie.path"))
     .getOrElse("/")

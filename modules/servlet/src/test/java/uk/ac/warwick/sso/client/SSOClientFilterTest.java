@@ -144,7 +144,6 @@ public class SSOClientFilterTest extends TestCase {
 		BaseConfiguration configuration = new BaseConfiguration();
 		configuration.addProperty("httpbasic.allow", true);
 		configuration.addProperty("mode", "old");
-		configuration.addProperty("masquerade.cookie.name", "masqueradeAs");
 		configuration.addProperty("masquerade.group", "admin-group");
 
 		SSOConfiguration config = new SSOConfiguration(configuration);
