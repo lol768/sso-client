@@ -38,7 +38,10 @@ lazy val commonSettings = Seq(
   version := libraryVersion,
 
   // Check local Maven, so we can install ssoclient locally and depend on it during build.
-  resolvers += "Local Maven Repository" at Path.userHome.asFile.toURI.toURL + ".m2/repository",
+  // (this prepends to any existing list, to make sure we actually find up to date snapshots)
+  // (https://github.com/sbt/sbt/issues/321)
+  resolvers := ("Local Maven Repository" at "file:///" + Path.userHome.absolutePath + "/.m2/repository") +: resolvers.value,
+  //resolvers += "Local Maven Repository" at Path.userHome.asFile.toURI.toURL + ".m2/repository",
   resolvers += WarwickNexus,
   resolvers += DefaultMavenRepository,
   resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven"
