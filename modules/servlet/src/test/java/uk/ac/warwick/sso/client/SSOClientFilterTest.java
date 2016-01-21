@@ -1,17 +1,18 @@
 package uk.ac.warwick.sso.client;
 
 import junit.framework.TestCase;
-
 import org.apache.commons.configuration.BaseConfiguration;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
 import sun.misc.BASE64Encoder;
+import uk.ac.warwick.sso.client.core.OnCampusService;
 import uk.ac.warwick.sso.client.core.OnCampusServiceImpl;
 import uk.ac.warwick.userlookup.*;
+
+import javax.servlet.http.Cookie;
 
 public class SSOClientFilterTest extends TestCase {
 	private MockHttpServletRequest req;
@@ -51,8 +52,8 @@ public class SSOClientFilterTest extends TestCase {
 	}
 	
 	public void testBasicAuthCache() throws Exception {
-		Mockery m = new Mockery();		
-		
+		Mockery m = new Mockery();
+
 		final UserLookupInterface userLookup = m.mock(UserLookupInterface.class);
 		
 		SSOClientFilter f = new SSOClientFilter();
@@ -100,5 +101,62 @@ public class SSOClientFilterTest extends TestCase {
 		user = (User) req.getAttribute(SSOClientFilter.USER_KEY);
 		assertNotNull(user);
 		assertFalse(user.isFoundUser());
+	}
+
+	public void testMasquerade() throws Exception {
+		Mockery m = new Mockery();
+
+		final UserLookupInterface userLookup = m.mock(UserLookupInterface.class);
+		final GroupService groupService = m.mock(GroupService.class);
+		final OnCampusService onCampusService = new OnCampusServiceImpl();
+
+		newRequestGuff();
+		addAuth("andy", "legume");
+
+		final User andy = new User("andy");
+		andy.setFoundUser(true);
+
+		final User brian = new User("brian");
+		brian.setFoundUser(true);
+
+		m.checking(new Expectations() {{
+			one(userLookup).getUserByIdAndPassNonLoggingIn("andy", "legume");
+			will(returnValue(andy));
+
+			one(userLookup).getOnCampusService();
+			will(returnValue(onCampusService));
+
+			one(userLookup).getGroupService();
+			will(returnValue(groupService));
+
+			one(groupService).isUserInGroup("andy", "admin-group");
+			will(returnValue(true));
+
+			one(userLookup).getUserByUserId("brian");
+			will(returnValue(brian));
+		}});
+
+		SSOClientFilter f = new SSOClientFilter();
+		f.setUserLookup(userLookup);
+
+		req.setCookies(new Cookie("masqueradeAs", "brian"));
+
+		BaseConfiguration configuration = new BaseConfiguration();
+		configuration.addProperty("httpbasic.allow", true);
+		configuration.addProperty("mode", "old");
+		configuration.addProperty("masquerade.cookie.name", "masqueradeAs");
+		configuration.addProperty("masquerade.group", "admin-group");
+
+		SSOConfiguration config = new SSOConfiguration(configuration);
+		f.setConfig(config);
+		f.doFilter(req, res, chain);
+
+		User user = (User) req.getAttribute(SSOClientFilter.USER_KEY);
+		assertNotNull(user);
+		assertEquals("brian", user.getUserId());
+
+		User actualUser = (User) req.getAttribute(SSOClientFilter.ACTUAL_USER_KEY);
+		assertNotNull(actualUser);
+		assertEquals("andy", actualUser.getUserId());
 	}
 }

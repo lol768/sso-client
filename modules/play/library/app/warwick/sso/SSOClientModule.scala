@@ -41,6 +41,7 @@ class SSOClientModule extends PrivateModule {
     expose(classOf[UserLookupService])
     expose(classOf[BasicAuth])
     expose(classOf[TrustedApplicationsManager])
+    expose(classOf[UserLookupInterface])
   }
 
   @Singleton

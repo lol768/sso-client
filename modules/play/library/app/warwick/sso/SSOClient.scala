@@ -17,6 +17,7 @@ trait LoginContext {
     */
   val actualUser: Option[User]
   def loginUrl(target: Option[String]): String
+  def isMasquerading: Boolean = user != actualUser
 }
 
 class LoginContextImpl(linkGenerator: LinkGenerator, val user: Option[User], val actualUser: Option[User] = None) extends LoginContext {
@@ -111,7 +112,8 @@ class SSOClientImpl @Inject()(
       response.flatMap { response =>
         val result = if (response.isContinueRequest) {
           val user = Option(response.getUser).filter(User.hasUsercode)
-          val ctx = new LoginContextImpl(linkGenerator(request), user.map(User.apply))
+          val actualUser = Option(response.getActualUser).filter(User.hasUsercode)
+          val ctx = new LoginContextImpl(linkGenerator(request), user.map(User.apply), actualUser.map(User.apply))
           block(new AuthenticatedRequest(ctx, request))
         } else {
           // Handler wants to do a redirect or something
@@ -136,7 +138,8 @@ class SSOClientImpl @Inject()(
     val response = Future{ handler.handle(request) }
     response.flatMap { response =>
       val user = Option(response.getUser).filter(User.hasUsercode)
-      val ctx = new LoginContextImpl(linkGenerator(req), user.map(User.apply))
+      val actualUser = Option(response.getActualUser).filter(User.hasUsercode)
+      val ctx = new LoginContextImpl(linkGenerator(req), user.map(User.apply), actualUser.map(User.apply))
       block(ctx)
     }
 

@@ -9,12 +9,12 @@ import org.opensaml.SAMLSubject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.misc.BASE64Decoder;
-import uk.ac.warwick.sso.client.core.*;
-import uk.ac.warwick.sso.client.core.OnCampusService;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.cache.UserCacheItem;
+import uk.ac.warwick.sso.client.core.*;
 import uk.ac.warwick.sso.client.util.ListUtils;
 import uk.ac.warwick.userlookup.*;
+import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 import uk.ac.warwick.util.cache.CacheEntryUpdateException;
 import uk.ac.warwick.util.cache.CacheWithDataInitialisation;
 import uk.ac.warwick.util.cache.Caches;
@@ -27,7 +27,9 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * Framework-agnostic spinoff of SSOClientFilter.
@@ -41,6 +43,8 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
     static final String WARWICK_SSO = "WarwickSSO";
 
     public static final String USER_KEY = "SSO_USER";
+
+    public static final String ACTUAL_USER_KEY = "SSO_ACTUAL_USER";
 
     public static final String GLOBAL_LOGIN_COOKIE_NAME = "SSO-LTC";
 
@@ -97,8 +101,9 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
 
         if (user.getExtraProperty("urn:websignon:ipaddress") != null) {
             if (user.getExtraProperty("urn:websignon:ipaddress").equals(remoteHost)) {
-                if (LOGGER.isDebugEnabled()) LOGGER.debug("Users SSOClientFilter request is from same host as they logged in from: SSOClientFilter&Login="
-                        + remoteHost);
+                if (LOGGER.isDebugEnabled())
+                    LOGGER.debug("Users SSOClientFilter request is from same host as they logged in from: SSOClientFilter&Login="
+                            + remoteHost);
             } else {
                 LOGGER.warn("Users SSOClientFilter request is NOT from same host as they logged in from. Login="
                         + user.getExtraProperty("urn:websignon:ipaddress") + ", SSOClientFilter=" + remoteHost);
@@ -129,7 +134,7 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
         BASE64Decoder decoder = new BASE64Decoder();
         String auth = new String(decoder.decodeBuffer(auth64.trim()));
 
-        if (auth.indexOf(":") == -1) {
+        if (!auth.contains(":")) {
             LOGGER.debug("Returning anon user as auth was invalid: " + auth);
             return new AnonymousUser();
         }
@@ -265,7 +270,7 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
             boolean allowBasic = allowHttpBasic(target, request);
 
     		/* [SSO-550] These variables are for handling sending WarwickSSO as a parameter,
-    		 * useful in limited cases like Flash apps who can't send cookies
+             * useful in limited cases like Flash apps who can't send cookies
     		 */
             String requestToken = ListUtils.head(request.getParameter(WARWICK_SSO));
             boolean postCookies = ("POST".equalsIgnoreCase(request.getMethod()) && requestToken != null);
@@ -324,7 +329,8 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
 
             Response response = new Response();
             response.setContinueRequest(true);
-            response.setUser(user);
+            response.setActualUser(user);
+            response.setUser(getApparentUser(cookies, user));
 
             checkIpAddress(request, user);
 
@@ -333,6 +339,33 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
             // SSO-1489
             //SSOConfiguration.removeConfig();
         }
+    }
+
+    private User getApparentUser(final List<Cookie> cookies, final User actualUser) {
+        if (!actualUser.isFoundUser()) {
+            return actualUser;
+        }
+
+        try {
+            Cookie masqueradeCookie = getCookie(cookies, _config.getString("masquerade.cookie.name"));
+            String masqueradeGroup = _config.getString("masquerade.group");
+
+            if (masqueradeCookie != null) {
+                if (getUserLookup().getGroupService().isUserInGroup(actualUser.getUserId(), masqueradeGroup)) {
+                    User apparentUser = getUserLookup().getUserByUserId(masqueradeCookie.getValue());
+                    if (apparentUser.isFoundUser()) {
+                        LOGGER.debug(actualUser.getUserId() + " is masquerading as " + apparentUser.getUserId());
+                        return apparentUser;
+                    }
+                }
+            }
+        } catch (GroupServiceException e) {
+            LOGGER.warn("Error checking membership of " + actualUser.getUserId() + " in masquerade group", e);
+        } catch (NoSuchElementException e) {
+            // Some masquerade configuration is missing (not an error)
+        }
+
+        return actualUser;
     }
 
     /**
@@ -407,7 +440,7 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
      * HTTP Basic Auth is only allowed over HTTPS, so we need to check that. But the app
      * itself generally isn't directly serving HTTPS so we need to check if it's being
      * proxied from localhost.
-     *
+     * <p>
      * FIXME this doesn't work for a non-local frontend like BIG-IP
      */
     private boolean allowHttpBasic(final URL target, final HttpRequest request) {
@@ -553,14 +586,17 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
         private static final long serialVersionUID = 4707495652163070391L;
         private final User user;
         private final String hash;
+
         public UserAndHash(User user, String hash) {
             super();
             this.user = user;
             this.hash = hash;
         }
+
         public User getUser() {
             return user;
         }
+
         public String getHash() {
             return hash;
         }
