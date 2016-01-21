@@ -6,7 +6,7 @@ import com.google.inject.ImplementedBy
 import uk.ac.warwick.userlookup.{UnverifiedUser, UserLookupInterface}
 import uk.ac.warwick.userlookup
 import scala.collection.JavaConverters._
-import scala.util.Try
+import scala.util.{Success, Try}
 
 import User.hasUsercode
 
@@ -27,6 +27,10 @@ trait UserLookupService {
    * request without cookies.
    */
   def basicAuth(usercode: String, password: String): Try[Option[User]]
+
+  def getUser(usercode: Usercode): Try[User] =
+    getUsers(Seq(usercode)).flatMap(users => Try(users.get(usercode).get))
+
 }
 
 class UserLookupServiceImpl @Inject() (userLookupInterface: UserLookupInterface) extends UserLookupService {
