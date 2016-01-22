@@ -5,7 +5,6 @@ import play.api.Configuration
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
-import uk.ac.warwick.sso.client.SSOClientHandlerImpl
 import uk.ac.warwick.sso.client.SSOClientHandlerImpl.DEFAULT_MASQUERADE_COOKIE_NAME
 import uk.ac.warwick.userlookup.UserLookupInterface
 
@@ -40,6 +39,10 @@ class MasqueradeController @Inject()(
   val masqueradeCookieDomain = configuration.getString("sso-client.masquerade.cookie.domain")
     .orElse(configuration.getString("sso-client.shire.sscookie.domain"))
 
+  val masqueradeRedirectLocation = configuration.getString("sso-client.masquerade.redirect.mask")
+    .getOrElse("/")
+  val unmaskRedirectLocation = configuration.getString("sso-client.masquerade.redirect.unmask")
+
   def masquerade = ssoClient.Strict { implicit request =>
     request.context.actualUser.map { actualUser =>
       masqueradeGroupName.map { groupName =>
@@ -53,7 +56,7 @@ class MasqueradeController @Inject()(
             } else if (!userExists(usercode)) {
               error(s"Usercode '${usercode.string}' does not exist")
             } else {
-              redirectBack().withCookies(masqueradeAs(usercode))
+              Redirect(masqueradeRedirectLocation).withCookies(masqueradeAs(usercode))
             }
           }
         )
@@ -62,8 +65,10 @@ class MasqueradeController @Inject()(
   }
 
   def unmask = Action { implicit request =>
-    masqueradeGroupName.map(_ => redirectBack().discardingCookies(discardMasqueradeAs()))
-      .getOrElse(NotFound(MasqueradeNotEnabled))
+    masqueradeGroupName.map { _ =>
+      Redirect(unmaskRedirectLocation.orElse(request.headers.get(REFERER)).getOrElse("/"))
+        .discardingCookies(discardMasqueradeAs())
+    }.getOrElse(NotFound(MasqueradeNotEnabled))
   }
 
   private def masqueradeAs(usercode: Usercode): Cookie =
