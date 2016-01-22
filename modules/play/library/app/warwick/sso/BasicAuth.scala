@@ -48,7 +48,7 @@ object BasicAuth {
 
 }
 
-class BasicAuthImpl @Inject()(userLookup: UserLookupService, sso: SSOClient) extends BasicAuth {
+class BasicAuthImpl @Inject()(userLookup: UserLookupService, sso: SSOClient, implicit val groupService: GroupService, implicit val roleService: RoleService) extends BasicAuth {
   import BasicAuth._
 
   override def Check(denied: RequestHeader => Future[Result]) : ActionBuilder[AuthenticatedRequest] = new ActionBuilder[AuthenticatedRequest] {
