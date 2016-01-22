@@ -55,7 +55,9 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results {
   class Context {
     val handler = mock[SSOClientHandler]
     val response = new Response
-    val client: SSOClient = new SSOClientImpl(handler, new SSOConfiguration(new PropertiesConfiguration()))
+    val groupService = mock[GroupService]
+    val roleService = mock[RoleService]
+    val client: SSOClient = new SSOClientImpl(handler, new SSOConfiguration(new PropertiesConfiguration()), groupService, roleService)
     val action = client.Lenient { request => Ok("Great") }
     val noRunAction = client.Lenient { request => fail("Shouldn't run this block") }
 

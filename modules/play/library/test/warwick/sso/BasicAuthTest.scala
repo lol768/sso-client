@@ -20,7 +20,9 @@ class BasicAuthTest extends PlaySpec with MockitoSugar {
 
     val userlookup = mock[UserLookupService]
     val sso = mock[SSOClient]
-    val auth = new BasicAuthImpl(userlookup, sso)
+    val groupService = mock[GroupService]
+    val roleService = mock[RoleService]
+    val auth = new BasicAuthImpl(userlookup, sso, groupService, roleService)
 
     val deniedResult = Forbidden("Custom denied message")
     def deniedAction(request: RequestHeader) = Future.successful(deniedResult)
