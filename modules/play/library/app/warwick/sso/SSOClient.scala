@@ -1,12 +1,12 @@
 package warwick.sso
 
-import javax.inject.{Provider, Inject}
+import javax.inject.Inject
 
 import play.api.mvc._
-import uk.ac.warwick.sso.client.{SSOConfiguration, SSOClientHandler}
-import uk.ac.warwick.sso.client.core.{Response, LinkGenerator, LinkGeneratorImpl}
-import scala.collection.JavaConverters._
+import uk.ac.warwick.sso.client.core.{LinkGenerator, LinkGeneratorImpl, Response}
+import uk.ac.warwick.sso.client.{SSOClientHandler, SSOConfiguration}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 trait LoginContext {
@@ -18,13 +18,23 @@ trait LoginContext {
   val actualUser: Option[User]
   def loginUrl(target: Option[String]): String
   def isMasquerading: Boolean = user != actualUser
+
+  def userHasRole(role: RoleName): Boolean
+  def actualUserHasRole(role: RoleName): Boolean
 }
 
-class LoginContextImpl(linkGenerator: LinkGenerator, val user: Option[User], val actualUser: Option[User] = None) extends LoginContext {
+class LoginContextImpl(linkGenerator: LinkGenerator, val user: Option[User], val actualUser: Option[User] = None)(implicit groupService: GroupService, roleService: RoleService) extends LoginContext {
   def loginUrl(target: Option[String]) = {
     target.foreach(linkGenerator.setTarget)
     linkGenerator.getLoginUrl
   }
+
+  override def userHasRole(role: RoleName) = user.exists(hasRole(role))
+
+  override def actualUserHasRole(role: RoleName) = actualUser.exists(hasRole(role))
+
+  private def hasRole(role: RoleName)(user: User) =
+    groupService.isUserInGroup(user.usercode, roleService.getRole(role).groupName).getOrElse(false)
 }
 
 class AuthenticatedRequest[A](val context: LoginContext, val request: Request[A]) extends WrappedRequest[A](request)
@@ -43,6 +53,10 @@ trait SSOClient {
    * is required.
    */
   val Strict: ActionBuilder[AuthRequest]
+
+  def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result): ActionBuilder[AuthRequest]
+
+  def RequireActualUserRole(role: RoleName, otherwise: AuthRequest[_] => Result): ActionBuilder[AuthRequest]
 
   /** The type of block you can pass to withUser. */
   type TryAcceptResult[A] = Future[Either[Result, A]]
@@ -70,9 +84,11 @@ trait SSOClient {
 
 
 class SSOClientImpl @Inject()(
-    handler: SSOClientHandler,
-    configuration: SSOConfiguration
-  ) extends SSOClient {
+  handler: SSOClientHandler,
+  configuration: SSOConfiguration,
+  implicit val groupService: GroupService,
+  implicit val roleService: RoleService
+) extends SSOClient {
 
   import play.api.libs.concurrent.Execution.Implicits._
   import play.api.mvc.Results._
@@ -82,17 +98,13 @@ class SSOClientImpl @Inject()(
     new LinkGeneratorImpl(configuration, req)
   }
 
-  lazy val Strict = Lenient andThen RequireLogin
+  lazy val Strict = Lenient andThen requireCondition(_.context.user.isDefined, otherwise = redirectToSSO)
 
   lazy val Lenient = FindUser
 
-  object RequireLogin extends ActionFilter[AuthRequest] {
-    override protected def filter[A](request: AuthRequest[A]): Future[Option[Result]] =
-      request.context.user match {
-        case None => Future.successful(Some(Redirect(request.context.loginUrl(None))))
-        case Some(_) => Future.successful(None)
-      }
-  }
+  override def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result) = Strict andThen requireCondition(_.context.userHasRole(role), otherwise)
+
+  override def RequireActualUserRole(role: RoleName, otherwise: AuthRequest[_] => Result) = Strict andThen requireCondition(_.context.actualUserHasRole(role), otherwise)
 
   /**
    * Action which takes a regular Request and converts it into an AuthRequest,
@@ -144,4 +156,18 @@ class SSOClientImpl @Inject()(
     }
 
   }
+
+  private def requireCondition(block: AuthRequest[_] => Boolean, otherwise: AuthRequest[_] => Result) =
+    new ActionFilter[AuthRequest] {
+      override protected def filter[A](request: AuthRequest[A]) =
+        Future.successful {
+          block(request) match {
+            case true => None
+            case false => Some(otherwise(request))
+          }
+        }
+    }
+
+  private def redirectToSSO(request: AuthRequest[_]) = Redirect(request.context.loginUrl(None))
+
 }

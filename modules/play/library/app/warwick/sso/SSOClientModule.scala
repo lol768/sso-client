@@ -28,6 +28,7 @@ class SSOClientModule extends PrivateModule {
     bind(classOf[SSOClientHandler]).to(classOf[SSOClientHandlerImpl]).in(Scopes.SINGLETON)
     bind(classOf[OnCampusService]).to(classOf[OnCampusServiceImpl]).in(Scopes.SINGLETON)
     bind(classOf[UserLookupService]).in(Scopes.SINGLETON)
+    bind(classOf[GroupService]).in(Scopes.SINGLETON)
     bind(classOf[LogoutController]).in(Scopes.SINGLETON)
     bind(classOf[BasicAuth]).to(classOf[BasicAuthImpl]).in(Scopes.SINGLETON)
     bind(classOf[TrustedApplicationsManager])
@@ -42,6 +43,7 @@ class SSOClientModule extends PrivateModule {
     expose(classOf[BasicAuth])
     expose(classOf[TrustedApplicationsManager])
     expose(classOf[UserLookupInterface])
+    expose(classOf[GroupService])
   }
 
   @Singleton
@@ -50,6 +52,11 @@ class SSOClientModule extends PrivateModule {
     UserLookup.setConfigProperties(makeProps(ssoConfig))
     new UserLookup()
   }
+
+  @Singleton
+  @Provides
+  def groupService(userLookup: UserLookupInterface) =
+    userLookup.getGroupService
 
   private[sso] def makeProps(ssoConfig: SSOConfiguration): Properties = {
     val props = new Properties()

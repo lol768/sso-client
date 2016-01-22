@@ -19,6 +19,9 @@ class MockSSOClient @Inject()(
   override val Lenient = Wrap
   override val Strict = Wrap
 
+  override def RequireRole(role: RoleName, otherwise: (AuthRequest[_]) => Result) = Wrap
+  override def RequireActualUserRole(role: RoleName, otherwise: (AuthRequest[_]) => Result) = Wrap
+
   override def withUser[A](request: RequestHeader)(block: (LoginContext) => TryAcceptResult[A]): TryAcceptResult[A] =
     block(loginContext)
 
