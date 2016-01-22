@@ -62,13 +62,56 @@ builders that you can use in your controllers to get the current `User`. `UserLo
 Scala-friendly interface to UserLookup, letting you find users by usercode and University ID.
 `GroupService` provides a similar interface to the Java version.
 
-    class SecretController @Inject() (sso: SsoClient) extends Controller {
+    class SecretController @Inject() (sso: SSOClient) extends Controller {
 
       def suspicious = sso.Lenient { request =>
         request.context.user match {
           Some(user) => Ok(s"Welcome to the secret area!")
           None => Ok("Nobody here but us chickens.")
         }
+      }
+
+    }
+
+### Masquerading
+
+Enable masquerading in `application.conf`.  A minimal configuration specifies the WebGroup whose members will have permission to masquerade as other users.  (If a group is not configured, masquerading will be disabled.)
+
+    sso-client {
+      masquerade {
+        group = "in-elab"
+      }
+    }
+
+To start masquerading, make a `POST` to `/sso/masquerade` with a parameter `usercode` set to the usercode of the target.  The masquerade cookie will be set and the user will be redirected to the root of your application.
+
+If there are any errors (user not allowed to masquerade, usercode not given or non-existent, user entered their own usercode), the user will be redirected back to the previous page with an error message accessible at `request.flash.get(MasqueradeController.ErrorFlashKey)`.
+
+To unmask, `POST` to `/sso/unmask`.  The masquerade cookie will be unset and the user will be redirected to the page they were previously on.
+
+Further configuration options are available to adjust this behaviour:
+
+    sso-client {
+      masquerade {
+        group = "in-elab"
+        cookie = {
+          name = "masqueradeAs"
+          domain = "example.warwick.ac.uk"
+          path = "/"
+        }
+        redirect {
+          mask = "/"
+          unmask = "/sysadmin/masquerade"
+        }
+      }
+    }
+
+The apparent (subject to masquerading) and actual (who is actually logged in) identities of the user are available at `request.context.user` and `request.context.actualUser` respectively:
+
+    class TrueIdentityController @Inject() (sso: SSOClient) extends Controller {
+
+      def whoami = sso.Strict { request =>
+        Ok(s"Hello $request.context.user.get.usercode (actually $request.context.actualUser.get.usercode)")
       }
 
     }
