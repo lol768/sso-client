@@ -168,6 +168,11 @@ public class ShireCommand {
 		cookie.setPath(_config.getString("shire.sscookie.path"));
 		cookie.setDomain(_config.getString("shire.sscookie.domain"));
 		cookie.setHttpOnly(true);
+
+		if (_config.getBoolean("shire.sscookie.indefinite", false)) {
+			cookie.setMaxAge(Integer.MAX_VALUE);
+		}
+
 		// create cookie so that service can retrieve user from cache
 		return cookie;
 	}
