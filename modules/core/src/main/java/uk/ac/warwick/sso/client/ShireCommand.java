@@ -167,6 +167,7 @@ public class ShireCommand {
 		Cookie cookie = new Cookie(_config.getString("shire.sscookie.name"), token.getValue());
 		cookie.setPath(_config.getString("shire.sscookie.path"));
 		cookie.setDomain(_config.getString("shire.sscookie.domain"));
+		cookie.setSecure(_config.getBoolean("shire.sscookie.secure", false));
 		cookie.setHttpOnly(true);
 
 		if (_config.getBoolean("shire.sscookie.indefinite", false)) {
