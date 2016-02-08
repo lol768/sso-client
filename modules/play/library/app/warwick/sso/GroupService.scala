@@ -18,6 +18,8 @@ trait GroupService {
 
   def getGroupsInDepartment(department: Department): Try[Seq[Group]]
 
+  def getGroupsForQuery(query: String): Try[Seq[Group]]
+
 }
 
 class GroupServiceImpl @Inject()(
@@ -42,5 +44,8 @@ class GroupServiceImpl @Inject()(
 
   override def getGroupsInDepartment(department: Department) =
     Try(groupService.getGroupsForDeptCode(department.code.getOrElse(throw new IllegalArgumentException("Department code is empty"))).map(Group.apply))
+
+  override def getGroupsForQuery(query: String) =
+    Try(groupService.getGroupsForQuery(query).map(Group.apply))
 
 }
