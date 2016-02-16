@@ -44,6 +44,9 @@ class SSOClientModule extends PrivateModule {
     expose(classOf[TrustedApplicationsManager])
     expose(classOf[UserLookupInterface])
     expose(classOf[GroupService])
+
+    // things that probably shouldn't be public, but if you're good...
+    expose(classOf[UserCache])
   }
 
   @Singleton
