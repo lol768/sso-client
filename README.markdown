@@ -10,6 +10,12 @@ Most development should be done on a -SNAPSHOT version. When ready to release
 a new version, commit a change to the non-SNAPSHOT version, deploy that as below,
 then commit a change to the next SNAPSHOT version.
 
+Update Maven POMs:
+
+    $ mvn versions:set && mvn versions:commit
+
+Update the version in the Play build at `modules/play/build.sbt`.
+
 Pushing a release onto Nexus
 -------------
 
@@ -20,4 +26,4 @@ Generating distributables without pushing to Nexus
 
 The dist profile will put JARs in a dist directory off the project root:
 
-    $ mvn -Pdist
+    $ mvn -Pdist --projects modules/servlet

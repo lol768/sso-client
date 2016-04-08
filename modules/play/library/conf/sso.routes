@@ -1,0 +1,7 @@
+GET         /acs               @warwick.sso.AssertionConsumer.get
+POST        /acs               @warwick.sso.AssertionConsumer.post
+
+POST        /logout            @warwick.sso.LogoutController.post
+
+POST        /masquerade        @warwick.sso.MasqueradeController.masquerade
+POST        /unmask            @warwick.sso.MasqueradeController.unmask

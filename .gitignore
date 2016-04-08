@@ -1,6 +1,9 @@
 /bin
 /build
-/target
+logs/
+target/
+project/target/
+project/project/
 /dist/*-SNAPSHOT*#
 
 # IntelliJ IDE
