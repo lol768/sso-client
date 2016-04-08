@@ -103,20 +103,22 @@ public final class SSOClientFilter implements Filter {
 			}
 		}
 
+		// Handler may already exist through Spring injection
+		if (handler == null) {
+			ServletContext servletContext = ctx.getServletContext();
+			UserCache userCache = (UserCache) servletContext.getAttribute(SSOConfigLoader.SSO_CACHE_KEY + _configSuffix);
 
+			// legacy campus service contains a core instance, so pull it out
+			OnCampusService coreCampusService = getUserLookup().getOnCampusService();
 
+			handler = new SSOClientHandlerImpl(_config, getUserLookup(), userCache, coreCampusService);
+		}
 	}
 
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
 		final HeaderSettingHttpServletRequest request = new HeaderSettingHttpServletRequest((HttpServletRequest)servletRequest);
 		final HttpServletResponse response = (HttpServletResponse) servletResponse;
-		if (handler == null) {
-			handler = new SSOClientHandlerImpl(_config, getUserLookup());
-			// legacy campus service contains a core instance, so pull it out
-			OnCampusService coreCampusService = getUserLookup().getOnCampusService();
-			handler.setOnCampusService(coreCampusService);
-		}
 
 		uk.ac.warwick.sso.client.core.HttpRequest req = new ServletRequestAdapter(request);
 		Response res = handler.handle(req);
@@ -226,6 +228,10 @@ public final class SSOClientFilter implements Filter {
 
 	public void setCache(UserCache cache) {
 		handler.setCache(cache);
+	}
+
+	public void setHandler(SSOClientHandler handler) {
+		this.handler = handler;
 	}
 
 	public void setUserLookup(UserLookupInterface userLookup) {

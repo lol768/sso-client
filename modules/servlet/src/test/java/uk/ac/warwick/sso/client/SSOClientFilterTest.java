@@ -8,6 +8,7 @@ import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import sun.misc.BASE64Encoder;
+import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.core.OnCampusService;
 import uk.ac.warwick.sso.client.core.OnCampusServiceImpl;
 import uk.ac.warwick.userlookup.*;
@@ -55,6 +56,7 @@ public class SSOClientFilterTest extends TestCase {
 		Mockery m = new Mockery();
 
 		final UserLookupInterface userLookup = m.mock(UserLookupInterface.class);
+		final OnCampusService onCampusService = new OnCampusServiceImpl();
 		
 		SSOClientFilter f = new SSOClientFilter();
 		f.setUserLookup(userLookup);
@@ -64,6 +66,7 @@ public class SSOClientFilterTest extends TestCase {
 		configuration.addProperty("mode", "old");
 		SSOConfiguration config = new SSOConfiguration(configuration);
 		f.setConfig(config);
+		f.setHandler(new SSOClientHandlerImpl(config, userLookup, m.mock(UserCache.class), onCampusService));
 		
 		addAuth("brian","potato");
 		
@@ -73,7 +76,7 @@ public class SSOClientFilterTest extends TestCase {
 		m.checking(new Expectations(){{
 			one(userLookup).getUserByIdAndPassNonLoggingIn("brian", "potato");
 				will(returnValue(brian));
-			one(userLookup).getOnCampusService(); will(returnValue(new OnCampusServiceImpl()));
+			one(userLookup).getOnCampusService(); will(returnValue(onCampusService));
 		}});
 		
 		f.doFilter(req, res, chain);
@@ -148,6 +151,7 @@ public class SSOClientFilterTest extends TestCase {
 
 		SSOConfiguration config = new SSOConfiguration(configuration);
 		f.setConfig(config);
+		f.setHandler(new SSOClientHandlerImpl(config, userLookup, m.mock(UserCache.class), onCampusService));
 		f.doFilter(req, res, chain);
 
 		User user = (User) req.getAttribute(SSOClientFilter.USER_KEY);

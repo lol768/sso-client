@@ -72,11 +72,11 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
 
     @Inject
     public SSOClientHandlerImpl(
-            SSOConfiguration configuration,
-            UserLookupInterface userlookup,
-            AttributeAuthorityResponseFetcher aa,
-            UserCache userCache,
-            OnCampusService onCampusService
+        SSOConfiguration configuration,
+        UserLookupInterface userlookup,
+        AttributeAuthorityResponseFetcher aa,
+        UserCache userCache,
+        OnCampusService onCampusService
     ) {
         this._config = configuration;
         this._userLookup = userlookup;
@@ -87,8 +87,13 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
         runSanityCheck(_config);
     }
 
-    public SSOClientHandlerImpl(SSOConfiguration configuration, UserLookupInterface userlookup) {
-        this(configuration, userlookup, new AttributeAuthorityResponseFetcherImpl(configuration), null, null);
+    public SSOClientHandlerImpl(
+        SSOConfiguration configuration,
+        UserLookupInterface userlookup,
+        UserCache userCache,
+        OnCampusService onCampusService
+    ) {
+        this(configuration, userlookup, new AttributeAuthorityResponseFetcherImpl(configuration), userCache, onCampusService);
     }
 
     /**
