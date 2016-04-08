@@ -65,6 +65,12 @@ public final class SSOClientFilter implements Filter {
 
 	private UserLookupInterface _userLookup;
 
+	private boolean detectAnonymousOnCampusUsers;
+
+	private boolean redirectToRefreshSession = true;
+
+	private AttributeAuthorityResponseFetcher _aaFetcher;
+
 	public SSOClientFilter() {
 		super();
 	}
@@ -112,6 +118,11 @@ public final class SSOClientFilter implements Filter {
 			OnCampusService coreCampusService = getUserLookup().getOnCampusService();
 
 			handler = new SSOClientHandlerImpl(_config, getUserLookup(), userCache, coreCampusService);
+
+			handler.setDetectAnonymousOnCampusUsers(detectAnonymousOnCampusUsers);
+			handler.setRedirectToRefreshSession(redirectToRefreshSession);
+
+			if (_aaFetcher != null) handler.setAaFetcher(_aaFetcher);
 		}
 	}
 
@@ -211,23 +222,11 @@ public final class SSOClientFilter implements Filter {
 	}
 
 	public void setDetectAnonymousOnCampusUsers(boolean detectAnonymousOnCampusUsers) {
-		handler.setDetectAnonymousOnCampusUsers(detectAnonymousOnCampusUsers);
-	}
-
-	public boolean isRedirectToRefreshSession() {
-		return handler.isRedirectToRefreshSession();
+		this.detectAnonymousOnCampusUsers = detectAnonymousOnCampusUsers;
 	}
 
 	public void setConfigSuffix(String configSuffix) {
 		_configSuffix = configSuffix;
-	}
-
-	public UserCache getCache() {
-		return handler.getCache();
-	}
-
-	public void setCache(UserCache cache) {
-		handler.setCache(cache);
 	}
 
 	public void setHandler(SSOClientHandler handler) {
@@ -253,12 +252,8 @@ public final class SSOClientFilter implements Filter {
 		return _userLookup;
 	}
 
-	public boolean isDetectAnonymousOnCampusUsers() {
-		return handler.isDetectAnonymousOnCampusUsers();
-	}
-
 	public void setRedirectToRefreshSession(boolean redirectToRefreshSession) {
-		handler.setRedirectToRefreshSession(redirectToRefreshSession);
+		this.redirectToRefreshSession = redirectToRefreshSession;
 	}
 
 	public void setConfigLocation(String path) {
@@ -266,7 +261,7 @@ public final class SSOClientFilter implements Filter {
 	}
 
 	public void setAaFetcher(AttributeAuthorityResponseFetcher aaFetcher) {
-		handler.setAaFetcher(aaFetcher);
+		this._aaFetcher = aaFetcher;
 	}
 
 	public void setConfig(SSOConfiguration _config) {

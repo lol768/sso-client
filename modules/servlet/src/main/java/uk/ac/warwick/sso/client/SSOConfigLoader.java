@@ -139,7 +139,7 @@ public class SSOConfigLoader implements ServletContextListener {
 			final String dsName = config.getString("cluster.datasource");
 			// key name is an override for the 'key' field in the objectcache database. This is for compatibility
 			// reasons so that MySql can work
-			final String keyName = config.getString("cluster.keyname");
+			final String keyName = config.getString("cluster.keyname", "key");
 			return getClusteredCache(dsName, keyName, config);
 		}
 		LOGGER.info("Loading standard InMemoryUserCache");
