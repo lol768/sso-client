@@ -54,6 +54,8 @@ trait SSOClient {
    */
   val Strict: ActionBuilder[AuthRequest]
 
+  val LenientNoRedirect: ActionBuilder[AuthRequest]
+
   def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result): ActionBuilder[AuthRequest]
 
   def RequireActualUserRole(role: RoleName, otherwise: AuthRequest[_] => Result): ActionBuilder[AuthRequest]
@@ -100,7 +102,9 @@ class SSOClientImpl @Inject()(
 
   lazy val Strict = Lenient andThen requireCondition(_.context.user.isDefined, otherwise = redirectToSSO)
 
-  lazy val Lenient = FindUser
+  lazy val Lenient = new FindUser(permitRedirect = true)
+
+  lazy val LenientNoRedirect = new FindUser(permitRedirect = false)
 
   override def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result) = Strict andThen requireCondition(_.context.userHasRole(role), otherwise)
 
@@ -115,18 +119,19 @@ class SSOClientImpl @Inject()(
    * a local session. But it won't require a logged in user - if there is no session
    * the user will simply be None.
    */
-  object FindUser extends ActionBuilder[AuthRequest] {
+  class FindUser(permitRedirect: Boolean) extends ActionBuilder[AuthRequest] {
     override def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[Result]): Future[Result] = {
       val req = new PlayHttpRequest(request)
       val response: Future[Response] = Future { handler.handle(req) }
 
       /** A bunch of munging to turn the sso-client-core Response into a Play result */
       response.flatMap { response =>
-        val result = if (response.isContinueRequest) {
-          val user = Option(response.getUser).filter(User.hasUsercode)
-          val actualUser = Option(response.getActualUser).filter(User.hasUsercode)
-          val ctx = new LoginContextImpl(linkGenerator(request), user.map(User.apply), actualUser.map(User.apply))
-          block(new AuthenticatedRequest(ctx, request))
+        val user = Option(response.getUser).filter(User.hasUsercode)
+        val actualUser = Option(response.getActualUser).filter(User.hasUsercode)
+        val context = new LoginContextImpl(linkGenerator(request), user.map(User.apply), actualUser.map(User.apply))
+
+        val result = if (response.isContinueRequest || !permitRedirect) {
+          block(new AuthenticatedRequest(context, request))
         } else {
           // Handler wants to do a redirect or something
           Future.successful(Results.Redirect(response.getRedirect))
