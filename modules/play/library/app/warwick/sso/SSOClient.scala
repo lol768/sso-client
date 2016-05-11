@@ -46,15 +46,13 @@ trait SSOClient {
   /**
    * Fetches any existing user session and provides it as an AuthenticatedRequest which has a User.
    */
-  val Lenient: ActionBuilder[AuthRequest]
+  val Lenient: SSOActionBuilder
 
   /**
    * Like Lenient, but if no user was present it automatically redirects to login so that a user
    * is required.
    */
   val Strict: ActionBuilder[AuthRequest]
-
-  val LenientNoRedirect: ActionBuilder[AuthRequest]
 
   def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result): ActionBuilder[AuthRequest]
 
@@ -82,6 +80,10 @@ trait SSOClient {
   def withUser[A](request: RequestHeader)(block: LoginContext => TryAcceptResult[A]): TryAcceptResult[A]
 
   def linkGenerator(request: RequestHeader): LinkGenerator
+
+  trait SSOActionBuilder extends ActionBuilder[AuthRequest] {
+    def disallowRedirect: SSOActionBuilder
+  }
 }
 
 
@@ -102,9 +104,7 @@ class SSOClientImpl @Inject()(
 
   lazy val Strict = Lenient andThen requireCondition(_.context.user.isDefined, otherwise = redirectToSSO)
 
-  lazy val Lenient = new FindUser(permitRedirect = true)
-
-  lazy val LenientNoRedirect = new FindUser(permitRedirect = false)
+  lazy val Lenient = new FindUser
 
   override def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result) = Strict andThen requireCondition(_.context.userHasRole(role), otherwise)
 
@@ -119,7 +119,10 @@ class SSOClientImpl @Inject()(
    * a local session. But it won't require a logged in user - if there is no session
    * the user will simply be None.
    */
-  class FindUser(permitRedirect: Boolean) extends ActionBuilder[AuthRequest] {
+  case class FindUser(permitRedirect: Boolean = true) extends SSOActionBuilder {
+
+    def disallowRedirect = copy(permitRedirect = false)
+
     override def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[Result]): Future[Result] = {
       val req = new PlayHttpRequest(request)
       val response: Future[Response] = Future { handler.handle(req) }
@@ -148,9 +151,7 @@ class SSOClientImpl @Inject()(
     }
   }
 
-  override def withUser[A](req: RequestHeader)(block: (LoginContext) => TryAcceptResult[A])
-      : TryAcceptResult[A] = {
-
+  override def withUser[A](req: RequestHeader)(block: (LoginContext) => TryAcceptResult[A]): TryAcceptResult[A] = {
     val request = new PlayHttpRequestHeader(req)
     val response = Future{ handler.handle(request) }
     response.flatMap { response =>
@@ -159,7 +160,6 @@ class SSOClientImpl @Inject()(
       val ctx = new LoginContextImpl(linkGenerator(req), user.map(User.apply), actualUser.map(User.apply))
       block(ctx)
     }
-
   }
 
   private def requireCondition(block: AuthRequest[_] => Boolean, otherwise: AuthRequest[_] => Result) =

@@ -2,7 +2,7 @@ package warwick.sso
 
 import java.util.Arrays._
 
-import akka.actor.{Props, ActorRef, Actor}
+import akka.actor.{Actor, ActorRef, Props}
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.http.message.BasicHeader
 import org.scalatest.concurrent.ScalaFutures._
@@ -10,9 +10,9 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.iteratee.{Enumerator, Iteratee}
 import play.api.libs.json.JsValue
-import play.api.mvc.{WebSocket, Controller, Cookie, Results}
-import play.api.test.FakeRequest
-import uk.ac.warwick.sso.client.{SSOConfiguration, SSOClientHandler}
+import play.api.mvc.{Controller, Cookie, Results, WebSocket}
+import play.api.test.{FakeRequest, Helpers}
+import uk.ac.warwick.sso.client.{SSOClientHandler, SSOConfiguration}
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 
@@ -105,6 +105,12 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results {
       response.setRedirect("http://www.example.net/googles")
       val result = noRunAction.apply(FakeRequest())
       headers(of=result).get("Location").get must be ("http://www.example.net/googles")
+    }
+
+    "not send redirect" in new Context {
+      response.setRedirect("http://www.example.net/googles")
+      val result = client.Lenient.disallowRedirect(request => Ok("super")).apply(FakeRequest())
+      headers(of=result).get("Location") mustBe None
     }
 
   }

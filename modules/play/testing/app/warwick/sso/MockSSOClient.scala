@@ -11,14 +11,14 @@ class MockSSOClient @Inject()(
     loginContext: LoginContext
   ) extends SSOClient {
 
-  object Wrap extends ActionBuilder[AuthenticatedRequest] {
+  object Wrap extends SSOActionBuilder {
+    override def disallowRedirect = this
     override def invokeBlock[A](request: Request[A], block: (AuthRequest[A]) => Future[Result]): Future[Result] =
       block(new AuthRequest(loginContext, request))
   }
 
   override val Lenient = Wrap
   override val Strict = Wrap
-  override val LenientNoRedirect = Wrap
 
   override def RequireRole(role: RoleName, otherwise: (AuthRequest[_]) => Result) = Wrap
   override def RequireActualUserRole(role: RoleName, otherwise: (AuthRequest[_]) => Result) = Wrap
