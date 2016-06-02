@@ -33,6 +33,7 @@ object WebsocketTesting {
   class C(client: SSOClient) extends Controller {
     import play.api.Play.current
     import scala.concurrent.ExecutionContext.Implicits.global
+    implicit val mat = current.materializer
 
     def actor = WebSocket.tryAcceptWithActor[JsValue, JsValue] { req =>
       client.withUser(req) { loginContext =>
