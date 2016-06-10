@@ -7,13 +7,13 @@
     <parent>
         <groupId>uk.ac.warwick.sso</groupId>
         <artifactId>sso-client-project</artifactId>
-        <version>2.19</version>
+        <version>2.20-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>uk.ac.warwick.sso</groupId>
     <artifactId>sso-client-core</artifactId>
-    <version>2.19</version>
+    <version>2.20-SNAPSHOT</version>
 
     <build>
         <resources>
