@@ -1,24 +1,20 @@
 package uk.ac.warwick.userlookup;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
+import uk.ac.warwick.sso.client.SSOClientVersionLoader;
 import uk.ac.warwick.userlookup.HttpMethodWebService.GetMethodFactory;
 import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
 import uk.ac.warwick.userlookup.HttpMethodWebService.WebServiceException;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Finds users by filter by calling Websignon's API. The
@@ -43,7 +39,7 @@ final class SSOUserLookup implements UserFilter {
 		this._ssosUrl = getSsosUrl(ssosUrl);
 		this._apiKey = apiKey;
 		if (_version == null || _version.equals("")) {
-			_version = UserLookupVersionLoader.getVersion();
+			_version = SSOClientVersionLoader.getVersion();
 		}
 	}
 	
