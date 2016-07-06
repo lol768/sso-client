@@ -18,17 +18,17 @@ public final class GroupAliasAwareGroupService extends GroupServiceAdapter imple
     public static final String MEMBER = "MEMBER";
 
     public static final String STAFF = "STAFF";
-    
+
     public static final String STAFFNOPGR = "STAFFNOPGR";
-    
+
     public static final String ALUMNI = "ALUMNI";
-    
+
     public static final String STUDENT = "STUDENT";
-    
+
     public static final String STUDENTNOPGT = "STUDENTNOPGT";
-    
+
     public static final String PGRESEARCH = "PGRESEARCH";
-    
+
     public static final String PGTAUGHT = "PGTAUGHT";
 
     private static final String WARWICKITSCLASS_KEY = "warwickitsclass";
@@ -37,7 +37,7 @@ public final class GroupAliasAwareGroupService extends GroupServiceAdapter imple
 	private static final String WARWICKCATEGORY_KEY = "warwickcategory";
 	private static final String RESEARCH_CATEGORY = "R";
 	private static final String TAUGHT_CATEGORY = "T";
-	    
+
     private UserLookup _userLookup;
 
     public GroupAliasAwareGroupService(final GroupService decorated, final UserLookup userlookup) {
@@ -84,34 +84,34 @@ public final class GroupAliasAwareGroupService extends GroupServiceAdapter imple
             String prefix = groupName.substring(0, groupName.indexOf("*"));
             return (userId.startsWith(prefix));
         }
-        
+
 		return getDecorated().isUserInGroup(userId, groupName);
-		
+
     }
 
     private boolean userIsStaffNotPGR(User user) {
 		return (user.isStaff() && !hasPGR(user));
 	}
-    
+
     private boolean userIsPGR(User user) {
         return (user.isStaff() && hasPGR(user));
     }
 
 	private boolean hasPGR(User user) {
-		return PGRSTUDENT_CLASS.equals(user.getExtraProperty(WARWICKITSCLASS_KEY)) 
+		return PGRSTUDENT_CLASS.equals(user.getExtraProperty(WARWICKITSCLASS_KEY))
 			|| RESEARCH_CATEGORY.equals(user.getExtraProperty(WARWICKCATEGORY_KEY));
 	}
 
     private boolean userIsStudentNotPGT(User user) {
 		return (user.isStudent() && !hasPGT(user));
 	}
-    
+
     private boolean userIsPGT(User user) {
         return (user.isStudent() && hasPGT(user));
     }
 
 	private boolean hasPGT(User user) {
-		return PGTSTUDENT_CLASS.equals(user.getExtraProperty(WARWICKITSCLASS_KEY)) 
+		return PGTSTUDENT_CLASS.equals(user.getExtraProperty(WARWICKITSCLASS_KEY))
 			|| TAUGHT_CATEGORY.equals(user.getExtraProperty(WARWICKCATEGORY_KEY));
 	}
 
@@ -121,11 +121,14 @@ public final class GroupAliasAwareGroupService extends GroupServiceAdapter imple
         }
 
         // treat it as a group if we are a user code, i.e. user codes in its_xusqac are its_xusqac
-        if (group.indexOf("-") < 0) {
-            return Collections.singletonList(group);
+        if (!group.contains("-")) {
+            if (_userLookup.getUserByUserId(group).isFoundUser()) {
+                return Collections.singletonList(group);
+            } else {
+                return Collections.emptyList();
+            }
         }
 
-        
 		return getDecorated().getUserCodesInGroup(group);
     }
 }
