@@ -4,10 +4,12 @@ import java.math.BigInteger
 import java.{lang, math, util}
 import java.util.{Collections, Properties}
 
-import scala.collection.JavaConverters._
 
-import org.apache.commons.configuration.{Configuration => ApacheConfiguration, AbstractConfiguration}
+import scala.collection.JavaConverters._
+import org.apache.commons.configuration.{Configuration => ApacheConfiguration}
 import play.api.Configuration
+
+import scala.util.Try
 
 
 /**
@@ -23,7 +25,56 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
   override def clearProperty(s: String): Unit = noThanksWeAreImmutable
 
   override def getList(s: String): util.List[_] = getList(s, Collections.EMPTY_LIST)
-  override def getList(s: String, orElse: util.List[_]): util.List[_] = conf.getStringList(s).getOrElse(orElse)
+
+  /**
+    * Subitems contained inside list items don't appear in config.keys, but Apache Configuration
+    * expects them to return true for containsKey, so let's gather up all sub properties
+    * of list members.
+    */
+  private lazy val listSubkeys: Set[String] =
+    for {
+      key <- conf.keys
+      subConfs <- Try(conf.getConfigSeq(key)).toOption.flatten.toSeq
+      subConf <- subConfs
+      item <- subConf.keys
+    } yield s"$key.$item"
+
+  /** From a dot.separated.key, finds the first prefix that is a list. */
+  def findListKey(key: String) = {
+    var result = Seq[String]()
+    val parts = key.split("\\.")
+    parts.find { part =>
+      result :+= part
+      Try(conf.getList(result.mkString("."))).isSuccess
+    }.map { _ =>
+      result.mkString(".")
+    }
+  }
+
+  /**
+    * First we see if config at `s` is a list itself. If it isn't...
+    * Because Apache configuration works by flattening everything, you can get a list
+    * of sub-items that appear within a sequence of list items, e.g. if app.providerid
+    * is repeated in XML, you can getList("app.providerid") even though "app" is the list.
+    * We implement that here by finding the first prefix that's a list, and gathering subitems
+    * from each member.
+    */
+  override def getList(s: String, fallback: util.List[_]): util.List[_] =
+    conf.getStringList(s) orElse {
+      // any part of the key could be an array... we have to find it, then dig through each item in it.
+      findListKey(s).flatMap { listKey =>
+        val childKey = s.substring(listKey.length + 1)
+        // this shouldn't happen as the initial getStringList should work.
+        require(childKey.nonEmpty, "No child key to select")
+        conf.getObjectList(listKey).map { list =>
+          list.asScala.map { obj =>
+            obj.get(childKey).unwrapped()
+          }.asJava
+        }
+      }
+    } getOrElse {
+      fallback
+    }
 
   override def getProperty(s: String): AnyRef =
     conf.entrySet
@@ -69,7 +120,8 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
   override def getBoolean(s: String, b: Boolean): Boolean = conf.getBoolean(s).getOrElse(b)
   override def getBoolean(s: String, b: lang.Boolean): lang.Boolean = getBoolean(s,b)
 
-  override def containsKey(s: String): Boolean = conf.keys(s)
+  override def containsKey(s: String): Boolean =
+    conf.keys.contains(s) || listSubkeys.contains(s)
 
   override def getShort(s: String): Short = getInt(s).toShort
   override def getShort(s: String, i: Short): Short = getInt(s,i.toInt).toShort
