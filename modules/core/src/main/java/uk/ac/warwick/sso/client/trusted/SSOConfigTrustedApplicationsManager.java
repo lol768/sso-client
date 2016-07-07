@@ -1,6 +1,7 @@
 package uk.ac.warwick.sso.client.trusted;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.bouncycastle.util.encoders.Base64;
@@ -9,7 +10,7 @@ import uk.ac.warwick.util.collections.Pair;
 import uk.ac.warwick.util.collections.PairIterator;
 
 import java.security.PublicKey;
-import java.util.Iterator;
+import java.util.List;
 
 /**
  * Default implementation.
@@ -49,14 +50,13 @@ public class SSOConfigTrustedApplicationsManager implements TrustedApplicationsM
 
         // Trust thyself
         builder.put(this.application.getProviderID(), currentApp);
+        
+        List<Pair<String, String>> pairs = Lists.newArrayList(PairIterator.of(
+            config.getList("trustedapps.app.providerid"),
+            config.getList("trustedapps.app.publickey")
+        ));
 
-        Iterator<Pair<String, String>> itr = new PairIterator<String, String>(
-            config.getList("trustedapps.app.providerid").iterator(),
-            config.getList("trustedapps.app.publickey").iterator()
-        );
-
-        while (itr.hasNext()) {
-            Pair<String, String> providerIDAndPublicKey = itr.next();
+        for (Pair<String, String> providerIDAndPublicKey : pairs) {
             String providerID = providerIDAndPublicKey.getLeft();
 
             try {
