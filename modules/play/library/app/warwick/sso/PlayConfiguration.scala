@@ -67,7 +67,7 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
   /** From a dot.separated.key, finds the first prefix that is a list. */
   def findListKey(key: String) = {
     val parts = key.split("\\.")
-    Stream from 1 take parts.length map { n =>
+    Stream.from(1).take(parts.length) map { n =>
       parts.take(n).mkString(".")
     } find { key =>
       Try(conf.getList(key)).isSuccess
