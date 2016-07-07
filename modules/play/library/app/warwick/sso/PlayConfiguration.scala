@@ -17,15 +17,6 @@ import scala.util.Try
  */
 class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
 
-  private def noThanksWeAreImmutable: Nothing = throw new UnsupportedOperationException("Immutable config")
-
-  override def addProperty(s: String, o: scala.Any): Unit = noThanksWeAreImmutable
-  override def setProperty(s: String, o: scala.Any): Unit = noThanksWeAreImmutable
-  override def clear(): Unit = noThanksWeAreImmutable
-  override def clearProperty(s: String): Unit = noThanksWeAreImmutable
-
-  override def getList(s: String): util.List[_] = getList(s, Collections.EMPTY_LIST)
-
   /**
     * Subitems contained inside list items don't appear in config.keys, but Apache Configuration
     * expects them to return true for containsKey, so let's gather up all sub properties
@@ -39,17 +30,14 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
       item <- subConf.keys
     } yield s"$key.$item"
 
-  /** From a dot.separated.key, finds the first prefix that is a list. */
-  def findListKey(key: String) = {
-    var result = Seq[String]()
-    val parts = key.split("\\.")
-    parts.find { part =>
-      result :+= part
-      Try(conf.getList(result.mkString("."))).isSuccess
-    }.map { _ =>
-      result.mkString(".")
-    }
-  }
+  private def noThanksWeAreImmutable: Nothing = throw new UnsupportedOperationException("Immutable config")
+
+  override def addProperty(s: String, o: scala.Any): Unit = noThanksWeAreImmutable
+  override def setProperty(s: String, o: scala.Any): Unit = noThanksWeAreImmutable
+  override def clear(): Unit = noThanksWeAreImmutable
+  override def clearProperty(s: String): Unit = noThanksWeAreImmutable
+
+  override def getList(s: String): util.List[_] = getList(s, Collections.EMPTY_LIST)
 
   /**
     * First we see if config at `s` is a list itself. If it isn't...
@@ -75,6 +63,16 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
     } getOrElse {
       fallback
     }
+
+  /** From a dot.separated.key, finds the first prefix that is a list. */
+  def findListKey(key: String) = {
+    val parts = key.split("\\.")
+    Stream from 1 take parts.length map { n =>
+      parts.take(n).mkString(".")
+    } find { key =>
+      Try(conf.getList(key)).isSuccess
+    }
+  }
 
   override def getProperty(s: String): AnyRef =
     conf.entrySet
