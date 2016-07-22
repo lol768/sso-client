@@ -13,7 +13,7 @@ import java.io.IOException;
  * Takes a request and checks for an existing session by looking
  * at session cookies and the user cache.
  */
-public interface SSOClientHandler {
+public interface SSOClientHandler extends SSOHandler {
     Response handle(HttpRequest request) throws IOException;
 
     AttributeAuthorityResponseFetcher getAaFetcher();

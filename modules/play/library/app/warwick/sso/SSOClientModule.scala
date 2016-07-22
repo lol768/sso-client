@@ -3,29 +3,30 @@ package warwick.sso
 import java.util.Properties
 import javax.inject._
 
-import uk.ac.warwick.sso.client.trusted.{SSOConfigTrustedApplicationsManager, TrustedApplicationsManager}
-import com.google.inject.{Scopes, Exposed, PrivateModule, Provides}
+import com.google.inject.{Exposed, PrivateModule, Provides, Scopes}
 import play.api.Configuration
 import play.api.db.{DBApi, Database}
 import uk.ac.warwick.sso.client._
 import uk.ac.warwick.sso.client.cache.{InMemoryUserCache, UserCache}
 import uk.ac.warwick.sso.client.core.{OnCampusService, OnCampusServiceImpl}
+import uk.ac.warwick.sso.client.trusted.{SSOConfigTrustedApplicationsManager, TrustedApplicationHandler, TrustedApplicationHandlerImpl, TrustedApplicationsManager}
 import uk.ac.warwick.userlookup.{UserLookup, UserLookupInterface}
 import uk.ac.warwick.util.cache.{Cache, Caches}
 
 import scala.collection.JavaConverters._
 
 /**
- * Guice module for setting up all the relevant SSO Client
- * objects. As this is a private module, most of the beans
- * are not available to an app using this module except where
- * they are explicitly exposed.
- */
+  * Guice module for setting up all the relevant SSO Client
+  * objects. As this is a private module, most of the beans
+  * are not available to an app using this module except where
+  * they are explicitly exposed.
+  */
 class SSOClientModule extends PrivateModule {
   override def configure(): Unit = {
     bind(classOf[AssertionConsumer]).in(Scopes.SINGLETON)
     bind(classOf[SSOClient]).to(classOf[SSOClientImpl]).in(Scopes.SINGLETON)
     bind(classOf[SSOClientHandler]).to(classOf[SSOClientHandlerImpl]).in(Scopes.SINGLETON)
+    bind(classOf[TrustedApplicationHandler]).to(classOf[TrustedApplicationHandlerImpl]).in(Scopes.SINGLETON)
     bind(classOf[OnCampusService]).to(classOf[OnCampusServiceImpl]).in(Scopes.SINGLETON)
     bind(classOf[UserLookupService]).in(Scopes.SINGLETON)
     bind(classOf[GroupService]).in(Scopes.SINGLETON)
@@ -51,7 +52,7 @@ class SSOClientModule extends PrivateModule {
 
   @Singleton
   @Provides
-  def userlookup(ssoConfig: SSOConfiguration) : UserLookupInterface = {
+  def userlookup(ssoConfig: SSOConfiguration): UserLookupInterface = {
     UserLookup.setConfigProperties(makeProps(ssoConfig))
     new UserLookup()
   }
@@ -69,7 +70,8 @@ class SSOClientModule extends PrivateModule {
     props
   }
 
-  @Provides @Named("SSOClientDB")
+  @Provides
+  @Named("SSOClientDB")
   def db(ssoConfig: SSOConfiguration, api: DBApi): Database =
     api.database(ssoConfig.getString("cluster.db", "default"))
 
@@ -90,10 +92,10 @@ class SSOClientModule extends PrivateModule {
 
   @Provides
   def shireCommand(
-      config: SSOConfiguration,
-      userCache: UserCache,
-      userIdCache: Cache[String, uk.ac.warwick.userlookup.User]
-      ) : ShireCommand =
+    config: SSOConfiguration,
+    userCache: UserCache,
+    userIdCache: Cache[String, uk.ac.warwick.userlookup.User]
+  ): ShireCommand =
     new ShireCommand(config, userCache, userIdCache)
 
   @Singleton
@@ -109,10 +111,10 @@ class SSOClientModule extends PrivateModule {
   @Singleton
   @Provides
   def userCache(
-       config: SSOConfiguration,
-       jdbcCache: Provider[JdbcUserCache],
-       @Named("InMemory") memoryCache: Provider[UserCache]
-    ) : UserCache =
+    config: SSOConfiguration,
+    jdbcCache: Provider[JdbcUserCache],
+    @Named("InMemory") memoryCache: Provider[UserCache]
+  ): UserCache =
     if (config.getBoolean("cluster.enabled", false)) jdbcCache.get()
     else memoryCache.get()
 

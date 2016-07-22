@@ -9,6 +9,7 @@ import org.joda.time.DateTimeConstants;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
+import uk.ac.warwick.sso.client.core.ServletRequestAdapter;
 
 import java.security.PublicKey;
 
@@ -83,7 +84,7 @@ public class SSOConfigTrustedApplicationTest {
             ); will(returnValue(applicationCertificate));
         }});
 
-        assertEquals(applicationCertificate, trustedApplication.decode(encryptedCertificate, request));
+        assertEquals(applicationCertificate, trustedApplication.decode(encryptedCertificate, new ServletRequestAdapter(request)));
 
         m.assertIsSatisfied();
     }
@@ -105,7 +106,7 @@ public class SSOConfigTrustedApplicationTest {
             ); will(returnValue(applicationCertificate));
         }});
 
-        trustedApplication.decode(encryptedCertificate, request);
+        trustedApplication.decode(encryptedCertificate, new ServletRequestAdapter(request));
 
         fail("Should have thrown exception");
     }

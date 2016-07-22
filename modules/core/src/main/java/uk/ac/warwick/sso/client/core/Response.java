@@ -1,6 +1,7 @@
 package uk.ac.warwick.sso.client.core;
 
 import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import uk.ac.warwick.userlookup.User;
 
 import java.io.ByteArrayOutputStream;
@@ -51,6 +52,10 @@ public class Response {
 
     public void setHeaders(List<Header> headers) {
         this.headers = headers;
+    }
+
+    public void setHeader(String name, String value) {
+        this.headers.add(new BasicHeader(name, value));
     }
 
     public boolean isContinueRequest() {
