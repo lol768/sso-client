@@ -84,11 +84,11 @@ public class TrustedApplicationFilter extends HandleFilter implements Filter {
     @Override
     public SSOHandler getHandler() {
         if (handler == null) {
-            handler = new TrustedApplicationHandlerImpl();
-
-            handler.setUserLookup(getUserLookup());
-            handler.setConfig(getConfig());
-            handler.setTrustedApplicationsManager(getTrustedApplicationsManager());
+            handler = new TrustedApplicationHandlerImpl(
+                    getUserLookup(),
+                    getTrustedApplicationsManager(),
+                    getConfig()
+            );
         }
 
         return handler;
