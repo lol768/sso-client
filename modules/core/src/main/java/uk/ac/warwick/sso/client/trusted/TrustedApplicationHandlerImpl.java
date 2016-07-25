@@ -128,7 +128,7 @@ public class TrustedApplicationHandlerImpl implements TrustedApplicationHandler 
         return generator.getTarget();
     }
 
-    private class FilterException extends TransportException {
+    private static class FilterException extends TransportException {
 
         FilterException(TransportErrorMessage error) {
             super(error);
