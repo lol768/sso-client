@@ -7,6 +7,7 @@ import uk.ac.warwick.userlookup.User;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -61,13 +62,15 @@ public class Response {
     }
 
     private void removeHeadersWithNameIgnoreCase(String name) {
-        List<Header> headersToRemove = new ArrayList<>();
-        for (Header header : headers) {
+        Iterator<Header> iterator = headers.iterator();
+
+        while (iterator.hasNext()) {
+            Header header = iterator.next();
+
             if (header.getName().equalsIgnoreCase(name)) {
-                headersToRemove.add(header);
+                iterator.remove();
             }
         }
-        headers.removeAll(headersToRemove);
     }
 
     public boolean isContinueRequest() {
