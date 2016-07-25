@@ -3,8 +3,8 @@ package uk.ac.warwick.sso.client.trusted;
 import org.bouncycastle.util.encoders.Base64;
 import org.joda.time.DateTime;
 import uk.ac.warwick.sso.client.SSOConfiguration;
+import uk.ac.warwick.sso.client.core.HttpRequest;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.security.PublicKey;
 
@@ -48,7 +48,7 @@ public abstract class AbstractTrustedApplication implements TrustedApplication {
     }
 
     @Override
-    public final ApplicationCertificate decode(EncryptedCertificate encCert, HttpServletRequest request) throws InvalidCertificateException {
+    public final ApplicationCertificate decode(EncryptedCertificate encCert, HttpRequest request) throws InvalidCertificateException {
         ApplicationCertificate cert = encryptionProvider.decodeEncryptedCertificate(encCert, publicKey, getProviderID());
 
         // Check expiry of cert

@@ -4,6 +4,7 @@ import javax.inject.Inject
 
 import play.api.mvc._
 import uk.ac.warwick.sso.client.core.{LinkGenerator, LinkGeneratorImpl, Response}
+import uk.ac.warwick.sso.client.trusted.TrustedApplicationHandler
 import uk.ac.warwick.sso.client.{SSOClientHandler, SSOConfiguration}
 
 import scala.collection.JavaConverters._
@@ -89,6 +90,7 @@ trait SSOClient {
 
 class SSOClientImpl @Inject()(
   handler: SSOClientHandler,
+  trustedAppsHandler: TrustedApplicationHandler,
   configuration: SSOConfiguration,
   implicit val groupService: GroupService,
   implicit val roleService: RoleService
@@ -110,6 +112,16 @@ class SSOClientImpl @Inject()(
 
   override def RequireActualUserRole(role: RoleName, otherwise: AuthRequest[_] => Result) = Strict andThen requireCondition(_.context.actualUserHasRole(role), otherwise)
 
+  implicit class BonusResponse(response: Response) {
+    lazy val user: Option[User] = Option(response.getUser).filter(User.hasUsercode).map(User.apply)
+
+    lazy val actualUser: Option[User] = Option(response.getActualUser).filter(User.hasUsercode).map(User.apply)
+
+    def isError: Boolean = response.getStatusCode.toString.startsWith("5")
+
+    def hasUser: Boolean = user.isDefined
+  }
+
   /**
    * Action which takes a regular Request and converts it into an AuthRequest,
    * containing an Option[User].
@@ -125,13 +137,18 @@ class SSOClientImpl @Inject()(
 
     override def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[Result]): Future[Result] = {
       val req = new PlayHttpRequest(request)
-      val response: Future[Response] = Future { handler.handle(req) }
 
       /** A bunch of munging to turn the sso-client-core Response into a Play result */
-      response.flatMap { response =>
-        val user = Option(response.getUser).filter(User.hasUsercode)
-        val actualUser = Option(response.getActualUser).filter(User.hasUsercode)
-        val context = new LoginContextImpl(linkGenerator(request), user.map(User.apply), actualUser.map(User.apply))
+      val handlerResponses = for {
+        ssoResponse <- Future(handler.handle(req))
+        trustedAppsResponse <- Future(trustedAppsHandler.handle(req))
+      } yield (ssoResponse, trustedAppsResponse)
+
+      handlerResponses.flatMap { case (ssoResponse, trustedAppsResponse) =>
+        // Use the trusted apps response if it produced a user or an error
+        val response = Option(trustedAppsResponse).filter(r => r.hasUser || r.isError).getOrElse(ssoResponse)
+
+        val context = new LoginContextImpl(linkGenerator(request), response.user, response.actualUser)
 
         val result = if (response.isContinueRequest || !permitRedirect) {
           block(new AuthenticatedRequest(context, request))

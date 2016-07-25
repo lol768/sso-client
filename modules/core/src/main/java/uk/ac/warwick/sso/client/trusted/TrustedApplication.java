@@ -2,8 +2,7 @@ package uk.ac.warwick.sso.client.trusted;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-
-import javax.servlet.http.HttpServletRequest;
+import uk.ac.warwick.sso.client.core.HttpRequest;
 
 public interface TrustedApplication extends Application {
 
@@ -34,7 +33,7 @@ public interface TrustedApplication extends Application {
      *
      * @throws InvalidCertificateException - if either decryption or validation fails
      */
-    ApplicationCertificate decode(EncryptedCertificate certificate, HttpServletRequest request) throws InvalidCertificateException;
+    ApplicationCertificate decode(EncryptedCertificate certificate, HttpRequest request) throws InvalidCertificateException;
 
     /**
      * Verify a received signature.
