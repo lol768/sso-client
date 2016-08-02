@@ -1,5 +1,5 @@
 
-def libraryVersion = "2.22-SNAPSHOT"
+def libraryVersion = "2.22"
 
 lazy val root = (project in file("."))
   .aggregate(library, testing)
@@ -28,8 +28,8 @@ lazy val testing = (project in file("testing")).enablePlugins(PlayScala)
   .settings(repositorySettings :_*)
 
 lazy val commonSettings = Seq(
-  scalaVersion := "2.11.6",
-  crossScalaVersions := Seq("2.11.6"),
+  scalaVersion := "2.11.8",
+  crossScalaVersions := Seq("2.11.8"),
 
   publishMavenStyle := true,
   compileOrder := CompileOrder.ScalaThenJava, // maybe faster?
