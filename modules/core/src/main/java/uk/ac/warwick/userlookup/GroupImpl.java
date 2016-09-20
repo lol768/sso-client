@@ -36,6 +36,8 @@ public class GroupImpl implements Group {
 	
 	private boolean _verified = true;
 
+	private boolean _restricted = true;
+
 	/**
 	 * Will return a list of usercodes as String's of users in this group
 	 * 
@@ -139,4 +141,11 @@ public class GroupImpl implements Group {
 		this._verified = verified;
 	}
 
+	public boolean isRestricted() {
+		return _restricted;
+	}
+
+	public void setRestricted(boolean restricted) {
+		this._restricted = restricted;
+	}
 }

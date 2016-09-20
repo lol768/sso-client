@@ -75,6 +75,8 @@ public final class GroupsXMLParser extends DefaultHandler {
 			}
 			type += text;
 			_currentGroup.setType(type);
+		} else if (_lastElement.equals("restricted")) {
+			_currentGroup.setRestricted(text.equals("true"));
 		}
 	}
 
