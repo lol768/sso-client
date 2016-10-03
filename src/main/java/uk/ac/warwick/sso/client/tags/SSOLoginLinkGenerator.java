@@ -63,11 +63,11 @@ public class SSOLoginLinkGenerator extends SSOLinkGenerator {
 	}
 	
 	public final String getRealPermissionDeniedLink() {
-		return getLoginUrl() + "&error=permdenied";
+		return getLoginUrl() + "&status=permdenied";
 	}
 	
 	public final String getNotLoggedInLink() {
-		return getLoginUrl() + "&error=notloggedin";
+		return getLoginUrl() + "&status=notloggedin";
 	}
 
 }
