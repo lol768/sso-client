@@ -20,6 +20,7 @@ import uk.ac.warwick.userlookup.UserLookupInterface;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Vector;
 
 import static org.junit.Assert.*;
@@ -57,7 +58,7 @@ public class TrustedApplicationFilterTest {
     @Test
     public void testNoCert() throws Exception {
         m.checking(new Expectations() {{
-            one(chain).doFilter(request, response);
+            one(chain).doFilter(with(any(HttpServletRequest.class)), with(equal(response)));
         }});
 
         filter.doFilter(request, response, chain);
@@ -381,7 +382,7 @@ public class TrustedApplicationFilterTest {
 
             one(userLookup).getUserByUserId("cuscav"); will(returnValue(user));
 
-            one(chain).doFilter(request, response);
+            one(chain).doFilter(with(any(HttpServletRequest.class)), with(equal(response)));
         }});
 
         filter.doFilter(request, response, chain);
