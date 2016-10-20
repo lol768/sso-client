@@ -44,7 +44,7 @@ public abstract class HandleFilter {
         }
 
         if (res.isContinueRequest()) {
-            filterChain.doFilter(servletRequest, response);
+            filterChain.doFilter(request, response);
         } else {
             if (res.getRedirect() != null)
                 response.sendRedirect(res.getRedirect());
