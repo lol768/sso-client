@@ -90,12 +90,12 @@ public class SAMLUserAdapter implements UserAttributesAdapter {
 
     @Override
     public boolean isLoginDisabled() {
-        return get("logindisabled") != null && Boolean.valueOf(get("logindisabled"));
+        return "true".equals(get("logindisabled"));
     }
 
     @Override
     public boolean isLoggedIn() {
-        return get("urn:websignon:loggedin") != null && Boolean.valueOf(get("urn:websignon:loggedin"));
+        return "true".equals(get("urn:websignon:loggedin"));
     }
 
     @Override
