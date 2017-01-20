@@ -39,7 +39,7 @@ import uk.ac.warwick.userlookup.*;
  * {@link SSOClientFilter#getUserFromRequest(HttpServletRequest)} can be used to conveniently
  * fetch the current User object from the appropriate request attribute.
  */
-public final class SSOClientFilter implements Filter {
+public final class SSOClientFilter extends HandleFilter implements Filter {
 
 	private static final int BASIC_AUTH_CACHE_TIME_SECONDS = SSOClientHandlerImpl.BASIC_AUTH_CACHE_TIME_SECONDS;
 
@@ -64,6 +64,12 @@ public final class SSOClientFilter implements Filter {
 	private String _configSuffix = "";
 
 	private UserLookupInterface _userLookup;
+
+	private boolean detectAnonymousOnCampusUsers;
+
+	private boolean redirectToRefreshSession = true;
+
+	private AttributeAuthorityResponseFetcher _aaFetcher;
 
 	public SSOClientFilter() {
 		super();
@@ -112,41 +118,17 @@ public final class SSOClientFilter implements Filter {
 			OnCampusService coreCampusService = getUserLookup().getOnCampusService();
 
 			handler = new SSOClientHandlerImpl(_config, getUserLookup(), userCache, coreCampusService);
+
+			handler.setDetectAnonymousOnCampusUsers(detectAnonymousOnCampusUsers);
+			handler.setRedirectToRefreshSession(redirectToRefreshSession);
+
+			if (_aaFetcher != null) handler.setAaFetcher(_aaFetcher);
 		}
 	}
 
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-		final HeaderSettingHttpServletRequest request = new HeaderSettingHttpServletRequest((HttpServletRequest)servletRequest);
-		final HttpServletResponse response = (HttpServletResponse) servletResponse;
-
-		uk.ac.warwick.sso.client.core.HttpRequest req = new ServletRequestAdapter(request);
-		Response res = handler.handle(req);
-
-		for (Cookie c : res.getCookies()) {
-			response.addCookie(ServletCookies.toServlet(c));
-		}
-
-		for (Header header : res.getHeaders()) {
-			response.setHeader(header.getName(), header.getValue());
-		}
-
-		if (res.getUser() != null) {
-			putUserIntoKey(res.getUser(), request, getUserKey(_config));
-		}
-
-		if (res.getActualUser() != null) {
-			putUserIntoKey(res.getActualUser(), request, getActualUserKey(_config));
-		}
-
-		if (res.isContinueRequest()) {
-			filterChain.doFilter(request, response);
-		} else {
-			if (res.getRedirect() != null)
-				response.sendRedirect(res.getRedirect());
-			else
-				response.setStatus(res.getStatusCode());
-		}
+		filterWithHandler((HttpServletRequest) servletRequest, (HttpServletResponse) servletResponse, filterChain);
 	}
 
 	/**
@@ -189,21 +171,14 @@ public final class SSOClientFilter implements Filter {
 		return config.getString("shire.filteractualuserkey", ACTUAL_USER_KEY);
 	}
 
-	private void putUserIntoKey(final User user, final HeaderSettingHttpServletRequest request, final String userKey) {
-		request.setAttribute(userKey, user);
+	@Override
+	public SSOConfiguration getConfig() {
+	    return _config;
+	}
 
-		request.setRemoteUser(user.getUserId());
-
-		if (!user.getExtraProperties().isEmpty()) {
-			for (Map.Entry<String,String> entry : user.getExtraProperties().entrySet()) {
-				String key = entry.getKey();
-				String value = entry.getValue();
-				request.setAttribute(userKey + "_" + key, value);
-				request.addHeader(userKey + "_" + key, value);
-			}
-		}
-
-		request.addHeader(userKey + "_groups", "");
+	@Override
+	public SSOHandler getHandler() {
+	    return handler;
 	}
 
 	public void destroy() {
@@ -211,23 +186,11 @@ public final class SSOClientFilter implements Filter {
 	}
 
 	public void setDetectAnonymousOnCampusUsers(boolean detectAnonymousOnCampusUsers) {
-		handler.setDetectAnonymousOnCampusUsers(detectAnonymousOnCampusUsers);
-	}
-
-	public boolean isRedirectToRefreshSession() {
-		return handler.isRedirectToRefreshSession();
+		this.detectAnonymousOnCampusUsers = detectAnonymousOnCampusUsers;
 	}
 
 	public void setConfigSuffix(String configSuffix) {
 		_configSuffix = configSuffix;
-	}
-
-	public UserCache getCache() {
-		return handler.getCache();
-	}
-
-	public void setCache(UserCache cache) {
-		handler.setCache(cache);
 	}
 
 	public void setHandler(SSOClientHandler handler) {
@@ -253,12 +216,8 @@ public final class SSOClientFilter implements Filter {
 		return _userLookup;
 	}
 
-	public boolean isDetectAnonymousOnCampusUsers() {
-		return handler.isDetectAnonymousOnCampusUsers();
-	}
-
 	public void setRedirectToRefreshSession(boolean redirectToRefreshSession) {
-		handler.setRedirectToRefreshSession(redirectToRefreshSession);
+		this.redirectToRefreshSession = redirectToRefreshSession;
 	}
 
 	public void setConfigLocation(String path) {
@@ -266,7 +225,7 @@ public final class SSOClientFilter implements Filter {
 	}
 
 	public void setAaFetcher(AttributeAuthorityResponseFetcher aaFetcher) {
-		handler.setAaFetcher(aaFetcher);
+		this._aaFetcher = aaFetcher;
 	}
 
 	public void setConfig(SSOConfiguration _config) {

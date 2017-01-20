@@ -50,7 +50,7 @@ public class SSOLoginLinkGenerator extends SSOLinkGenerator {
 	 * This is safe to do, because if the user is not logged in then
 	 * the two attributes have the exact same behaviour. If they
 	 * are signed in but they aren't allowed to access a resource, then
-	 * they genuinely do need error=permdenied so they get the
+	 * they genuinely do need status=permdenied so they get the
 	 * page to login again.
 	 */
 	public final String getPermissionDeniedLink() {
@@ -63,11 +63,11 @@ public class SSOLoginLinkGenerator extends SSOLinkGenerator {
 	}
 	
 	public final String getRealPermissionDeniedLink() {
-		return getLoginUrl() + "&error=permdenied";
+		return getLoginUrl() + "&status=permdenied";
 	}
 	
 	public final String getNotLoggedInLink() {
-		return getLoginUrl() + "&error=notloggedin";
+		return getLoginUrl() + "&status=notloggedin";
 	}
 
 }

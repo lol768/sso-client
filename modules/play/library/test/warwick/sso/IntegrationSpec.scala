@@ -20,7 +20,8 @@ class IntegrationSpec extends PlaySpec with Results {
     "configure from sso-client section of Play config" in {
       val config = Configuration.load(Environment.simple(), Map(
           "sso-client.cluster.enabled" -> "true",
-          "sso-client.cluster.db" -> "photos"
+          "sso-client.cluster.db" -> "photos",
+          "sso-client.trustedapps.enabled" -> "false"
         ) ++ inMemoryDatabase(name="photos"))
 
       // Build a fake Play app, to spin up the DB and modules.

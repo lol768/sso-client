@@ -1,26 +1,19 @@
 package uk.ac.warwick.userlookup;
 
-import static java.lang.Integer.*;
-
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import uk.ac.warwick.sso.client.core.*;
+import uk.ac.warwick.sso.client.SSOClientVersionLoader;
+import uk.ac.warwick.sso.client.core.OnCampusService;
+import uk.ac.warwick.sso.client.core.OnCampusServiceImpl;
 import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService;
 import uk.ac.warwick.util.cache.*;
 import uk.ac.warwick.util.collections.Pair;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import static java.lang.Integer.parseInt;
 
 /**
  * A class to look up arbitrary users from Single Sign-on.
@@ -300,7 +293,7 @@ public class UserLookup implements UserLookupInterface {
 		_apiKey = UserLookup.getConfigProperty("userlookup.ssos.apiKey");
 
 		if (_version == null || _version.equals("")) {
-			_version = UserLookupVersionLoader.getVersion();
+			_version = SSOClientVersionLoader.getVersion();
 		}
 	}
 

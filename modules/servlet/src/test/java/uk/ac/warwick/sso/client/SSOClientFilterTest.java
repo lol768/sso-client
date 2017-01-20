@@ -1,9 +1,11 @@
 package uk.ac.warwick.sso.client;
 
-import junit.framework.TestCase;
 import org.apache.commons.configuration.BaseConfiguration;
+import org.apache.commons.configuration.Configuration;
 import org.jmock.Expectations;
-import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Before;
+import org.junit.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -14,21 +16,36 @@ import uk.ac.warwick.sso.client.core.OnCampusServiceImpl;
 import uk.ac.warwick.userlookup.*;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 
-public class SSOClientFilterTest extends TestCase {
+import static org.junit.Assert.*;
+
+public class SSOClientFilterTest  {
+	private JUnit4Mockery m = new JUnit4Mockery();
+
 	private MockHttpServletRequest req;
 	private MockHttpServletResponse res;
 	private MockFilterChain chain;
-	
+
+	private SSOClientFilter f = new SSOClientFilter();
+
+	private UserLookupInterface userLookup = m.mock(UserLookupInterface.class);
+	private OnCampusService onCampusService = new OnCampusServiceImpl();
+	private GroupService groupService = m.mock(GroupService.class);
+
+	@Test
 	public void testGetUserLookup() {
-		SSOClientFilter f = new SSOClientFilter();
 		UserLookupInterface u = f.getUserLookup();
 		assertNotNull(u);
 	}
 	
-	@Override
-	protected void setUp() throws Exception {
+	@Before
+	public void setUp() throws Exception {
 		newRequestGuff();
+	}
+
+	private void wireFilter() {
+		f.setUserLookup(userLookup);
 	}
 
 	private void newRequestGuff() {
@@ -44,6 +61,7 @@ public class SSOClientFilterTest extends TestCase {
 		req.addHeader("Authorization", "Basic " + new BASE64Encoder().encodeBuffer((user + ":" + pass).getBytes("UTF-8")));
 	}
 
+	@Test
 	public void testSetUserLookup() throws Exception {
 		UserLookup u = new UserLookup();
 		SSOClientFilter f = new SSOClientFilter();
@@ -51,22 +69,21 @@ public class SSOClientFilterTest extends TestCase {
 		// Should be the exact same instance
 		assertSame("UserLookup wasn't stored", u, f.getUserLookup());
 	}
-	
-	public void testBasicAuthCache() throws Exception {
-		Mockery m = new Mockery();
 
-		final UserLookupInterface userLookup = m.mock(UserLookupInterface.class);
-		final OnCampusService onCampusService = new OnCampusServiceImpl();
-		
-		SSOClientFilter f = new SSOClientFilter();
-		f.setUserLookup(userLookup);
+	private void setConfigAndHandler(Configuration configuration) {
+		SSOConfiguration config = new SSOConfiguration(configuration);
+		f.setConfig(config);
+		f.setHandler(new SSOClientHandlerImpl(config, userLookup, m.mock(UserCache.class), onCampusService));
+	}
+
+	@Test
+	public void testBasicAuthCache() throws Exception {
+		wireFilter();
 		
 		BaseConfiguration configuration = new BaseConfiguration();
 		configuration.addProperty("httpbasic.allow", true);
 		configuration.addProperty("mode", "old");
-		SSOConfiguration config = new SSOConfiguration(configuration);
-		f.setConfig(config);
-		f.setHandler(new SSOClientHandlerImpl(config, userLookup, m.mock(UserCache.class), onCampusService));
+		setConfigAndHandler(configuration);
 		
 		addAuth("brian","potato");
 		
@@ -84,6 +101,7 @@ public class SSOClientFilterTest extends TestCase {
 		User user = (User) req.getAttribute(SSOClientFilter.USER_KEY);
 		assertNotNull(user);
 		assertTrue("should be found user", user.isFoundUser());
+		assertEquals("brian", ((HttpServletRequest)chain.getRequest()).getRemoteUser());
 		
 		newRequestGuff();
 		addAuth("brian","potato");
@@ -106,12 +124,9 @@ public class SSOClientFilterTest extends TestCase {
 		assertFalse(user.isFoundUser());
 	}
 
+	@Test
 	public void testMasquerade() throws Exception {
-		Mockery m = new Mockery();
-
-		final UserLookupInterface userLookup = m.mock(UserLookupInterface.class);
-		final GroupService groupService = m.mock(GroupService.class);
-		final OnCampusService onCampusService = new OnCampusServiceImpl();
+		wireFilter();
 
 		newRequestGuff();
 		addAuth("andy", "legume");
@@ -139,19 +154,13 @@ public class SSOClientFilterTest extends TestCase {
 			will(returnValue(brian));
 		}});
 
-		SSOClientFilter f = new SSOClientFilter();
-		f.setUserLookup(userLookup);
-
 		req.setCookies(new Cookie("masqueradeAs", "brian"));
 
 		BaseConfiguration configuration = new BaseConfiguration();
 		configuration.addProperty("httpbasic.allow", true);
 		configuration.addProperty("mode", "old");
 		configuration.addProperty("masquerade.group", "admin-group");
-
-		SSOConfiguration config = new SSOConfiguration(configuration);
-		f.setConfig(config);
-		f.setHandler(new SSOClientHandlerImpl(config, userLookup, m.mock(UserCache.class), onCampusService));
+		setConfigAndHandler(configuration);
 		f.doFilter(req, res, chain);
 
 		User user = (User) req.getAttribute(SSOClientFilter.USER_KEY);

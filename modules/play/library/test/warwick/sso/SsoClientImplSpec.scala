@@ -2,22 +2,22 @@ package warwick.sso
 
 import java.util.Arrays._
 
-import akka.actor.{Props, ActorRef, Actor}
+import akka.actor.{Actor, ActorRef, Props}
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.http.message.BasicHeader
+import org.mockito.Matchers._
+import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.mock.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.iteratee.{Enumerator, Iteratee}
 import play.api.libs.json.JsValue
-import play.api.mvc.{WebSocket, Controller, Cookie, Results}
+import play.api.mvc.{Controller, Cookie, Results, WebSocket}
 import play.api.test.FakeRequest
-import uk.ac.warwick.sso.client.{SSOConfiguration, SSOClientHandler}
-import org.mockito.Mockito._
-import org.mockito.Matchers._
-
 import play.api.test.Helpers._
 import uk.ac.warwick.sso.client.core.Response
+import uk.ac.warwick.sso.client.trusted.TrustedApplicationHandler
+import uk.ac.warwick.sso.client.{SSOClientHandler, SSOConfiguration}
 
 import scala.concurrent.Future
 
@@ -32,7 +32,9 @@ object WebsocketTesting {
     */
   class C(client: SSOClient) extends Controller {
     import play.api.Play.current
+
     import scala.concurrent.ExecutionContext.Implicits.global
+    implicit val mat = current.materializer
 
     def actor = WebSocket.tryAcceptWithActor[JsValue, JsValue] { req =>
       client.withUser(req) { loginContext =>
@@ -54,10 +56,11 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results {
 
   class Context {
     val handler = mock[SSOClientHandler]
+    val trustedAppHandler = mock[TrustedApplicationHandler]
     val response = new Response
     val groupService = mock[GroupService]
     val roleService = mock[RoleService]
-    val client: SSOClient = new SSOClientImpl(handler, new SSOConfiguration(new PropertiesConfiguration()), groupService, roleService)
+    val client: SSOClient = new SSOClientImpl(handler, trustedAppHandler, new SSOConfiguration(new PropertiesConfiguration()), groupService, roleService)
     val action = client.Lenient { request => Ok("Great") }
     val noRunAction = client.Lenient { request => fail("Shouldn't run this block") }
 
@@ -105,6 +108,12 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results {
       response.setRedirect("http://www.example.net/googles")
       val result = noRunAction.apply(FakeRequest())
       headers(of=result).get("Location").get must be ("http://www.example.net/googles")
+    }
+
+    "not send redirect" in new Context {
+      response.setRedirect("http://www.example.net/googles")
+      val result = client.Lenient.disallowRedirect(request => Ok("super")).apply(FakeRequest())
+      headers(of=result).get("Location") mustBe None
     }
 
   }

@@ -5,6 +5,7 @@ target/
 project/target/
 project/project/
 /dist/*-SNAPSHOT*#
+*~
 
 # IntelliJ IDE
 /.idea/workspace.xml

@@ -41,5 +41,10 @@ class PlayConfigurationSpec extends PlaySpec {
     "return booleans" in {
       conf.getBoolean("professor.billions") must be (true)
     }
+
+    "return lists in Apache's special way" in {
+      conf.getList("professor.friend.name").toArray mustBe Array("Dara", "Robin")
+      conf.getList("professor.friend.speciality").toArray mustBe Array("Comedy", "Being Angry")
+    }
   }
 }

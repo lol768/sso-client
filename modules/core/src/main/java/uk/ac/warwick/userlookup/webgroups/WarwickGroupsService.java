@@ -4,33 +4,21 @@
  */
 package uk.ac.warwick.userlookup.webgroups;
 
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import uk.ac.warwick.userlookup.Group;
-import uk.ac.warwick.userlookup.GroupService;
-import uk.ac.warwick.userlookup.HttpMethodWebService;
-import uk.ac.warwick.userlookup.ResultAwareWebServiceResponseHandler;
-import uk.ac.warwick.userlookup.UserLookup;
-import uk.ac.warwick.userlookup.UserLookupVersionLoader;
-import uk.ac.warwick.userlookup.WebServiceTimeoutConfig;
+import uk.ac.warwick.sso.client.SSOClientVersionLoader;
+import uk.ac.warwick.userlookup.*;
 import uk.ac.warwick.userlookup.HttpMethodWebService.GetMethodFactory;
 import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
 import uk.ac.warwick.userlookup.HttpMethodWebService.WebServiceException;
 import uk.ac.warwick.util.cache.Cache;
 import uk.ac.warwick.util.core.StringUtils;
+
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.*;
 
 public class WarwickGroupsService implements GroupService {
 
@@ -67,7 +55,7 @@ public class WarwickGroupsService implements GroupService {
 
 	public WarwickGroupsService() {
 		if (_version == null || _version.equals("")) {
-			_version = UserLookupVersionLoader.getVersion();
+			_version = SSOClientVersionLoader.getVersion();
 		}
 	}
 

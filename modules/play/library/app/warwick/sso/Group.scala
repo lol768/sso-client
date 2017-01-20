@@ -13,7 +13,8 @@ case class Group(
   owners: Seq[Usercode],
   `type`: String,
   department: Department,
-  updatedAt: DateTime
+  updatedAt: DateTime,
+  restricted: Boolean
 ) {
 
   def contains(usercode: Usercode): Boolean = owners.contains(usercode) || members.contains(usercode)
@@ -30,7 +31,8 @@ object Group {
       g.getOwners.map(Usercode),
       g.getType,
       Department(None, Some(g.getDepartment), Some(g.getDepartmentCode)),
-      new DateTime(g.getLastUpdatedDate)
+      new DateTime(g.getLastUpdatedDate),
+      g.isRestricted
     )
 
 }

@@ -1,11 +1,13 @@
 package uk.ac.warwick.sso.client.core;
 
 import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import uk.ac.warwick.userlookup.User;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -51,6 +53,24 @@ public class Response {
 
     public void setHeaders(List<Header> headers) {
         this.headers = headers;
+    }
+
+    public void setHeader(String name, String value) {
+        removeHeadersWithNameIgnoreCase(name);
+
+        this.headers.add(new BasicHeader(name, value));
+    }
+
+    private void removeHeadersWithNameIgnoreCase(String name) {
+        Iterator<Header> iterator = headers.iterator();
+
+        while (iterator.hasNext()) {
+            Header header = iterator.next();
+
+            if (header.getName().equalsIgnoreCase(name)) {
+                iterator.remove();
+            }
+        }
     }
 
     public boolean isContinueRequest() {

@@ -59,4 +59,10 @@ public interface Group extends Serializable {
 	 */
 	boolean isVerified();
 
+	/**
+	 * Whether this Group is restricted. The members of restricted groups
+	 * are only visible to their owners.
+	 */
+    boolean isRestricted();
+
 }

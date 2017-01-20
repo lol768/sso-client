@@ -15,23 +15,28 @@ public final class SSOClientVersionLoader {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SSOClientVersionLoader.class);
 
+	private static String lazyVersion;
+
 	private SSOClientVersionLoader() {
 		// hidden constructor
 	}
 
 	public static String getVersion() {
-
-		try {
-			InputStream resourceAsStream = SSOClientVersionLoader.class.getResourceAsStream("/ssoclient.version");
-			Properties props = new Properties();
-			props.load(resourceAsStream);
-			return props.getProperty("version");
-		} catch (IOException e1) {
-			LOGGER.debug("Couldn't find ssoclient version");
+		if (lazyVersion == null) {
+			try {
+				InputStream resourceAsStream = SSOClientVersionLoader.class.getResourceAsStream("/ssoclient.version");
+				Properties props = new Properties();
+				props.load(resourceAsStream);
+				lazyVersion = props.getProperty("version");
+			} catch (IOException e1) {
+				LOGGER.debug("Couldn't find ssoclient version");
+				lazyVersion = "";
+			}
 		}
-
-		return "";
-
+		if (lazyVersion.contains("$")) {
+			throw new IllegalStateException("SSO Client build problem - version is stored in ssoclient.version as '"+lazyVersion+"'");
+		}
+		return lazyVersion;
 	}
 
 }

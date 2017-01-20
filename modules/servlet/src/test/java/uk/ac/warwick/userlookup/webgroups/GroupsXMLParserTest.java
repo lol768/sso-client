@@ -1,31 +1,23 @@
 package uk.ac.warwick.userlookup.webgroups;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import junit.framework.TestCase;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.AttributesImpl;
+import uk.ac.warwick.userlookup.Group;
+import uk.ac.warwick.userlookup.webgroups.GroupsInfoXMLResponseHandler.GroupsInfoXMLParser;
 
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-
-import junit.framework.TestCase;
-
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.FileCopyUtils;
-import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.AttributesImpl;
-
-import uk.ac.warwick.userlookup.Group;
-import uk.ac.warwick.userlookup.webgroups.GroupsInfoXMLResponseHandler.GroupsInfoXMLParser;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public final class GroupsXMLParserTest extends TestCase {
 
@@ -140,6 +132,28 @@ public final class GroupsXMLParserTest extends TestCase {
 		
 		assertEquals(title,group.getTitle());
 		
+	}
+
+	public void testRestricted() throws Exception {
+		String xml = "<groups><group name=\"in-restricted\"><title>Test restricted group</title><restricted>true</restricted></group></groups>";
+
+		GroupsXMLParser xmlParser = new GroupsXMLParser();
+		doParse(xml, xmlParser);
+
+		ArrayList<Group> groups = new ArrayList<>(xmlParser.getGroups());
+
+		assertTrue(groups.get(0).isRestricted());
+	}
+
+	public void testNotRestricted() throws Exception {
+		String xml = "<groups><group name=\"un-restricted\"><title>Test restricted group</title><restricted>false</restricted></group></groups>";
+
+		GroupsXMLParser xmlParser = new GroupsXMLParser();
+		doParse(xml, xmlParser);
+
+		ArrayList<Group> groups = new ArrayList<>(xmlParser.getGroups());
+
+		assertFalse(groups.get(0).isRestricted());
 	}
 
 	private void doParse(final String xmlToParse, final GroupsXMLParser xmlParser) throws FactoryConfigurationError,

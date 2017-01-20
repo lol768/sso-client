@@ -12,11 +12,16 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import uk.ac.warwick.sso.client.SSOClientFilter;
 import uk.ac.warwick.sso.client.SSOConfiguration;
+import uk.ac.warwick.sso.client.core.ServletRequestAdapter;
 import uk.ac.warwick.userlookup.AnonymousUser;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookupInterface;
 
 import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Vector;
 
 import static org.junit.Assert.*;
 
@@ -42,7 +47,9 @@ public class TrustedApplicationFilterTest {
 
         request.addHeader("X-Requested-URI", REQUEST_URL);
 
-        SSOConfiguration.setConfig(new SSOConfiguration(new XMLConfiguration(getClass().getResource("/sso-config-trustedapps.xml"))));
+        SSOConfiguration config = new SSOConfiguration(new XMLConfiguration(getClass().getResource("/sso-config-trustedapps.xml")));
+        SSOConfiguration.setConfig(config);
+        filter.setConfig(config);
     }
 
     @After
@@ -51,7 +58,7 @@ public class TrustedApplicationFilterTest {
     @Test
     public void testNoCert() throws Exception {
         m.checking(new Expectations() {{
-            one(chain).doFilter(request, response);
+            one(chain).doFilter(with(any(HttpServletRequest.class)), with(equal(response)));
         }});
 
         filter.doFilter(request, response, chain);
@@ -114,7 +121,7 @@ public class TrustedApplicationFilterTest {
             one(appManager).getTrustedApplication("urn:myapp.warwick.ac.uk:myapp:service");
                 will(returnValue(trustedApp));
 
-            one(trustedApp).decode(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="), request);
+            one(trustedApp).decode(with(equal(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="))), with(any(ServletRequestAdapter.class)));
                 will(throwException(new InvalidCertificateException(new TransportErrorMessage.System(new RuntimeException(), "urn:myapp.warwick.ac.uk:myapp:service"))));
 
             never(chain).doFilter(request, response);
@@ -139,7 +146,7 @@ public class TrustedApplicationFilterTest {
             one(appManager).getTrustedApplication("urn:myapp.warwick.ac.uk:myapp:service");
                 will(returnValue(trustedApp));
 
-            one(trustedApp).decode(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="), request);
+            one(trustedApp).decode(with(equal(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="))), with(any(ServletRequestAdapter.class)));
                 will(returnValue(appCertificate));
 
             never(chain).doFilter(request, response);
@@ -176,7 +183,7 @@ public class TrustedApplicationFilterTest {
             one(appManager).getTrustedApplication("urn:myapp.warwick.ac.uk:myapp:service");
                 will(returnValue(trustedApp));
 
-            one(trustedApp).decode(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="), request);
+            one(trustedApp).decode(with(equal(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="))), with(any(ServletRequestAdapter.class)));
                 will(returnValue(appCertificate));
 
             allowing(appCertificate).getCreationTime(); will(returnValue(base));
@@ -219,7 +226,7 @@ public class TrustedApplicationFilterTest {
             one(appManager).getTrustedApplication("urn:myapp.warwick.ac.uk:myapp:service");
                 will(returnValue(trustedApp));
 
-            one(trustedApp).decode(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="), request);
+            one(trustedApp).decode(with(equal(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="))), with(any(ServletRequestAdapter.class)));
                 will(returnValue(appCertificate));
 
             allowing(appCertificate).getCreationTime(); will(returnValue(base));
@@ -264,7 +271,7 @@ public class TrustedApplicationFilterTest {
             one(appManager).getTrustedApplication("urn:myapp.warwick.ac.uk:myapp:service");
                 will(returnValue(trustedApp));
 
-            one(trustedApp).decode(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="), request);
+            one(trustedApp).decode(with(equal(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="))), with(any(ServletRequestAdapter.class)));
                 will(returnValue(appCertificate));
 
             allowing(appCertificate).getCreationTime(); will(returnValue(base));
@@ -314,7 +321,7 @@ public class TrustedApplicationFilterTest {
             one(appManager).getTrustedApplication("urn:myapp.warwick.ac.uk:myapp:service");
                 will(returnValue(trustedApp));
 
-            one(trustedApp).decode(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="), request);
+            one(trustedApp).decode(with(equal(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="))), with(any(ServletRequestAdapter.class)));
                 will(returnValue(appCertificate));
 
             allowing(appCertificate).getCreationTime(); will(returnValue(base));
@@ -364,7 +371,7 @@ public class TrustedApplicationFilterTest {
             one(appManager).getTrustedApplication("urn:myapp.warwick.ac.uk:myapp:service");
             will(returnValue(trustedApp));
 
-            one(trustedApp).decode(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="), request);
+            one(trustedApp).decode(with(equal(new EncryptedCertificateImpl("urn:myapp.warwick.ac.uk:myapp:service", "MTQxOTQ5OTg4OTM4NApjdXNjYXY="))), with(any(ServletRequestAdapter.class)));
             will(returnValue(appCertificate));
 
             allowing(appCertificate).getCreationTime(); will(returnValue(base));
@@ -375,7 +382,7 @@ public class TrustedApplicationFilterTest {
 
             one(userLookup).getUserByUserId("cuscav"); will(returnValue(user));
 
-            one(chain).doFilter(request, response);
+            one(chain).doFilter(with(any(HttpServletRequest.class)), with(equal(response)));
         }});
 
         filter.doFilter(request, response, chain);

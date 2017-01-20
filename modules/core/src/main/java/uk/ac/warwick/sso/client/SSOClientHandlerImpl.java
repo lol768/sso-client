@@ -96,28 +96,6 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
         this(configuration, userlookup, new AttributeAuthorityResponseFetcherImpl(configuration), userCache, onCampusService);
     }
 
-    /**
-     * @param request
-     * @param user
-     */
-    private void checkIpAddress(final HttpRequest request, final User user) {
-        String remoteHost = request.getRemoteAddr();
-        if (request.getHeader("x-forwarded-for") != null) {
-            remoteHost = request.getHeader("x-forwarded-for");
-        }
-
-        if (user.getExtraProperty("urn:websignon:ipaddress") != null) {
-            if (user.getExtraProperty("urn:websignon:ipaddress").equals(remoteHost)) {
-                if (LOGGER.isDebugEnabled())
-                    LOGGER.debug("Users SSOClientFilter request is from same host as they logged in from: SSOClientFilter&Login="
-                            + remoteHost);
-            } else {
-                LOGGER.warn("Users SSOClientFilter request is NOT from same host as they logged in from. Login="
-                        + user.getExtraProperty("urn:websignon:ipaddress") + ", SSOClientFilter=" + remoteHost);
-            }
-        }
-    }
-
     private User doGetUserByOldSSO(final List<Cookie> cookies) {
         User user = new AnonymousUser();
         Cookie warwickSSO = getCookie(cookies, WARWICK_SSO);
@@ -338,8 +316,6 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
             response.setContinueRequest(true);
             response.setActualUser(user);
             response.setUser(getApparentUser(cookies, user));
-
-            checkIpAddress(request, user);
 
             return response;
         } finally {
