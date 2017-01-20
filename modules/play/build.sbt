@@ -1,5 +1,5 @@
 
-def libraryVersion = "2.25-SNAPSHOT"
+def libraryVersion = "2.25"
 
 lazy val root = (project in file("."))
   .aggregate(library, testing)
@@ -49,12 +49,13 @@ lazy val commonSettings = Seq(
 
 lazy val appDeps = Seq[ModuleID](
   "uk.ac.warwick.sso" % "sso-client-core" % libraryVersion,
-  jdbc,
+  component("play-jdbc-api"),
   "xerces" % "xercesImpl" % "2.11.0",
   "xalan" % "xalan" % "2.7.1"
 )
 
 lazy val testDeps = Seq[ModuleID](
+  jdbc,
   "org.scalatest" %% "scalatest" % "2.2.1",
   "org.scalatestplus" %% "play" % "1.4.0-M3",
   "org.scalacheck" %% "scalacheck" % "1.12.5",
