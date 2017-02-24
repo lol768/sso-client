@@ -211,7 +211,9 @@ public class WarwickGroupsService implements GroupService {
 
 	private String encodePathElement(String str) {
 		try {
-			return URLEncoder.encode(str.trim().replace('+',' '), "UTF-8");
+			final String input = str.trim().replace('+',' ');
+			return URLEncoder.encode(input, "UTF-8")
+					.replace("+","%20"); // + not valid in paths, only %20
 		} catch (UnsupportedEncodingException e) {
 			// Sorry, your runtime is terrible.
 			throw new RuntimeException("UTF-8 encoding not present in JRE");
