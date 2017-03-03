@@ -40,8 +40,8 @@ class PlayHttpRequestHeader(req: RequestHeader) extends HttpRequest {
 
   override def getParameterNames: util.Set[String] = (req.queryString.keySet ++ bodyParams.keySet).asJava
 
-  // Attributes aren't a thing in Play requests
-  override def getAttribute(s: String): AnyRef = null
+  // When we upgrade to Play 2.6 this should use Play request attributes instead of tags
+  override def getAttribute(s: String): AnyRef = req.tags.get(s).orNull
 
   override def getRequestURL: String = {
     val sb = new StringBuilder

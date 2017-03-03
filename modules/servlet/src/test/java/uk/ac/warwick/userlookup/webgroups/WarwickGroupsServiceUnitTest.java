@@ -87,37 +87,37 @@ public class WarwickGroupsServiceUnitTest {
 		try {
 			service.getGroupByName("good egg?");
 		} catch (GroupServiceException e) {}
-		assertEquals("http://example.com/query/group/good+egg%3F/details", engine.path);
+		assertEquals("http://example.com/query/group/good%20egg%3F/details", engine.path);
 
 		try {
 			service.getGroupInfo("good egg?");
 		} catch (GroupServiceException e) {}
-		assertEquals("http://example.com/query/group/good+egg%3F/info", engine.path);
+		assertEquals("http://example.com/query/group/good%20egg%3F/info", engine.path);
 
 		try {
 			service.getGroupsForDeptCode("good egg?");
 		} catch (GroupServiceException e) {}
-		assertEquals("http://example.com/query/search/deptcode/good+egg%3F", engine.path);
+		assertEquals("http://example.com/query/search/deptcode/good%20egg%3F", engine.path);
 
 		try {
 			service.getGroupsForQuery("good egg?");
 		} catch (GroupServiceException e) {}
-		assertEquals("http://example.com/query/search/name/good+egg%3F", engine.path);
+		assertEquals("http://example.com/query/search/name/good%20egg%3F", engine.path);
 
 		try {
 			service.getGroupsForUser("good egg?");
 		} catch (GroupServiceException e) {}
-		assertEquals("http://example.com/query/user/good+egg%3F/groups", engine.path);
+		assertEquals("http://example.com/query/user/good%20egg%3F/groups", engine.path);
 
 		try {
 			// pass in a + to check it is treated as a space for backcompat
 			service.getGroupsNamesForUser("goodly+egg?");
 		} catch (GroupServiceException e) {}
-		assertEquals("http://example.com/query/user/goodly+egg%3F/groups", engine.path);
+		assertEquals("http://example.com/query/user/goodly%20egg%3F/groups", engine.path);
 
 		try {
 			service.getRelatedGroups("good egg?");
 		} catch (GroupServiceException e) {}
-		assertEquals("http://example.com/query/group/good+egg%3F/groups", engine.path);
+		assertEquals("http://example.com/query/group/good%20egg%3F/groups", engine.path);
 	}
 }

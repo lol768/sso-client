@@ -77,6 +77,6 @@ public class ServletRequestAdapter implements HttpRequest {
 
     @Override
     public Object getAttribute(String key) {
-        return null;
+        return req.getAttribute(key);
     }
 }
