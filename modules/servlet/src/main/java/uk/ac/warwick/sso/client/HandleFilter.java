@@ -55,7 +55,6 @@ public abstract class HandleFilter {
 
     private void putUserIntoKey(final User user, final HeaderSettingHttpServletRequest request, final String userKey) {
         request.setAttribute(userKey, user);
-
         request.setRemoteUser(user.getUserId());
 
         if (!user.getExtraProperties().isEmpty()) {
@@ -66,6 +65,10 @@ public abstract class HandleFilter {
                 request.addHeader(userKey + "_" + key, value);
             }
         }
+
+        // Handle mismatch in attributes between old/new mode (user/cn)
+        request.setAttribute(userKey + "_usercode", user.getUserId());
+        request.addHeader(userKey + "_usercode", user.getUserId());
 
         request.addHeader(userKey + "_groups", "");
     }
