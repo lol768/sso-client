@@ -6,7 +6,6 @@ import uk.ac.warwick.sso.client.*;
 import uk.ac.warwick.userlookup.UserLookup;
 import uk.ac.warwick.userlookup.UserLookupInterface;
 
-import javax.inject.Inject;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,7 +15,6 @@ public class TrustedApplicationFilter extends HandleFilter implements Filter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TrustedApplicationFilter.class);
 
-    @Inject
     private TrustedApplicationHandler handler;
 
     private SSOConfiguration config;
