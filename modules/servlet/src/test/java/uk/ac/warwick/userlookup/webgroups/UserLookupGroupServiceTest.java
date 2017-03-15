@@ -31,7 +31,7 @@ public class UserLookupGroupServiceTest extends TestCase {
 		final GroupService backend = m.mock(GroupService.class);
 		m.checking(new Expectations(){{
 			one(backend).getGroupByName(nonExistentGroupName); will(throwException(new GroupNotFoundException("This group is not found")));
-			one(backend).getCaches(); will(returnValue(caches));
+			exactly(2).of(backend).getCaches(); will(returnValue(caches));
 		}});
 		
 		UserLookup userLookup = new UserLookup();
