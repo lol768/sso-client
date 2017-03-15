@@ -64,6 +64,7 @@ public final class IsUserInGroupCachingGroupsService extends CacheingGroupServic
 			}
 			getCache().remove(Pair.of(userId, group));
 		}
+
     	try {
     		return getCache().get(Pair.of(userId, group));
 		} catch (CacheEntryUpdateException e) {

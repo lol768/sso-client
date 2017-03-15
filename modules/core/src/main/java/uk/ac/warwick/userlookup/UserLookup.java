@@ -644,9 +644,9 @@ public class UserLookup implements UserLookupInterface {
 				_groupService = 
 						new GroupAliasAwareGroupService(
 						new GroupNameCheckerGroupService(
+						new UsersInGroupCachingGroupsService(
 						new IsUserInGroupCachingGroupsService(
 						new GroupByNameCachingGroupsService(
-						new UsersInGroupCachingGroupsService(
 						new GroupsNamesForUserCachingGroupsService(_groupServiceBackend))))),
 						this);
 
