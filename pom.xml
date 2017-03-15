@@ -12,7 +12,7 @@
 
     <groupId>uk.ac.warwick.sso</groupId>
     <artifactId>sso-client-project</artifactId>
-    <version>2.30</version>
+    <version>2.31-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>SSO Client Project</name>
