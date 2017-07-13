@@ -1,20 +1,24 @@
 package warwick.sso
 
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import play.api.mvc.{RequestHeader, Result, Action}
+import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
 import org.scalatest.concurrent.ScalaFutures._
 
 import scala.concurrent.Future
 import scala.util.Success
-
 import Users._
+import akka.stream.Materializer
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
-class BasicAuthTest extends PlaySpec with MockitoSugar {
+class BasicAuthTest extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite {
   import play.api.mvc.Results._
+
+  import scala.concurrent.ExecutionContext.Implicits.global
+  implicit lazy val materializer: Materializer = app.materializer
 
   trait Context {
 
@@ -22,7 +26,8 @@ class BasicAuthTest extends PlaySpec with MockitoSugar {
     val sso = mock[SSOClient]
     val groupService = mock[GroupService]
     val roleService = mock[RoleService]
-    val auth = new BasicAuthImpl(userlookup, sso, groupService, roleService)
+    val bodyParsers = PlayBodyParsers()
+    val auth = new BasicAuthImpl(userlookup, sso, groupService, roleService, bodyParsers)
 
     val deniedResult = Forbidden("Custom denied message")
     def deniedAction(request: RequestHeader) = Future.successful(deniedResult)
@@ -31,9 +36,9 @@ class BasicAuthTest extends PlaySpec with MockitoSugar {
     // with your choice of perm-denied result.
     def Secured = auth.Check(deniedAction)
 
-    val action = Secured { request =>
+    val action = Secured(bodyParsers.default) { request: AuthenticatedRequest[AnyContent] =>
       val who = request.context.user.map(_.usercode.string).getOrElse("anon")
-      Ok(s"Hello, ${who}.")
+      Ok(s"Hello, $who.")
     }
   }
 

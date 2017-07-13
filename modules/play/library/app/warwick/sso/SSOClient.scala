@@ -8,7 +8,7 @@ import uk.ac.warwick.sso.client.trusted.TrustedApplicationHandler
 import uk.ac.warwick.sso.client.{SSOClientHandler, SSOConfiguration}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait LoginContext {
   val user: Option[User]
@@ -53,11 +53,11 @@ trait SSOClient {
    * Like Lenient, but if no user was present it automatically redirects to login so that a user
    * is required.
    */
-  val Strict: ActionBuilder[AuthRequest]
+  val Strict: ActionBuilder[AuthRequest, AnyContent]
 
-  def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result): ActionBuilder[AuthRequest]
+  def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result): ActionBuilder[AuthRequest, AnyContent]
 
-  def RequireActualUserRole(role: RoleName, otherwise: AuthRequest[_] => Result): ActionBuilder[AuthRequest]
+  def RequireActualUserRole(role: RoleName, otherwise: AuthRequest[_] => Result): ActionBuilder[AuthRequest, AnyContent]
 
   /** The type of block you can pass to withUser. */
   type TryAcceptResult[A] = Future[Either[Result, A]]
@@ -82,21 +82,21 @@ trait SSOClient {
 
   def linkGenerator(request: RequestHeader): LinkGenerator
 
-  trait SSOActionBuilder extends ActionBuilder[AuthRequest] {
+  abstract class SSOActionBuilder(val parser: BodyParser[AnyContent])(implicit ec: ExecutionContext) extends ActionBuilder[AuthRequest, AnyContent] {
+    override protected val executionContext = ec
     def disallowRedirect: SSOActionBuilder
   }
 }
-
 
 class SSOClientImpl @Inject()(
   handler: SSOClientHandler,
   trustedAppsHandler: TrustedApplicationHandler,
   configuration: SSOConfiguration,
   implicit val groupService: GroupService,
-  implicit val roleService: RoleService
-) extends SSOClient {
+  implicit val roleService: RoleService,
+  bodyParsers: PlayBodyParsers
+)(implicit ec: ExecutionContext) extends SSOClient {
 
-  import play.api.libs.concurrent.Execution.Implicits._
   import play.api.mvc.Results._
 
   def linkGenerator(request: RequestHeader) = {
@@ -106,7 +106,7 @@ class SSOClientImpl @Inject()(
 
   lazy val Strict = Lenient andThen requireCondition(_.context.user.isDefined, otherwise = redirectToSSO)
 
-  lazy val Lenient = new FindUser
+  lazy val Lenient = FindUser(bodyParser = bodyParsers.default)
 
   override def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result) = Strict andThen requireCondition(_.context.userHasRole(role), otherwise)
 
@@ -131,7 +131,7 @@ class SSOClientImpl @Inject()(
    * a local session. But it won't require a logged in user - if there is no session
    * the user will simply be None.
    */
-  case class FindUser(permitRedirect: Boolean = true) extends SSOActionBuilder {
+  case class FindUser(permitRedirect: Boolean = true, bodyParser: BodyParser[AnyContent]) extends SSOActionBuilder(bodyParser) {
 
     def disallowRedirect = copy(permitRedirect = false)
 
@@ -179,16 +179,16 @@ class SSOClientImpl @Inject()(
     }
   }
 
+  class RequireConditionActionFilter(block: AuthRequest[_] => Boolean, otherwise: AuthRequest[_] => Result)(implicit val executionContext: ExecutionContext) extends ActionFilter[AuthRequest] {
+    override protected def filter[A](request: AuthRequest[A]) =
+      Future.successful {
+        if (block(request)) None
+        else Some(otherwise(request))
+      }
+  }
+
   private def requireCondition(block: AuthRequest[_] => Boolean, otherwise: AuthRequest[_] => Result) =
-    new ActionFilter[AuthRequest] {
-      override protected def filter[A](request: AuthRequest[A]) =
-        Future.successful {
-          block(request) match {
-            case true => None
-            case false => Some(otherwise(request))
-          }
-        }
-    }
+    new RequireConditionActionFilter(block, otherwise)
 
   private def redirectToSSO(request: AuthRequest[_]) = Redirect(request.context.loginUrl(None))
 

@@ -16,11 +16,11 @@ object MasqueradeController {
 }
 
 class MasqueradeController @Inject()(
-                                      ssoClient: SSOClient,
-                                      configuration: Configuration,
-                                      userLookupService: UserLookupService,
-                                      userLookup: UserLookupInterface
-                                    ) extends Controller {
+  ssoClient: SSOClient,
+  configuration: Configuration,
+  userLookupService: UserLookupService,
+  userLookup: UserLookupInterface
+) extends InjectedController {
 
   import MasqueradeController._
 
@@ -29,25 +29,25 @@ class MasqueradeController @Inject()(
       .transform(s => Usercode(s), (u: Usercode) => u.string)
   )
 
-  val masqueradeGroupName = configuration.getString("sso-client.masquerade.group")
+  val masqueradeGroupName = configuration.getOptional[String]("sso-client.masquerade.group")
 
-  val masqueradeCookieName = configuration.getString("sso-client.masquerade.cookie.name")
+  val masqueradeCookieName = configuration.getOptional[String]("sso-client.masquerade.cookie.name")
     .getOrElse(DEFAULT_MASQUERADE_COOKIE_NAME)
-  val masqueradeCookiePath = configuration.getString("sso-client.masquerade.cookie.path")
-    .orElse(configuration.getString("sso-client.shire.sscookie.path"))
+  val masqueradeCookiePath = configuration.getOptional[String]("sso-client.masquerade.cookie.path")
+    .orElse(configuration.getOptional[String]("sso-client.shire.sscookie.path"))
     .getOrElse("/")
-  val masqueradeCookieDomain = configuration.getString("sso-client.masquerade.cookie.domain")
-    .orElse(configuration.getString("sso-client.shire.sscookie.domain"))
+  val masqueradeCookieDomain = configuration.getOptional[String]("sso-client.masquerade.cookie.domain")
+    .orElse(configuration.getOptional[String]("sso-client.shire.sscookie.domain"))
 
-  val masqueradeRedirectLocation = configuration.getString("sso-client.masquerade.redirect.mask")
+  val masqueradeRedirectLocation = configuration.getOptional[String]("sso-client.masquerade.redirect.mask")
     .getOrElse("/")
-  val unmaskRedirectLocation = configuration.getString("sso-client.masquerade.redirect.unmask")
+  val unmaskRedirectLocation = configuration.getOptional[String]("sso-client.masquerade.redirect.unmask")
 
-  def masquerade = ssoClient.Strict { implicit request =>
+  def masquerade = ssoClient.Strict(parse.default) { implicit request: AuthenticatedRequest[AnyContent] =>
     request.context.actualUser.map { actualUser =>
       masqueradeGroupName.map { groupName =>
         UsercodeForm.bindFromRequest().fold(
-          formWithErrors => error("You must provide a usercode"),
+          _ => error("You must provide a usercode"),
           usercode => {
             if (!userLookup.getGroupService.isUserInGroup(actualUser.usercode.string, groupName)) {
               error("You do not have permission to masquerade")
@@ -64,7 +64,7 @@ class MasqueradeController @Inject()(
     }.getOrElse(throw new IllegalStateException("actualUser not defined within SSOClient Strict action"))
   }
 
-  def unmask = Action { implicit request =>
+  def unmask = Action(parse.default) { implicit request: Request[AnyContent] =>
     masqueradeGroupName.map { _ =>
       Redirect(unmaskRedirectLocation.orElse(request.headers.get(REFERER)).getOrElse("/"))
         .discardingCookies(discardMasqueradeAs())

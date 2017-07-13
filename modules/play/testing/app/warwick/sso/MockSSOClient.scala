@@ -2,16 +2,17 @@ package warwick.sso
 
 import javax.inject.Inject
 
-import play.api.mvc.{ActionBuilder, Request, RequestHeader, Result}
+import play.api.mvc._
 import uk.ac.warwick.sso.client.core.LinkGenerator
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class MockSSOClient @Inject()(
-    loginContext: LoginContext
-  ) extends SSOClient {
+  loginContext: LoginContext,
+  bodyParsers: PlayBodyParsers
+)(implicit ec: ExecutionContext) extends SSOClient {
 
-  object Wrap extends SSOActionBuilder {
+  object Wrap extends SSOActionBuilder(bodyParsers.default) {
     override def disallowRedirect = this
     override def invokeBlock[A](request: Request[A], block: (AuthRequest[A]) => Future[Result]): Future[Result] =
       block(new AuthRequest(loginContext, request))

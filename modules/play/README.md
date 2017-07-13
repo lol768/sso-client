@@ -62,7 +62,7 @@ builders that you can use in your controllers to get the current `User`. `UserLo
 Scala-friendly interface to UserLookup, letting you find users by usercode and University ID.
 `GroupService` provides a similar interface to the Java version.
 
-    class SecretController @Inject() (sso: SSOClient) extends Controller {
+    class SecretController @Inject() (sso: SSOClient) extends InjectedController {
 
       def suspicious = sso.Lenient { request =>
         request.context.user match {
@@ -108,7 +108,7 @@ Further configuration options are available to adjust this behaviour:
 
 The apparent (subject to masquerading) and actual (who is actually logged in) identities of the user are available at `request.context.user` and `request.context.actualUser` respectively:
 
-    class TrueIdentityController @Inject() (sso: SSOClient) extends Controller {
+    class TrueIdentityController @Inject() (sso: SSOClient) extends InjectedController {
 
       def whoami = sso.Strict { request =>
         Ok(s"Hello $request.context.user.get.usercode (actually $request.context.actualUser.get.usercode)")

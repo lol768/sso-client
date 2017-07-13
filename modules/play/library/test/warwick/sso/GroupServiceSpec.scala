@@ -2,13 +2,13 @@ package warwick.sso
 
 import org.joda.time.DateTime
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import uk.ac.warwick.userlookup
 import uk.ac.warwick.userlookup.GroupImpl
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.Success
 
 class GroupServiceSpec extends PlaySpec with MockitoSugar {
@@ -20,8 +20,8 @@ class GroupServiceSpec extends PlaySpec with MockitoSugar {
     val elabGroup = new GroupImpl()
     elabGroup.setName("in-elab")
     elabGroup.setTitle("ITS Web Team")
-    elabGroup.setUserCodes(Seq("alice", "bob"))
-    elabGroup.setOwners(Seq("eve"))
+    elabGroup.setUserCodes(Seq("alice", "bob").asJava)
+    elabGroup.setOwners(Seq("eve").asJava)
     elabGroup.setDepartment("IT Services")
     elabGroup.setDepartmentCode("IN")
     elabGroup.setLastUpdatedDate(new DateTime(2016, 1, 1, 9, 30).toDate)
@@ -56,7 +56,7 @@ class GroupServiceSpec extends PlaySpec with MockitoSugar {
     }
 
     "getGroupsForUser" in {
-      when(underlyingGroupService.getGroupsForUser("alice")).thenReturn(Seq(elabGroup, otherGroup))
+      when(underlyingGroupService.getGroupsForUser("alice")).thenReturn(Seq[userlookup.Group](elabGroup, otherGroup).asJava)
 
       val groups = groupService.getGroupsForUser(Usercode("alice")).get
 
@@ -66,7 +66,7 @@ class GroupServiceSpec extends PlaySpec with MockitoSugar {
     "getGroupsInDepartment" in {
       groupService.getGroupsInDepartment(Department(None, None, None)).isFailure mustBe true
 
-      when(underlyingGroupService.getGroupsForDeptCode("IN")).thenReturn(Seq(elabGroup, otherGroup))
+      when(underlyingGroupService.getGroupsForDeptCode("IN")).thenReturn(Seq[userlookup.Group](elabGroup, otherGroup).asJava)
 
       val groups = groupService.getGroupsInDepartment(ITServices).get
 

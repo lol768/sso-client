@@ -1,22 +1,21 @@
 package warwick.sso
 
 import org.joda.time.DateTime
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import play.api.db.DBApi
-import play.api.test.FakeApplication
-import play.api.test._
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers._
-import uk.ac.warwick.sso.client.{SSOToken, SSOConfiguration}
-import uk.ac.warwick.sso.client.cache.{UserCacheItem, UserCache}
+import uk.ac.warwick.sso.client.{SSOConfiguration, SSOToken}
+import uk.ac.warwick.sso.client.cache.{UserCache, UserCacheItem}
 
 class JdbcUserCacheSpec extends PlaySpec with MockitoSugar {
 
   "JdbcUserCache" should {
 
     "store blobs correctly" in  {
-      val app = FakeApplication(additionalConfiguration = Map() ++ inMemoryDatabase())
+      val app = GuiceApplicationBuilder().configure(Map() ++ inMemoryDatabase()).build()
       val config = app.injector.instanceOf[Configuration]
       val ssoConfig = new SSOConfiguration(new PlayConfiguration(config))
       val db = app.injector.instanceOf[DBApi].database("default")
@@ -44,8 +43,8 @@ class JdbcUserCacheSpec extends PlaySpec with MockitoSugar {
       userCache.put(token, item)
 
       val result = userCache.get(token)
-      result.getToken() must be (token)
-      result.getUser().getUserId must be ("x")
+      result.getToken must be (token)
+      result.getUser.getUserId must be ("x")
     }
 
   }
