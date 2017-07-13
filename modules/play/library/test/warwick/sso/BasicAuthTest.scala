@@ -27,14 +27,14 @@ class BasicAuthTest extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite 
     val groupService = mock[GroupService]
     val roleService = mock[RoleService]
     val bodyParsers = PlayBodyParsers()
-    val auth = new BasicAuthImpl(userlookup, sso, groupService, roleService, bodyParsers)
+    val auth = new BasicAuthImpl(userlookup, sso, groupService, roleService)
 
     val deniedResult = Forbidden("Custom denied message")
     def deniedAction(request: RequestHeader) = Future.successful(deniedResult)
 
     // How you might get your app-specific ActionBuilder
     // with your choice of perm-denied result.
-    def Secured = auth.Check(deniedAction)
+    def Secured = auth.Check(deniedAction)(bodyParsers.default)
 
     val action = Secured(bodyParsers.default) { request: AuthenticatedRequest[AnyContent] =>
       val who = request.context.user.map(_.usercode.string).getOrElse("anon")

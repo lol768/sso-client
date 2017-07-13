@@ -24,7 +24,7 @@ import uk.ac.warwick.sso.client.core.Response
 import uk.ac.warwick.sso.client.trusted.TrustedApplicationHandler
 import uk.ac.warwick.sso.client.{SSOClientHandler, SSOConfiguration}
 
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.{ExecutionContext, Future}
 
 object WebsocketTesting {
   class A(ctx: LoginContext, out: ActorRef) extends Actor { def receive = PartialFunction.empty }
@@ -94,7 +94,7 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results with Gui
     val groupService = mock[GroupService]
     val roleService = mock[RoleService]
     val bodyParsers = PlayBodyParsers()
-    val client: SSOClient = new SSOClientImpl(handler, trustedAppHandler, new SSOConfiguration(new PropertiesConfiguration()), groupService, roleService, bodyParsers)
+    val client: SSOClient = new SSOClientImpl(handler, trustedAppHandler, new SSOConfiguration(new PropertiesConfiguration()), groupService, roleService)
     val action: Action[AnyContent] = client.Lenient(bodyParsers.default) { _: AuthenticatedRequest[_] => Ok("Great") }
     val noRunAction: Action[AnyContent] = client.Lenient(bodyParsers.default) { _: AuthenticatedRequest[_] => fail("Shouldn't run this block") }
 
@@ -146,7 +146,7 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results with Gui
 
     "not send redirect" in new Context {
       response.setRedirect("http://www.example.net/googles")
-      val result = client.Lenient.disallowRedirect { _: AuthenticatedRequest[_] => Ok("super") }.apply(FakeRequest())
+      val result = client.Lenient(bodyParsers.default).disallowRedirect { _: AuthenticatedRequest[_] => Ok("super") }.apply(FakeRequest())
       headers(of=result).get("Location") mustBe None
     }
 

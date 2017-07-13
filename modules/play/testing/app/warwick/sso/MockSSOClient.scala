@@ -8,21 +8,20 @@ import uk.ac.warwick.sso.client.core.LinkGenerator
 import scala.concurrent.{ExecutionContext, Future}
 
 class MockSSOClient @Inject()(
-  loginContext: LoginContext,
-  bodyParsers: PlayBodyParsers
+  loginContext: LoginContext
 )(implicit ec: ExecutionContext) extends SSOClient {
 
-  object Wrap extends SSOActionBuilder(bodyParsers.default) {
+  case class Wrap(bodyParser: BodyParser[AnyContent]) extends SSOActionBuilder(bodyParser) {
     override def disallowRedirect = this
     override def invokeBlock[A](request: Request[A], block: (AuthRequest[A]) => Future[Result]): Future[Result] =
       block(new AuthRequest(loginContext, request))
   }
 
-  override val Lenient = Wrap
-  override val Strict = Wrap
+  override def Lenient(parser: BodyParser[AnyContent]) = Wrap(parser)
+  override def Strict(parser: BodyParser[AnyContent]) = Wrap(parser)
 
-  override def RequireRole(role: RoleName, otherwise: (AuthRequest[_]) => Result) = Wrap
-  override def RequireActualUserRole(role: RoleName, otherwise: (AuthRequest[_]) => Result) = Wrap
+  override def RequireRole(role: RoleName, otherwise: (AuthRequest[_]) => Result)(parser: BodyParser[AnyContent]) = Wrap(parser)
+  override def RequireActualUserRole(role: RoleName, otherwise: (AuthRequest[_]) => Result)(parser: BodyParser[AnyContent]) = Wrap(parser)
 
   override def withUser[A](request: RequestHeader)(block: (LoginContext) => TryAcceptResult[A]): TryAcceptResult[A] =
     block(loginContext)

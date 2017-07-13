@@ -15,7 +15,7 @@ import scala.util._
   * or you'll receive the result as calculated from `denied`.
   */
 trait BasicAuth {
-  def Check(denied: RequestHeader => Future[Result]): ActionBuilder[AuthenticatedRequest, AnyContent]
+  def Check(denied: RequestHeader => Future[Result])(parser: BodyParser[AnyContent]): ActionBuilder[AuthenticatedRequest, AnyContent]
 }
 
 /**
@@ -52,8 +52,7 @@ class BasicAuthImpl @Inject()(
   userLookup: UserLookupService,
   sso: SSOClient,
   implicit val groupService: GroupService,
-  implicit val roleService: RoleService,
-  bodyParsers: PlayBodyParsers
+  implicit val roleService: RoleService
 )(implicit ec: ExecutionContext) extends BasicAuth {
   import BasicAuth._
 
@@ -71,8 +70,8 @@ class BasicAuthImpl @Inject()(
     }
   }
 
-  override def Check(denied: RequestHeader => Future[Result]) : ActionBuilder[AuthenticatedRequest, AnyContent] =
-    new BasicAuthCheckActionBuilder(denied, bodyParsers.default)
+  override def Check(denied: RequestHeader => Future[Result])(parser: BodyParser[AnyContent]): ActionBuilder[AuthenticatedRequest, AnyContent] =
+    new BasicAuthCheckActionBuilder(denied, parser)
 
   private def ctx(req: RequestHeader, u: User): LoginContext =
     new LoginContextImpl(sso.linkGenerator(req), Some(u), None)

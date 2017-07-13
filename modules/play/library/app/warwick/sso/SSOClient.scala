@@ -47,17 +47,17 @@ trait SSOClient {
   /**
    * Fetches any existing user session and provides it as an AuthenticatedRequest which has a User.
    */
-  val Lenient: SSOActionBuilder
+  def Lenient(parser: BodyParser[AnyContent]): SSOActionBuilder
 
   /**
    * Like Lenient, but if no user was present it automatically redirects to login so that a user
    * is required.
    */
-  val Strict: ActionBuilder[AuthRequest, AnyContent]
+  def Strict(parser: BodyParser[AnyContent]): ActionBuilder[AuthRequest, AnyContent]
 
-  def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result): ActionBuilder[AuthRequest, AnyContent]
+  def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[AnyContent]): ActionBuilder[AuthRequest, AnyContent]
 
-  def RequireActualUserRole(role: RoleName, otherwise: AuthRequest[_] => Result): ActionBuilder[AuthRequest, AnyContent]
+  def RequireActualUserRole(role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[AnyContent]): ActionBuilder[AuthRequest, AnyContent]
 
   /** The type of block you can pass to withUser. */
   type TryAcceptResult[A] = Future[Either[Result, A]]
@@ -93,8 +93,7 @@ class SSOClientImpl @Inject()(
   trustedAppsHandler: TrustedApplicationHandler,
   configuration: SSOConfiguration,
   implicit val groupService: GroupService,
-  implicit val roleService: RoleService,
-  bodyParsers: PlayBodyParsers
+  implicit val roleService: RoleService
 )(implicit ec: ExecutionContext) extends SSOClient {
 
   import play.api.mvc.Results._
@@ -104,13 +103,12 @@ class SSOClientImpl @Inject()(
     new LinkGeneratorImpl(configuration, req)
   }
 
-  lazy val Strict = Lenient andThen requireCondition(_.context.user.isDefined, otherwise = redirectToSSO)
+  def Strict(parser: BodyParser[AnyContent]) = Lenient(parser) andThen requireCondition(_.context.user.nonEmpty, otherwise = redirectToSSO)
+  def Lenient(parser: BodyParser[AnyContent]) = FindUser(bodyParser = parser)
 
-  lazy val Lenient = FindUser(bodyParser = bodyParsers.default)
+  override def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[AnyContent]) = Strict(parser) andThen requireCondition(_.context.userHasRole(role), otherwise)
 
-  override def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result) = Strict andThen requireCondition(_.context.userHasRole(role), otherwise)
-
-  override def RequireActualUserRole(role: RoleName, otherwise: AuthRequest[_] => Result) = Strict andThen requireCondition(_.context.actualUserHasRole(role), otherwise)
+  override def RequireActualUserRole(role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[AnyContent]) = Strict(parser) andThen requireCondition(_.context.actualUserHasRole(role), otherwise)
 
   implicit class BonusResponse(response: Response) {
     lazy val user: Option[User] = Option(response.getUser).filter(User.hasUsercode).map(User.apply)
