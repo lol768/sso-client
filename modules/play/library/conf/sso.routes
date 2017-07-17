@@ -1,6 +1,8 @@
 GET         /acs               @warwick.sso.AssertionConsumer.get
++ nocsrf
 POST        /acs               @warwick.sso.AssertionConsumer.post
 
++ nocsrf
 POST        /logout            @warwick.sso.LogoutController.post
 
 POST        /masquerade        @warwick.sso.MasqueradeController.masquerade
