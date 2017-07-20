@@ -2,7 +2,7 @@ package warwick.sso
 
 import java.io.IOException
 
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import uk.ac.warwick.userlookup.{UnverifiedUser, AnonymousUser, UserLookupInterface}
 import java.util.Arrays

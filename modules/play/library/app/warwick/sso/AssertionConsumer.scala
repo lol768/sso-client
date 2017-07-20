@@ -29,9 +29,9 @@ object AssertionConsumer {
  * from Websignon, and sets up the session.
  */
 class AssertionConsumer @Inject() (
-    config: SSOConfiguration,
-    shireCommandProvider: Provider[ShireCommand]
-  ) extends Controller {
+  config: SSOConfiguration,
+  shireCommandProvider: Provider[ShireCommand]
+) extends InjectedController {
   import AssertionConsumer._
   import PlayHttpRequest._
 
@@ -39,7 +39,7 @@ class AssertionConsumer @Inject() (
     MethodNotAllowed
   }
 
-  def post = Action { implicit request =>
+  def post = Action(parse.default) { implicit request: Request[AnyContent] =>
     SamlForm.bindFromRequest.fold(
       withErrors => BadRequest(withErrors.errors.map(_.message).mkString(", ")),
       data => handle(request, data)

@@ -3,7 +3,7 @@ package warwick.sso
 import javax.inject.Inject
 
 import org.slf4j.LoggerFactory
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.InjectedController
 import uk.ac.warwick.sso.client.SSOToken
 import uk.ac.warwick.sso.client.cache.UserCache
 import uk.ac.warwick.util.core.StringUtils
@@ -12,7 +12,7 @@ import uk.ac.warwick.util.core.StringUtils
 /**
  * Handles back-channel requests from Websignon, for implementing single-logout.
  */
-class LogoutController @Inject() (userCache: UserCache) extends Controller {
+class LogoutController @Inject() (userCache: UserCache) extends InjectedController {
 
   private val LOGGER = LoggerFactory.getLogger(getClass)
 

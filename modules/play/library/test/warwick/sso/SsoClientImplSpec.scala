@@ -3,23 +3,28 @@ package warwick.sso
 import java.util.Arrays._
 
 import akka.actor.{Actor, ActorRef, Props}
+import akka.stream.Materializer
+import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.http.message.BasicHeader
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.iteratee.{Enumerator, Iteratee}
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.libs.iteratee.streams.IterateeStreams
+import play.api.libs.iteratee.{Enumerator, Input, Iteratee, Step}
 import play.api.libs.json.JsValue
-import play.api.mvc.{Controller, Cookie, Results, WebSocket}
+import play.api.libs.streams.ActorFlow
+import play.api.mvc._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.ac.warwick.sso.client.core.Response
 import uk.ac.warwick.sso.client.trusted.TrustedApplicationHandler
 import uk.ac.warwick.sso.client.{SSOClientHandler, SSOConfiguration}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 object WebsocketTesting {
   class A(ctx: LoginContext, out: ActorRef) extends Actor { def receive = PartialFunction.empty }
@@ -30,29 +35,57 @@ object WebsocketTesting {
   /** Example of using SSOClient in a websocket. This code isn't actually executed,
     * but it's nice to know that it compiles
     */
-  class C(client: SSOClient) extends Controller {
+  class C(client: SSOClient) extends InjectedController {
     import play.api.Play.current
 
     import scala.concurrent.ExecutionContext.Implicits.global
     implicit val mat = current.materializer
+    implicit val system = current.actorSystem
 
-    def actor = WebSocket.tryAcceptWithActor[JsValue, JsValue] { req =>
+    def actor = WebSocket.acceptOrResult[JsValue, JsValue] { req =>
       client.withUser(req) { loginContext =>
-        Future.successful(Right(A.props(loginContext) _))
+        Future.successful(Right(ActorFlow.actorRef(A.props(loginContext) _)))
       }
     }
-    def iteratee = WebSocket.tryAccept[String] { req =>
+
+    def iteratee = WebSocket.acceptOrResult[String, String] { req =>
       client.withUser(req) { loginContext =>
         val name = loginContext.user.flatMap(_.name.full).getOrElse("nobody")
-        val in = Iteratee.foreach[String](println)
-        val out = Enumerator(s"Hello, ${name}!")
-        Future.successful(Right((in, out)))
+        val iteratee = Iteratee.foreach[String](println)
+        val enumerator = Enumerator(s"Hello, $name!")
+        Future.successful(Right({
+          val publisher = IterateeStreams.enumeratorToPublisher(enumerator)
+          val (subscriber, _) = IterateeStreams.iterateeToSubscriber(iteratee)
+          Flow.fromSinkAndSource(Sink.fromSubscriber(subscriber), Source.fromPublisher(publisher))
+        }))
+      }
+    }
+
+    /**
+      * Like Enumeratee.onEOF, however enumeratee.onEOF always gets fed an EOF (by the enumerator if nothing else).
+      */
+    private def onEOF[E](enumerator: Enumerator[E], action: () => Unit): Enumerator[E] = new Enumerator[E] {
+      def apply[A](i: Iteratee[E, A]) = enumerator(wrap(i))
+
+      def wrap[A](i: Iteratee[E, A]): Iteratee[E, A] = new Iteratee[E, A] {
+        def fold[B](folder: (Step[E, A]) => Future[B])(implicit ec: ExecutionContext) = i.fold {
+          case Step.Cont(k) => folder(Step.Cont {
+            case eof @ Input.EOF =>
+              action()
+              wrap(k(eof))
+            case other => wrap(k(other))
+          })
+          case other => folder(other)
+        }(ec)
       }
     }
   }
 }
 
-class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results {
+class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results with GuiceOneAppPerSuite {
+
+  import scala.concurrent.ExecutionContext.Implicits.global
+  implicit lazy val materializer: Materializer = app.materializer
 
   class Context {
     val handler = mock[SSOClientHandler]
@@ -60,9 +93,10 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results {
     val response = new Response
     val groupService = mock[GroupService]
     val roleService = mock[RoleService]
+    val bodyParsers = PlayBodyParsers()
     val client: SSOClient = new SSOClientImpl(handler, trustedAppHandler, new SSOConfiguration(new PropertiesConfiguration()), groupService, roleService)
-    val action = client.Lenient { request => Ok("Great") }
-    val noRunAction = client.Lenient { request => fail("Shouldn't run this block") }
+    val action: Action[AnyContent] = client.Lenient(bodyParsers.default) { _: AuthenticatedRequest[_] => Ok("Great") }
+    val noRunAction: Action[AnyContent] = client.Lenient(bodyParsers.default) { _: AuthenticatedRequest[_] => fail("Shouldn't run this block") }
 
     when(handler.handle(any())).thenReturn(response)
   }
@@ -99,7 +133,7 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results {
     "convert headers" in new Context {
       response.setHeaders(asList(new BasicHeader("alan", "sugar")))
       val result = action.apply(FakeRequest())
-      headers(of=result).get("alan").get must be ("sugar")
+      headers(of=result).get("alan") must be (Some("sugar"))
     }
 
     "send redirect" in new Context {
@@ -107,12 +141,12 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results {
       // should set continueRequest to false
       response.setRedirect("http://www.example.net/googles")
       val result = noRunAction.apply(FakeRequest())
-      headers(of=result).get("Location").get must be ("http://www.example.net/googles")
+      headers(of=result).get("Location") must be (Some("http://www.example.net/googles"))
     }
 
     "not send redirect" in new Context {
       response.setRedirect("http://www.example.net/googles")
-      val result = client.Lenient.disallowRedirect(request => Ok("super")).apply(FakeRequest())
+      val result = client.Lenient(bodyParsers.default).disallowRedirect { _: AuthenticatedRequest[_] => Ok("super") }.apply(FakeRequest())
       headers(of=result).get("Location") mustBe None
     }
 

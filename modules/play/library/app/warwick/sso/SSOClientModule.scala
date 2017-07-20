@@ -80,8 +80,7 @@ class SSOClientModule extends PrivateModule {
   @Provides
   def config(conf: Configuration): SSOConfiguration = {
     new SSOConfiguration(new PlayConfiguration(
-      conf.getConfig("sso-client")
-        .getOrElse(throw new RuntimeException("SSO Client configuration should be under an 'sso-client' section of your Play config."))
+      conf.get[Configuration]("sso-client")
     ))
   }
 

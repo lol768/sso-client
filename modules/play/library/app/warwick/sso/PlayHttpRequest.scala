@@ -2,8 +2,10 @@ package warwick.sso
 
 import java.util
 
+import play.api.libs.typedmap.TypedKey
 import play.api.mvc._
 import uk.ac.warwick.sso.client.core.{Cookie, HttpRequest}
+
 import scala.collection.JavaConverters._
 
 /**
@@ -41,7 +43,7 @@ class PlayHttpRequestHeader(req: RequestHeader) extends HttpRequest {
   override def getParameterNames: util.Set[String] = (req.queryString.keySet ++ bodyParams.keySet).asJava
 
   // When we upgrade to Play 2.6 this should use Play request attributes instead of tags
-  override def getAttribute(s: String): AnyRef = req.tags.get(s).orNull
+  override def getAttribute(s: String): AnyRef = req.attrs.get(TypedKey(s)).orNull
 
   override def getRequestURL: String = {
     val sb = new StringBuilder

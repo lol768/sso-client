@@ -3,9 +3,9 @@ package warwick.sso
 import java.util.Base64
 import javax.inject.Inject
 
-import play.api.mvc.{RequestHeader, Request, Result, ActionBuilder}
+import play.api.mvc._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util._
 
 /**
@@ -15,7 +15,7 @@ import scala.util._
   * or you'll receive the result as calculated from `denied`.
   */
 trait BasicAuth {
-  def Check(denied: RequestHeader => Future[Result]): ActionBuilder[AuthenticatedRequest]
+  def Check(denied: RequestHeader => Future[Result])(parser: BodyParser[AnyContent]): ActionBuilder[AuthenticatedRequest, AnyContent]
 }
 
 /**
@@ -48,11 +48,16 @@ object BasicAuth {
 
 }
 
-class BasicAuthImpl @Inject()(userLookup: UserLookupService, sso: SSOClient, implicit val groupService: GroupService, implicit val roleService: RoleService) extends BasicAuth {
+class BasicAuthImpl @Inject()(
+  userLookup: UserLookupService,
+  sso: SSOClient,
+  implicit val groupService: GroupService,
+  implicit val roleService: RoleService
+)(implicit ec: ExecutionContext) extends BasicAuth {
   import BasicAuth._
 
-  override def Check(denied: RequestHeader => Future[Result]) : ActionBuilder[AuthenticatedRequest] = new ActionBuilder[AuthenticatedRequest] {
-    override def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]) = {
+  class BasicAuthCheckActionBuilder(denied: RequestHeader => Future[Result], val parser: BodyParser[AnyContent])(implicit val executionContext: ExecutionContext) extends ActionBuilder[AuthenticatedRequest, AnyContent] {
+    override def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]): Future[Result] = {
       request.headers.get("Authorization").flatMap {
         case BasicAuthHeader(usercode, pass) =>
           userLookup.basicAuth(usercode, pass).toOption.flatten.map { user =>
@@ -64,6 +69,9 @@ class BasicAuthImpl @Inject()(userLookup: UserLookupService, sso: SSOClient, imp
       }
     }
   }
+
+  override def Check(denied: RequestHeader => Future[Result])(parser: BodyParser[AnyContent]): ActionBuilder[AuthenticatedRequest, AnyContent] =
+    new BasicAuthCheckActionBuilder(denied, parser)
 
   private def ctx(req: RequestHeader, u: User): LoginContext =
     new LoginContextImpl(sso.linkGenerator(req), Some(u), None)

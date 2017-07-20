@@ -1,6 +1,7 @@
 package warwick.sso
 
 import com.google.common.collect.Iterators
+import com.typesafe.config.ConfigException
 import org.apache.commons.configuration.Configuration
 import org.scalatestplus.play.PlaySpec
 import uk.ac.warwick.sso.client.SSOConfiguration
@@ -29,7 +30,7 @@ class PlayConfigurationSpec extends PlaySpec {
     }
 
     "throw error when no default provided" in {
-      intercept[NoSuchElementException] {
+      intercept[Exception] {
         conf.getString("professor.blame")
       }
     }

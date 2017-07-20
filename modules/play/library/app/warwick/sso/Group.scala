@@ -2,7 +2,7 @@ package warwick.sso
 
 import org.joda.time.DateTime
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 case class GroupName(string: String)
 
@@ -27,8 +27,8 @@ object Group {
     Group(
       GroupName(g.getName),
       Option(g.getTitle),
-      g.getUserCodes.map(Usercode),
-      g.getOwners.map(Usercode),
+      g.getUserCodes.asScala.map(Usercode),
+      g.getOwners.asScala.map(Usercode),
       g.getType,
       Department(None, Some(g.getDepartment), Some(g.getDepartmentCode)),
       new DateTime(g.getLastUpdatedDate),

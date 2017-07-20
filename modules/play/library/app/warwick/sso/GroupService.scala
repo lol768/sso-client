@@ -4,7 +4,7 @@ import com.google.inject.{ImplementedBy, Inject}
 import uk.ac.warwick.userlookup
 import uk.ac.warwick.userlookup.webgroups.{GroupNotFoundException, GroupServiceException}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 @ImplementedBy(classOf[GroupServiceImpl])
@@ -40,12 +40,12 @@ class GroupServiceImpl @Inject()(
     Try(groupService.isUserInGroup(usercode.string, groupName.string))
 
   override def getGroupsForUser(usercode: Usercode) =
-    Try(groupService.getGroupsForUser(usercode.string).map(Group.apply))
+    Try(groupService.getGroupsForUser(usercode.string).asScala.map(Group.apply))
 
   override def getGroupsInDepartment(department: Department) =
-    Try(groupService.getGroupsForDeptCode(department.code.getOrElse(throw new IllegalArgumentException("Department code is empty"))).map(Group.apply))
+    Try(groupService.getGroupsForDeptCode(department.code.getOrElse(throw new IllegalArgumentException("Department code is empty"))).asScala.map(Group.apply))
 
   override def getGroupsForQuery(query: String) =
-    Try(groupService.getGroupsForQuery(query).map(Group.apply))
+    Try(groupService.getGroupsForQuery(query).asScala.map(Group.apply))
 
 }
