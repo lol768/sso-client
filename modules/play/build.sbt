@@ -1,5 +1,5 @@
 
-def libraryVersion = "2.30"
+def libraryVersion = "2.31"
 
 lazy val root = (project in file("."))
   .aggregate(library, testing)
@@ -28,8 +28,8 @@ lazy val testing = (project in file("testing")).enablePlugins(PlayScala)
   .settings(repositorySettings :_*)
 
 lazy val commonSettings = Seq(
-  scalaVersion := "2.11.8",
-  crossScalaVersions := Seq("2.11.8"),
+  scalaVersion := "2.12.2",
+  crossScalaVersions := Seq("2.11.8", "2.12.2"),
 
   publishMavenStyle := true,
   compileOrder := CompileOrder.ScalaThenJava, // maybe faster?
@@ -48,6 +48,7 @@ lazy val commonSettings = Seq(
 )
 
 lazy val appDeps = Seq[ModuleID](
+  guice,
   "uk.ac.warwick.sso" % "sso-client-core" % libraryVersion,
   component("play-jdbc-api"),
   "xerces" % "xercesImpl" % "2.11.0",
@@ -56,9 +57,15 @@ lazy val appDeps = Seq[ModuleID](
 
 lazy val testDeps = Seq[ModuleID](
   jdbc,
-  "org.scalatest" %% "scalatest" % "2.2.1",
-  "org.scalatestplus" %% "play" % "1.4.0-M3",
-  "org.scalacheck" %% "scalacheck" % "1.12.5",
-  "org.mockito" % "mockito-all" % "1.10.19"
+  component("play-iteratees"),
+  component("play-iteratees-reactive-streams"),
+  "org.scalatest" %% "scalatest" % "3.0.3",
+  "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.0",
+  "org.scalacheck" %% "scalacheck" % "1.13.5",
+  "org.mockito" % "mockito-all" % "1.10.19",
+  "com.h2database" % "h2" % "1.4.193"
 ).map(_ % Test)
+
+// https://bugs.elab.warwick.ac.uk/browse/SSO-1653
+dependencyOverrides += "xml-apis" % "xml-apis" % "1.4.01"
 

@@ -4,6 +4,7 @@ import java.math.BigInteger
 import java.{lang, math, util}
 import java.util.{Collections, Properties}
 
+import com.typesafe.config.{ConfigList, ConfigObject}
 
 import scala.collection.JavaConverters._
 import org.apache.commons.configuration.{Configuration => ApacheConfiguration}
@@ -17,6 +18,18 @@ import scala.util.Try
  */
 class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
 
+  private def getConfigList(key: String): Option[Seq[Configuration]] =
+    if (conf.has(key)) Some(conf.underlying.getConfigList(key).asScala.map(Configuration(_)))
+    else None
+
+  private def getStringList(key: String): Option[util.List[String]] =
+    if (conf.has(key)) Some(conf.underlying.getStringList(key))
+    else None
+
+  private def getObjectList(key: String): Option[util.List[_ <: ConfigObject]] =
+    if (conf.has(key)) Some(conf.underlying.getObjectList(key))
+    else None
+
   /**
     * Subitems contained inside list items don't appear in config.keys, but Apache Configuration
     * expects them to return true for containsKey, so let's gather up all sub properties
@@ -25,7 +38,7 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
   private lazy val listSubkeys: Set[String] =
     for {
       key <- conf.keys
-      subConfs <- Try(conf.getConfigSeq(key)).toOption.flatten.toSeq
+      subConfs <- Try(getConfigList(key)).toOption.flatten.toSeq
       subConf <- subConfs
       item <- subConf.keys
     } yield s"$key.$item"
@@ -48,13 +61,13 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
     * from each member.
     */
   override def getList(s: String, fallback: util.List[_]): util.List[_] =
-    conf.getStringList(s) orElse {
+    getStringList(s) orElse {
       // any part of the key could be an array... we have to find it, then dig through each item in it.
       findListKey(s).flatMap { listKey =>
         val childKey = s.substring(listKey.length + 1)
         // this shouldn't happen as the initial getStringList should work.
         require(childKey.nonEmpty, "No child key to select")
-        conf.getObjectList(listKey).map { list =>
+        getObjectList(listKey).map { list =>
           list.asScala.map { obj =>
             obj.get(childKey).unwrapped()
           }.asJava
@@ -70,7 +83,7 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
     Stream.from(1).take(parts.length) map { n =>
       parts.take(n).mkString(".")
     } find { key =>
-      Try(conf.getList(key)).isSuccess
+      Try(conf.getOptional[ConfigList](key)).isSuccess
     }
   }
 
@@ -81,9 +94,9 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
       .orNull
 
   override def getKeys: util.Iterator[String] = conf.keys.iterator.asJava
-  override def getKeys(prefix: String): util.Iterator[String] = conf.getConfig(prefix).get.keys.iterator.asJava
+  override def getKeys(prefix: String): util.Iterator[String] = conf.get[Configuration](prefix).keys.iterator.asJava
 
-  override def subset(s: String): ApacheConfiguration = new PlayConfiguration(conf.getConfig(s).get)
+  override def subset(s: String): ApacheConfiguration = new PlayConfiguration(conf.get[Configuration](s))
 
   override def isEmpty: Boolean = conf.keys.isEmpty
 
@@ -93,8 +106,8 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
     p
   }
 
-  override def getDouble(s: String): Double = conf.getDouble(s).get
-  override def getDouble(s: String, v: Double): Double = conf.getDouble(s).getOrElse(v)
+  override def getDouble(s: String): Double = conf.get[Double](s)
+  override def getDouble(s: String, v: Double): Double = conf.getOptional[Double](s).getOrElse(v)
   override def getDouble(s: String, v: lang.Double): lang.Double = getDouble(s, v)
 
   override def getFloat(s: String): Float = getDouble(s).toFloat
@@ -102,20 +115,22 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
   override def getFloat(s: String, v: lang.Float): lang.Float = getDouble(s, v.toDouble).toFloat
 
   override def getBigDecimal(s: String): math.BigDecimal =
-    conf.getNumber(s).map(n => new math.BigDecimal(n.toString)).get
+    new math.BigDecimal(conf.get[Number](s).toString)
   override def getBigDecimal(s: String, default: math.BigDecimal): math.BigDecimal =
-    conf.getNumber(s).map(n => new math.BigDecimal(n.toString)).getOrElse(default)
+    conf.getOptional[Number](s).map(n => new math.BigDecimal(n.toString)).getOrElse(default)
 
-  override def getLong(s: String): Long = conf.getLong(s).get
-  override def getLong(s: String, l: Long): Long = conf.getLong(s).getOrElse(l)
+  override def getLong(s: String): Long = conf.get[Long](s)
+  override def getLong(s: String, l: Long): Long = conf.getOptional[Long](s).getOrElse(l)
   override def getLong(s: String, aLong: lang.Long): lang.Long = getLong(s, aLong)
 
-  override def getByte(s: String): Byte = conf.getBytes(s).get.toByte
-  override def getByte(s: String, b: Byte): Byte = conf.getBytes(s).map(_.toByte).getOrElse(b)
+  override def getByte(s: String): Byte = conf.underlying.getBytes(s).toByte
+  override def getByte(s: String, b: Byte): Byte =
+    if (conf.has(s)) getByte(s)
+    else b
   override def getByte(s: String, b: lang.Byte): lang.Byte = getByte(s,b)
 
-  override def getBoolean(s: String): Boolean = conf.getBoolean(s).get
-  override def getBoolean(s: String, b: Boolean): Boolean = conf.getBoolean(s).getOrElse(b)
+  override def getBoolean(s: String): Boolean = conf.get[Boolean](s)
+  override def getBoolean(s: String, b: Boolean): Boolean = conf.getOptional[Boolean](s).getOrElse(b)
   override def getBoolean(s: String, b: lang.Boolean): lang.Boolean = getBoolean(s,b)
 
   override def containsKey(s: String): Boolean =
@@ -128,17 +143,16 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
   override def getStringArray(s: String): Array[String] = getList(s).toArray(Array[String]())
 
   override def getBigInteger(s: String): BigInteger =
-    conf.getNumber(s).map(n => new BigInteger(n.toString)).get
-  override def getBigInteger(s: String, bigInteger: BigInteger): BigInteger =
-    conf.getNumber(s).map(n => new BigInteger(n.toString)).getOrElse(bigInteger)
+    new BigInteger(conf.get[Number](s).toString)
+  override def getBigInteger(s: String, default: BigInteger): BigInteger =
+    conf.getOptional[Number](s).map(n => new BigInteger(n.toString)).getOrElse(default)
 
   override def getInteger(s: String, integer: Integer): Integer = getInt(s, integer)
 
+  override def getInt(s: String): Int = conf.get[Int](s)
+  override def getInt(s: String, i: Int): Int = conf.getOptional[Int](s).getOrElse(i)
 
-  override def getInt(s: String): Int = conf.getInt(s).get
-  override def getInt(s: String, i: Int): Int = conf.getInt(s).getOrElse(i)
-
-  override def getString(s: String): String = conf.getString(s).get
-  override def getString(s: String, s1: String): String = conf.getString(s).getOrElse(s1)
+  override def getString(s: String): String = conf.get[String](s)
+  override def getString(s: String, s1: String): String = conf.getOptional[String](s).getOrElse(s1)
 }
 
