@@ -426,6 +426,15 @@ public class UserLookup implements UserLookupInterface {
 	}
 
 
+	private User matchByIdAndPassFromCache(String userId, String password) throws CacheEntryUpdateException {
+		// Cache stores pair of password digest and user, so we need to
+		// check the password and digest match
+		final Pair<String, User> result = _authCache.get(userId, password);
+		if (result.getLeft().equals(CacheDigests.digest(password))) return result.getRight();
+		return null;
+	}
+
+	@Override
 	public final User getUserByIdAndPassNonLoggingIn(final String uncheckedUserId, final String uncheckedPass)
 			throws UserLookupException {
 
@@ -439,24 +448,38 @@ public class UserLookup implements UserLookupInterface {
 		String pass = uncheckedPass.trim();
 
 		try {
-			// Cache stores pair of password digest and user, so we need to
-			// check the password and digest match
-			final Pair<String, User> result = _authCache.get(userId, pass);
-			if (result.getLeft().equals(CacheDigests.digest(pass))) {
-				return result.getRight();
-			}
+			return matchByIdAndPassFromCache(userId, pass);
 		} catch (CacheEntryUpdateException e) {
 			LOGGER.error("Error using basic auth cache for " + userId, e);
 		}
-
-		/**
+		/*
 		 * We get here if there was a CacheEntryUpdateException, or if the password was wrong.
 		 */
 		return getSpecificUserLookupType().getUserByUserIdAndPassNonLoggingIn(userId, pass);
 
 	}
 
-	
+	@Override
+	public User getUserByIdAndPassNonLoggingIn(String uncheckedUserId, String uncheckedPass, String realUserAgent, String realRemoteAddress) throws UserLookupException {
+		LOGGER.debug("Trying non logging in SSO for user " + uncheckedUserId);
+		if (uncheckedUserId == null || uncheckedPass == null || uncheckedUserId.equals("")) {
+			return new AnonymousUser();
+		}
+		String usercode = uncheckedUserId.trim();
+		String password = uncheckedPass.trim();
+		try {
+			// TODO we would probably want to somehow log the realRemoteAddress and realUserAgent even if it's cached
+			return matchByIdAndPassFromCache(uncheckedUserId, uncheckedPass);
+		} catch (CacheEntryUpdateException e) {
+			LOGGER.error("Error using basic auth cache for " + usercode, e);
+		}
+		/*
+		 * We get here if there was a CacheEntryUpdateException, or if the password was wrong.
+		 */
+		return getSpecificUserLookupType().getUserByUserIdAndPassNonLoggingIn(usercode, password, realUserAgent, realRemoteAddress);
+	}
+
+
 	/**
 	 * Will return just a single user or an anonymous user that matches the warwickUniId passed in. It is possible that
 	 * it will not be the right user depending on how many users are against this warwickUniId and if their
