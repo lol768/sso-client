@@ -92,6 +92,8 @@ public interface UserLookupInterface extends UserResolver, CacheingService {
 	void clearCaches();
 	
 	User getUserByIdAndPassNonLoggingIn(final String uncheckedUserId, final String uncheckedPass) throws UserLookupException;
+
+	User getUserByIdAndPassNonLoggingIn(final String uncheckedUserId, final String uncheckedPass, final String realUserAgent, final String realRemoteAddress) throws UserLookupException;
 	
 	void requestClearWebGroup(final String groupName) throws UserLookupException;
 }

@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
 import uk.ac.warwick.userlookup.HttpMethodWebService.WebServiceException;
+import uk.ac.warwick.util.core.StringUtils;
 
 /**
  * @author Kieran Shaw
@@ -284,21 +285,34 @@ public class WebUserLookup implements UserLookupBackend {
 		doSSO(params);
 	}
 
-	public final User getUserByUserIdAndPassNonLoggingIn(final String usercode, final String password) throws UserLookupException {
+	static Map<String, Object> makeBaseParamsMap(String usercode, String password, String requestType, boolean skiplogin){
 		Map<String,Object> params = new HashMap<>();
-		params.put("requestType", Integer.toString(CHECK_AUTH));
+		params.put("requestType", requestType);
 		params.put("user", usercode);
 		params.put("pass", password);
-		params.put("skiplogin", "true");
-		Map<String, String> results = doSSO(params);
-		if (getResultType(results) == AUTH_OK) {
-			// populate user and return
-			User returnUser = populateUser(results);
-			return returnUser;
-		}
+		params.put("skiplogin", skiplogin);
+		return params;
+	}
+
+	public final User getUserByUserIdAndPassNonLoggingIn(final String usercode, final String password) throws UserLookupException {
+		Map<String, String> results = doSSO(makeBaseParamsMap(usercode, password, Integer.toString(CHECK_AUTH), true));
+		if (getResultType(results) == AUTH_OK) return populateUser(results);
 		return new AnonymousUser();
 	}
-	
+
+	@Override
+	public final User getUserByUserIdAndPassNonLoggingIn(final String usercode, final String password, final String realUserAgent, final String realRemoteAddress) throws UserLookupException {
+		if (!StringUtils.hasText(realUserAgent) && !StringUtils.hasText(realRemoteAddress)) return getUserByUserIdAndPassNonLoggingIn(usercode, password);
+
+		Map<String,Object> params = makeBaseParamsMap(usercode, password, Integer.toString(CHECK_AUTH), true);
+		params.put("realUserAgent", realUserAgent);
+		params.put("realRemoteAddress", realRemoteAddress);
+
+		Map<String, String> results = doSSO(params);
+		if (getResultType(results) == AUTH_OK) return populateUser(results);
+		return new AnonymousUser();
+	}
+
 	final static class WebServiceResponseHandlerImplementation extends 
 			ClearGroupResponseHandler implements
 			HttpMethodWebService.WebServiceResponseHandler {
