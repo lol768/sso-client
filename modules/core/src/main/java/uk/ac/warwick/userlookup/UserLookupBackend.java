@@ -9,7 +9,7 @@ import java.util.Map;
 
 /**
  * @author Kieran Shaw
- * 
+ *
  */
 interface UserLookupBackend {
 
@@ -19,7 +19,7 @@ interface UserLookupBackend {
 
 	/**
 	 * Will return an anonymous user if there is no such user.
-	 * 
+	 *
 	 * @param usercode
 	 * @param password
 	 * @return
@@ -29,11 +29,13 @@ interface UserLookupBackend {
 
 	User getUserByUserIdAndPassNonLoggingIn(String usercode, String password) throws UserLookupException;
 
+    User getUserByUserIdAndPassNonLoggingIn(String usercode, String password, String realUserAgent, String realRemoteAddress) throws UserLookupException;
+
 	void signOut(String token) throws UserLookupException;
-	
+
 	Map<String, User> getUsersById(List<String> userIds) throws UserLookupException;
-	
+
 	boolean getSupportsBatchLookup();
-	
+
 	void requestClearWebGroup(final String groupName) throws UserLookupException;
 }
