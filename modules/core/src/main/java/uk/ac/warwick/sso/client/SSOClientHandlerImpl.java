@@ -139,7 +139,7 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
             if (hash != null && !SaltedDigest.matches(hash, password)) {
                 // entry was previously valid, but pass doesn't match.
                 getBasicAuthCache().remove(userName);
-                userAndHash = getBasicAuthCache().get(userName, password);
+                userAndHash = getBasicAuthCache(request).get(userName, password);
                 user = userAndHash.getUser();
                 // don't need to check pass hash because it's just been generated based on a response.
             }
@@ -166,11 +166,22 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
     }
 
     private CacheWithDataInitialisation<String, UserAndHash, String> getBasicAuthCache() {
+        return getBasicAuthCache(null);
+    }
+
+    private CacheWithDataInitialisation<String, UserAndHash, String> getBasicAuthCache(final HttpRequest request) {
         if (_basicAuthCache == null) {
             _basicAuthCache = Caches.newDataInitialisatingCache("BasicAuthCache", new SingularCacheEntryFactoryWithDataInitialisation<String, UserAndHash, String>() {
                 public UserAndHash create(String userName, String password) throws CacheEntryUpdateException {
                     try {
-                        User user = getUserLookup().getUserByIdAndPassNonLoggingIn(userName, password);
+                        User user;
+                        if (request == null ) {
+                            user = getUserLookup().getUserByIdAndPassNonLoggingIn(userName, password);
+                        } else {
+                            final String realUserAgent = request.getHeader("User-Agent");
+                            final String realRemoteAddress = request.getRemoteAddr();
+                            user = getUserLookup().getUserByIdAndPassNonLoggingIn(userName, password, realUserAgent, realRemoteAddress);
+                        }
                         String hash = null;
                         if (user.isFoundUser()) {
                             hash = SaltedDigest.generate(password);
@@ -180,8 +191,7 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
                         throw new CacheEntryUpdateException(e);
                     }
                 }
-
-                // only cache fully sucessful requests
+                // only cache fully successful requests
                 public boolean shouldBeCached(UserAndHash uah) {
                     return uah.getUser().isFoundUser();
                 }
@@ -189,7 +199,6 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
         }
         return _basicAuthCache;
     }
-
 
     private Response redirectToLogin(/*final HttpResponse response, */final HttpRequest request,
                                      final Cookie loginTicketCookie) throws UnsupportedEncodingException, IOException {
