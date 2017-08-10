@@ -290,7 +290,7 @@ public class WebUserLookup implements UserLookupBackend {
 		params.put("requestType", requestType);
 		params.put("user", usercode);
 		params.put("pass", password);
-		params.put("skiplogin", skiplogin);
+		params.put("skiplogin", String.valueOf(skiplogin));
 		return params;
 	}
 

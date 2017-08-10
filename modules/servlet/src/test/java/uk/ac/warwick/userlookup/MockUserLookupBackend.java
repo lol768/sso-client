@@ -75,6 +75,11 @@ public class MockUserLookupBackend implements UserLookupBackend {
 		return new AnonymousUser();
 	}
 
+	@Override
+	public User getUserByUserIdAndPassNonLoggingIn(String usercode, String password, String realUserAgent, String realRemoteAddress) throws UserLookupException {
+		return new AnonymousUser();
+	}
+
 	public Map<String, User> getUsersById(List<String> userIds) throws UserLookupException {
 		Map<String, User> users = new HashMap<String, User>();
 		for (String id : userIds) {
