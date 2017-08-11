@@ -88,6 +88,7 @@ public abstract class HandleFilter {
 
     public static void addSameSiteStrict(HttpServletResponse response) {
         String originalSetCookieString = response.getHeader("Set-Cookie");
+        if (!uk.ac.warwick.util.core.StringUtils.hasText(originalSetCookieString)) return;
         String newSetCookieSrting = addSameSiteStrict(originalSetCookieString);
         response.setHeader("Set-Cookie", newSetCookieSrting);
     }
