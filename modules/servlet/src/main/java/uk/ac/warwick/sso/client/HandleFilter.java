@@ -98,7 +98,7 @@ public abstract class HandleFilter {
         if (setCookieString.contains("SSC-")) {
             List<String> originalSetCookieValues = Arrays.asList(setCookieString.split(","));
             for (String e : originalSetCookieValues) {
-                newSetCookieValues.add(e.startsWith("SSC-") ? e + "l SameSite=Strict" : e);
+                newSetCookieValues.add(e.startsWith("SSC-") ? e + "; SameSite=Strict" : e);
             }
         }
         return StringUtils.join(newSetCookieValues.iterator(),",");
