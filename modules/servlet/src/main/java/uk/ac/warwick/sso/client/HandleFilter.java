@@ -86,19 +86,19 @@ public abstract class HandleFilter {
         return config.getString("shire.filteractualuserkey", ACTUAL_USER_KEY);
     }
 
-    public static void addSameSiteStrict(HttpServletResponse response) {
+    protected void addSameSiteStrict(HttpServletResponse response) {
         String originalSetCookieString = response.getHeader("Set-Cookie");
         if (!uk.ac.warwick.util.core.StringUtils.hasText(originalSetCookieString)) return;
-        String newSetCookieSrting = addSameSiteStrict(originalSetCookieString);
-        response.setHeader("Set-Cookie", newSetCookieSrting);
+        String newSetCookieString = addSameSiteStrict(originalSetCookieString, getConfig().getString("shire.sscookie.name"));
+        response.setHeader("Set-Cookie", newSetCookieString);
     }
 
-    public static String addSameSiteStrict(String setCookieString) {
+    public static String addSameSiteStrict(String setCookieString, String sscCookieName) {
         List<String> newSetCookieValues = new ArrayList<>();
-        if (setCookieString.contains("SSC-")) {
+        if (setCookieString.contains(sscCookieName)) {
             List<String> originalSetCookieValues = Arrays.asList(setCookieString.split(","));
             for (String e : originalSetCookieValues) {
-                newSetCookieValues.add(e.startsWith("SSC-") ? e + "; SameSite=Strict" : e);
+                newSetCookieValues.add(e.startsWith(sscCookieName) ? e + "; SameSite=Strict" : e);
             }
         }
         return StringUtils.join(newSetCookieValues.iterator(),",");
