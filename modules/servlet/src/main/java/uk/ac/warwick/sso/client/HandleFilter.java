@@ -55,7 +55,7 @@ public abstract class HandleFilter {
             else
                 response.setStatus(res.getStatusCode());
         }
-        addSameSiteStrict(response);
+        addAdditionalCookieAttributes(response);
     }
 
     private void putUserIntoKey(final User user, final HeaderSettingHttpServletRequest request, final String userKey) {
@@ -86,14 +86,14 @@ public abstract class HandleFilter {
         return config.getString("shire.filteractualuserkey", ACTUAL_USER_KEY);
     }
 
-    protected void addSameSiteStrict(HttpServletResponse response) {
+    protected void addAdditionalCookieAttributes(HttpServletResponse response) {
         String originalSetCookieString = response.getHeader("Set-Cookie");
         if (!uk.ac.warwick.util.core.StringUtils.hasText(originalSetCookieString)) return;
-        String newSetCookieString = addSameSiteStrict(originalSetCookieString, getConfig().getString("shire.sscookie.name"));
+        String newSetCookieString = getSameSiteStrictCookieForSSC(originalSetCookieString, getConfig().getString("shire.sscookie.name"));
         response.setHeader("Set-Cookie", newSetCookieString);
     }
 
-    public static String addSameSiteStrict(String setCookieString, String sscCookieName) {
+    public static String getSameSiteStrictCookieForSSC(String setCookieString, String sscCookieName) {
         List<String> newSetCookieValues = new ArrayList<>();
         if (setCookieString.contains(sscCookieName)) {
             List<String> originalSetCookieValues = Arrays.asList(setCookieString.split(","));
