@@ -1,5 +1,6 @@
 package uk.ac.warwick.sso.client;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
 import uk.ac.warwick.sso.client.core.*;
 import uk.ac.warwick.userlookup.User;
@@ -9,6 +10,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public abstract class HandleFilter {
@@ -51,6 +55,7 @@ public abstract class HandleFilter {
             else
                 response.setStatus(res.getStatusCode());
         }
+        addSameSiteStrict(response);
     }
 
     private void putUserIntoKey(final User user, final HeaderSettingHttpServletRequest request, final String userKey) {
@@ -81,4 +86,20 @@ public abstract class HandleFilter {
         return config.getString("shire.filteractualuserkey", ACTUAL_USER_KEY);
     }
 
+    public static void addSameSiteStrict(HttpServletResponse response) {
+        String originalSetCookieString = response.getHeader("Set-Cookie");
+        String newSetCookieSrting = addSameSiteStrict(originalSetCookieString);
+        response.setHeader("Set-Cookie", newSetCookieSrting);
+    }
+
+    public static String addSameSiteStrict(String setCookieString) {
+        List<String> newSetCookieValues = new ArrayList<>();
+        if (setCookieString.contains("SSC-")) {
+            List<String> originalSetCookieValues = Arrays.asList(setCookieString.split(","));
+            for (String e : originalSetCookieValues) {
+                newSetCookieValues.add(e.startsWith("SSC-") ? e + "l SameSite=Strict" : e);
+            }
+        }
+        return StringUtils.join(newSetCookieValues.iterator(),",");
+    }
 }
