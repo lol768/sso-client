@@ -1,12 +1,13 @@
 package warwick.sso
 
-import javax.inject.{Provider, Inject}
+import javax.inject.{Inject, Provider}
 
 import org.slf4j.LoggerFactory
 import play.api.data._
 import play.api.data.Forms._
+import play.api.mvc.Cookie.SameSite
 import play.api.mvc._
-import uk.ac.warwick.sso.client.{AttributeAuthorityResponseFetcherImpl, ShireCommand, SSOConfiguration}
+import uk.ac.warwick.sso.client.{AttributeAuthorityResponseFetcherImpl, SSOConfiguration, ShireCommand}
 
 import scala.util.{Failure, Success, Try}
 
@@ -55,7 +56,7 @@ class AssertionConsumer @Inject() (
     command.setRemoteHost(remoteHost(request))
     val cookie = Try(command.process(data.saml, data.target)).map(toPlayCookie) match {
       case Success(c) =>
-        Option(c)
+        Option(c.copy(sameSite = Some(SameSite.Strict)))
       case Failure(e) =>
         LOGGER.warn("Could not generate cookie", e)
         None
