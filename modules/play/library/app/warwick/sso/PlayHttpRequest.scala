@@ -3,6 +3,7 @@ package warwick.sso
 import java.util
 
 import play.api.libs.typedmap.TypedKey
+import play.api.mvc.Cookie.SameSite
 import play.api.mvc._
 import uk.ac.warwick.sso.client.core.{Cookie, HttpRequest}
 
@@ -84,7 +85,8 @@ object PlayHttpRequest {
       path = cookie.getPath,
       domain = Option(cookie.getDomain),
       secure = cookie.isSecure,
-      httpOnly = cookie.isHttpOnly
+      httpOnly = cookie.isHttpOnly,
+      sameSite = Some(SameSite.Strict)
     )
 
   def toCoreCookie(cookie: play.api.mvc.Cookie) : Cookie = {
