@@ -153,6 +153,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpasyncclient</artifactId>
+            <version>4.1.2</version>
+        </dependency>
+
+        <dependency>
             <groupId>uk.ac.warwick.util</groupId>
             <artifactId>warwickutils-cache</artifactId>
             <version>${warwickutils.version}</version>
