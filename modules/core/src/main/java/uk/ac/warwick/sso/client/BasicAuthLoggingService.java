@@ -42,32 +42,32 @@ public class BasicAuthLoggingService {
         this.httpClient.start();
     }
 
-    public CompletableFuture<Response> log(String userCode, String remoteIp, String userAgent) throws MalformedURLException {
+    public CompletableFuture<LoggingResponse> log(String userCode, String remoteIp, String userAgent) throws MalformedURLException {
         StringEntity entity = makeEntity(userCode, remoteIp, userAgent);
         HttpPost request = makeRequest(entity);
-        CompletableFuture<Response> completableFuture = new CompletableFuture<>();
+        CompletableFuture<LoggingResponse> completableFuture = new CompletableFuture<>();
         httpClient.execute(request, makeFuture(completableFuture));
         return completableFuture;
     }
 
-    public FutureCallback<HttpResponse> makeFuture(CompletableFuture<Response> completableFuture) {
+    public FutureCallback<HttpResponse> makeFuture(CompletableFuture<LoggingResponse> completableFuture) {
         return new FutureCallback<HttpResponse>() {
             @Override
             public void completed(HttpResponse httpResponse) {
                 LOGGER.debug("BasicAuth logging request to SSO server completed.");
-                completableFuture.complete(new Response(httpResponse.getStatusLine().getStatusCode()));
+                completableFuture.complete(new LoggingResponse(httpResponse.getStatusLine().getStatusCode()));
             }
 
             @Override
             public void failed(Exception e) {
                 LOGGER.error("BasicAuth logging request failed with error: " + e.getMessage());
-                completableFuture.complete(new Response(500, e.getMessage()));
+                completableFuture.complete(new LoggingResponse(500, e.getMessage()));
             }
 
             @Override
             public void cancelled() {
                 LOGGER.debug("BasicAuth logging request has been canceled.");
-                completableFuture.complete(new Response(500, "Request has been canceled"));
+                completableFuture.complete(new LoggingResponse(500, "Request has been canceled"));
             }
         };
     }
@@ -93,24 +93,24 @@ public class BasicAuthLoggingService {
     }
 }
 
-class Response {
+class LoggingResponse {
     private String statusCode;
     private String error;
 
-    public Response(String statusCode) {
+    public LoggingResponse(String statusCode) {
         this.statusCode = statusCode;
     }
 
-    public Response(int statusCode) {
+    public LoggingResponse(int statusCode) {
         this(Integer.toString(statusCode));
     }
 
-    public Response(String statusCode, String error) {
+    public LoggingResponse(String statusCode, String error) {
         this.statusCode = statusCode;
         this.error = error;
     }
 
-    public Response(int statusCode, String error) {
+    public LoggingResponse(int statusCode, String error) {
         this(Integer.toString(statusCode), error);
     }
 
