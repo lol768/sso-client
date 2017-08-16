@@ -20,7 +20,7 @@ import uk.ac.warwick.userlookup.UserLookup;
 public class BasicAuthLoggingService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicAuthLoggingService.class);
-    private final String postPath = UserLookup.getConfigProperty("ssoclient.basicauthlog.api");;
+    private final String postPath = UserLookup.getConfigProperty("ssoclient.basicauthlog.api");
     private final CloseableHttpAsyncClient httpClient = HttpAsyncClients.custom()
             .setDefaultConnectionConfig(
                     ConnectionConfig.custom()
