@@ -47,7 +47,7 @@ public class BasicAuthLoggingService {
     }
 
     public CompletableFuture<LoggingResponse> log(String userCode, String remoteIp, String userAgent) {
-        HttpPost request = makeRequest(userCode, remoteIp, userAgent);
+        HttpPost request = makeRequest(userCode, remoteIp, userAgent, postPath);
         CompletableFuture<LoggingResponse> completableFuture = new CompletableFuture<>();
         httpClient.execute(request, makeFuture(completableFuture));
         return completableFuture;
@@ -75,7 +75,11 @@ public class BasicAuthLoggingService {
         };
     }
 
-    public HttpPost makeRequest(String userCode, String remoteIp, String userAgent) {
+    public static HttpPost makeRequest(
+            String userCode,
+            String remoteIp,
+            String userAgent,
+            String postPath) {
         final HttpPost request = new HttpPost(postPath);
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("userCode", userCode));
@@ -87,7 +91,7 @@ public class BasicAuthLoggingService {
                 "no-cache");
         request.addHeader(
                 "User-Agent",
-                this.getClass().getName());
+                BasicAuthLoggingService.class.getName());
         return request;
     }
 }
