@@ -70,6 +70,8 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
 
     private boolean redirectToRefreshSession = true;
 
+    private BasicAuthLoggingService basicAuthLoggingService;
+
     @Inject
     public SSOClientHandlerImpl(
         SSOConfiguration configuration,
@@ -143,7 +145,7 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
                 user = userAndHash.getUser();
                 // don't need to check pass hash because it's just been generated based on a response.
             }
-
+            basicAuthLoggingService.log(user.getUserId(), request.getRemoteAddr(), request.getHeader("User-Agent"));
             return user;
 
         } catch (Exception e) {
