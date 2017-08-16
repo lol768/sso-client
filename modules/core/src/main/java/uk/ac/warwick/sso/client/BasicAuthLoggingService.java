@@ -18,6 +18,8 @@ import org.apache.http.config.ConnectionConfig;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.slf4j.LoggerFactory;
+import uk.ac.warwick.sso.client.core.HttpRequest;
+import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
 
 public class BasicAuthLoggingService {
@@ -51,6 +53,10 @@ public class BasicAuthLoggingService {
         CompletableFuture<LoggingResponse> completableFuture = new CompletableFuture<>();
         httpClient.execute(request, makeFuture(completableFuture));
         return completableFuture;
+    }
+
+    public CompletableFuture<LoggingResponse> log(User user, HttpRequest request) {
+        return log(user.getUserId(), request.getRemoteAddr(),request.getHeader("User-Agent"));
     }
 
     public FutureCallback<HttpResponse> makeFuture(CompletableFuture<LoggingResponse> completableFuture) {

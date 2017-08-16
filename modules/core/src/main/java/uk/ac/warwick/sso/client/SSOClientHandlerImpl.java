@@ -145,7 +145,7 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
                 user = userAndHash.getUser();
                 // don't need to check pass hash because it's just been generated based on a response.
             }
-            basicAuthLoggingService.log(user.getUserId(), request.getRemoteAddr(), request.getHeader("User-Agent"));
+            basicAuthLoggingService.log(user, request);
             return user;
 
         } catch (Exception e) {
