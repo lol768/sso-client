@@ -1,9 +1,13 @@
 package uk.ac.warwick.sso.client;
 
-import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 
 import org.apache.http.HttpResponse;
@@ -11,7 +15,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.config.ConnectionConfig;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.slf4j.LoggerFactory;
@@ -43,9 +46,8 @@ public class BasicAuthLoggingService {
         this.httpClient.start();
     }
 
-    public CompletableFuture<LoggingResponse> log(String userCode, String remoteIp, String userAgent) throws MalformedURLException {
-        StringEntity entity = makeEntity(userCode, remoteIp, userAgent);
-        HttpPost request = makeRequest(entity);
+    public CompletableFuture<LoggingResponse> log(String userCode, String remoteIp, String userAgent) {
+        HttpPost request = makeRequest(userCode, remoteIp, userAgent);
         CompletableFuture<LoggingResponse> completableFuture = new CompletableFuture<>();
         httpClient.execute(request, makeFuture(completableFuture));
         return completableFuture;
@@ -73,24 +75,20 @@ public class BasicAuthLoggingService {
         };
     }
 
-    public HttpPost makeRequest(StringEntity entity) {
-        if (entity == null) throw new IllegalArgumentException("Entity cannot be null");
+    public HttpPost makeRequest(String userCode, String remoteIp, String userAgent) {
         final HttpPost request = new HttpPost(postPath);
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("userCode", userCode));
+        params.add(new BasicNameValuePair("remoteIp", remoteIp));
+        params.add(new BasicNameValuePair("userAgent", userAgent));
+        request.setEntity(new UrlEncodedFormEntity(params, StandardCharsets.UTF_8));
         request.addHeader(
                 "cache-control",
                 "no-cache");
         request.addHeader(
-                "Content-type",
-                "application/x-www-form-urlencoded");
-        request.addHeader(
                 "User-Agent",
                 this.getClass().getName());
-        request.setEntity(entity);
         return request;
-    }
-
-    public StringEntity makeEntity(String userCode, String remoteIp, String userAgent) {
-        return new StringEntity("userCode=" + userCode + "&remoteIp=" + remoteIp + "&userAgent=" + userAgent, StandardCharsets.UTF_8);
     }
 }
 
