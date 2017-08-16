@@ -15,11 +15,12 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.slf4j.LoggerFactory;
+import uk.ac.warwick.userlookup.UserLookup;
 
 public class BasicAuthLoggingService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicAuthLoggingService.class);
-    private final String postPath = SSOConfiguration.getConfig().getString("ssoclient.basicauthlog.api");
+    private final String postPath = UserLookup.getConfigProperty("ssoclient.basicauthlog.api");;
     private final CloseableHttpAsyncClient httpClient = HttpAsyncClients.custom()
             .setDefaultConnectionConfig(
                     ConnectionConfig.custom()

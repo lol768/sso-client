@@ -70,7 +70,7 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
 
     private boolean redirectToRefreshSession = true;
 
-    private BasicAuthLoggingService basicAuthLoggingService;
+    private BasicAuthLoggingService basicAuthLoggingService =  new BasicAuthLoggingService();
 
     @Inject
     public SSOClientHandlerImpl(
