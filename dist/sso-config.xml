@@ -46,6 +46,7 @@
 			<path>/myapp</path>
 			<!-- domain scope of this cookie...should be as restrictive as possible -->
 			<domain>myapp.warwick.ac.uk</domain>
+			<samesite>Lax</samesite>
 		</sscookie>
 		<!-- provider id, as assigned by single sign on -->
 		<providerid>urn:myapp.warwick.ac.uk:myapp:service</providerid>
