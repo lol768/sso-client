@@ -179,4 +179,11 @@ public class SSOClientFilterTest  {
 		String expected = "SSC-Cat=123; Max-Age=1234; SameSite=Lax, Random-key=value; Secure";
 		assertEquals(expected, actual);
 	}
+
+	@Test
+	public void shouldGetProperValueForSameSite() {
+		assertEquals("Lax", HandleFilter.getProperSameSiteValue(null));
+		assertEquals("Lax", HandleFilter.getProperSameSiteValue("wrong"));
+		assertEquals("Strict", HandleFilter.getProperSameSiteValue("strict"));
+	}
 }
