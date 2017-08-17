@@ -88,8 +88,7 @@ public abstract class HandleFilter {
     protected void addAdditionalCookieAttributes(HttpServletResponse response) {
         String originalSetCookieString = response.getHeader("Set-Cookie");
         if (!StringUtils.hasText(originalSetCookieString)) return;
-        String sameSiteSettingFromConf = getConfig().getString("shire.sscookie.samesite");
-        String sameSiteSetting = StringUtils.hasText(sameSiteSettingFromConf) ? sameSiteSettingFromConf : "Lax";
+        String sameSiteSetting = getProperSameSiteValue(getConfig().getString("shire.sscookie.samesite"));
         String newSetCookieString = getSameSiteStrictCookieForSSC(originalSetCookieString, getConfig().getString("shire.sscookie.name"), sameSiteSetting);
         response.setHeader("Set-Cookie", newSetCookieString);
     }
@@ -97,5 +96,10 @@ public abstract class HandleFilter {
     public static String getSameSiteStrictCookieForSSC(String cookie, String ssc, String setting) {
         if (!cookie.contains(ssc)) return cookie;
         return Arrays.stream(cookie.split(",")).map(e -> e.startsWith(ssc) ? e + "; SameSite=" + setting : e).collect(Collectors.joining(","));
+    }
+
+    public static String getProperSameSiteValue(String s) {
+        if (StringUtils.hasText(s) && s.equalsIgnoreCase("strict")) return "Strict";
+        return "Lax";
     }
 }
