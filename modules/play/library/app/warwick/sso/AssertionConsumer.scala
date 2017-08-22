@@ -54,9 +54,20 @@ class AssertionConsumer @Inject() (
     val command = shireCommandProvider.get()
     command.setAaFetcher(new AttributeAuthorityResponseFetcherImpl(config))
     command.setRemoteHost(remoteHost(request))
+
+    val sameSiteSetting = command.getConfig.getString("shire.sscookie.samesite").toLowerCase match {
+      case "lax" => Some(SameSite.Lax)
+      case "strict" => Some(SameSite.Strict)
+      case "none" => None
+      case _ => Some(SameSite.Lax)
+    }
+
     val cookie = Try(command.process(data.saml, data.target)).map(toPlayCookie) match {
       case Success(c) =>
-        Option(c.copy(sameSite = Some(SameSite.Strict)))
+        Option(sameSiteSetting match {
+          case Some(sameSiteSetting: SameSite) => c.copy(sameSite = Some(sameSiteSetting))
+          case None => c
+        })
       case Failure(e) =>
         LOGGER.warn("Could not generate cookie", e)
         None
