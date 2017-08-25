@@ -44,4 +44,31 @@ public class SentryUserAdapterTest extends TestCase {
         assertFalse(a.isLoginDisabled());
     }
 
+    public void testMixedCaseDisabled() {
+        Map<String, String> attributesUpper = new HashMap<>();
+        attributesUpper.put("logindisabled", "TRUE");
+        SentryUserAdapter aUpper = new SentryUserAdapter(attributesUpper);
+        assertTrue(aUpper.isLoginDisabled());
+
+        Map<String, String> attributesLower = new HashMap<>();
+        attributesLower.put("logindisabled", "true");
+        SentryUserAdapter aLower = new SentryUserAdapter(attributesLower);
+        assertTrue(aLower.isLoginDisabled());
+
+        Map<String, String> attributesNull = new HashMap<>();
+        attributesNull.put("logindisabled", null);
+        SentryUserAdapter aNull = new SentryUserAdapter(attributesNull);
+        assertFalse(aNull.isLoginDisabled());
+
+        Map<String, String> attributesUpperFalse = new HashMap<>();
+        attributesUpperFalse.put("logindisabled", "FALSE");
+        SentryUserAdapter aUpperFalse = new SentryUserAdapter(attributesUpperFalse);
+        assertFalse(aUpperFalse.isLoginDisabled());
+
+        Map<String, String> attributesLowerFalse = new HashMap<>();
+        attributesLowerFalse.put("logindisabled", "false");
+        SentryUserAdapter aLowerFalse = new SentryUserAdapter(attributesLowerFalse);
+        assertFalse(aLowerFalse.isLoginDisabled());
+    }
+
 }

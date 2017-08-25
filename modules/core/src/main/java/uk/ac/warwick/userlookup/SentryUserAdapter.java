@@ -81,7 +81,7 @@ public class SentryUserAdapter implements UserAttributesAdapter {
 
     @Override
     public boolean isLoginDisabled() {
-        return "true".equals(get("logindisabled"));
+        return get("logindisabled") != null && "true".equals(get("logindisabled").toLowerCase());
     }
 
     @Override
