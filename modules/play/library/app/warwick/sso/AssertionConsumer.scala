@@ -1,12 +1,13 @@
 package warwick.sso
 
-import javax.inject.{Provider, Inject}
+import javax.inject.{Inject, Provider}
 
 import org.slf4j.LoggerFactory
 import play.api.data._
 import play.api.data.Forms._
+import play.api.mvc.Cookie.SameSite
 import play.api.mvc._
-import uk.ac.warwick.sso.client.{AttributeAuthorityResponseFetcherImpl, ShireCommand, SSOConfiguration}
+import uk.ac.warwick.sso.client.{AttributeAuthorityResponseFetcherImpl, SSOConfiguration, ShireCommand}
 
 import scala.util.{Failure, Success, Try}
 
@@ -53,9 +54,20 @@ class AssertionConsumer @Inject() (
     val command = shireCommandProvider.get()
     command.setAaFetcher(new AttributeAuthorityResponseFetcherImpl(config))
     command.setRemoteHost(remoteHost(request))
+
+    val sameSiteSetting = command.getConfig.getString("shire.sscookie.samesite").toLowerCase match {
+      case "lax" => Some(SameSite.Lax)
+      case "strict" => Some(SameSite.Strict)
+      case "none" => None
+      case _ => Some(SameSite.Lax)
+    }
+
     val cookie = Try(command.process(data.saml, data.target)).map(toPlayCookie) match {
       case Success(c) =>
-        Option(c)
+        Option(sameSiteSetting match {
+          case Some(sameSiteSetting: SameSite) => c.copy(sameSite = Some(sameSiteSetting))
+          case None => c
+        })
       case Failure(e) =>
         LOGGER.warn("Could not generate cookie", e)
         None

@@ -171,4 +171,19 @@ public class SSOClientFilterTest  {
 		assertNotNull(actualUser);
 		assertEquals("andy", actualUser.getUserId());
 	}
+
+	@Test
+	public void shouldAddSameSiteCookieToTheRightCookie() {
+		String originalSetCookieValueInString = "SSC-Cat=123; Max-Age=1234, Random-key=value; Secure";
+		String actual = HandleFilter.getSameSiteStrictCookieForSSC(originalSetCookieValueInString, "SSC-Cat", "Lax");
+		String expected = "SSC-Cat=123; Max-Age=1234; SameSite=Lax, Random-key=value; Secure";
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void shouldGetProperValueForSameSite() {
+		assertEquals("Lax", HandleFilter.getProperSameSiteValue(null));
+		assertEquals("Lax", HandleFilter.getProperSameSiteValue("wrong"));
+		assertEquals("Strict", HandleFilter.getProperSameSiteValue("strict"));
+	}
 }

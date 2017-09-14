@@ -3,13 +3,16 @@ package uk.ac.warwick.sso.client;
 import org.apache.http.Header;
 import uk.ac.warwick.sso.client.core.*;
 import uk.ac.warwick.userlookup.User;
+import uk.ac.warwick.util.core.StringUtils;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public abstract class HandleFilter {
 
@@ -51,6 +54,7 @@ public abstract class HandleFilter {
             else
                 response.setStatus(res.getStatusCode());
         }
+        addAdditionalCookieAttributes(response);
     }
 
     private void putUserIntoKey(final User user, final HeaderSettingHttpServletRequest request, final String userKey) {
@@ -58,7 +62,7 @@ public abstract class HandleFilter {
         request.setRemoteUser(user.getUserId());
 
         if (!user.getExtraProperties().isEmpty()) {
-            for (Map.Entry<String,String> entry : user.getExtraProperties().entrySet()) {
+            for (Map.Entry<String, String> entry : user.getExtraProperties().entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
                 request.setAttribute(userKey + "_" + key, value);
@@ -81,4 +85,30 @@ public abstract class HandleFilter {
         return config.getString("shire.filteractualuserkey", ACTUAL_USER_KEY);
     }
 
+    protected void addAdditionalCookieAttributes(HttpServletResponse response) {
+        String originalSetCookieString = response.getHeader("Set-Cookie");
+        if (!StringUtils.hasText(originalSetCookieString)) return;
+        String sameSiteConfig = getConfig().getString("shire.sscookie.samesite");
+        if (sameSiteConfig.equalsIgnoreCase("none")) return;
+        String sameSiteSetting = getProperSameSiteValue(sameSiteConfig);
+        String newSetCookieString = getSameSiteStrictCookieForSSC(originalSetCookieString, getConfig().getString("shire.sscookie.name"), sameSiteSetting);
+        response.setHeader("Set-Cookie", newSetCookieString);
+    }
+
+    public static String getSameSiteStrictCookieForSSC(String cookie, String ssc, String setting) {
+        if (!cookie.contains(ssc)) return cookie;
+        return Arrays.stream(cookie.split(",")).map(e -> e.startsWith(ssc) ? e + "; SameSite=" + setting : e).collect(Collectors.joining(","));
+    }
+
+    public static String getProperSameSiteValue(String s) {
+        if (StringUtils.hasText(s)) {
+            switch (s.toLowerCase()) {
+                case "lax":
+                    return "Lax";
+                case "strict":
+                    return "Strict";
+            }
+        }
+        return "Lax";
+    }
 }
