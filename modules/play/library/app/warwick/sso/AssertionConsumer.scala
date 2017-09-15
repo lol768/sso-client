@@ -55,7 +55,7 @@ class AssertionConsumer @Inject() (
     command.setAaFetcher(new AttributeAuthorityResponseFetcherImpl(config))
     command.setRemoteHost(remoteHost(request))
 
-    val sameSiteSetting = command.getConfig.getString("shire.sscookie.samesite").toLowerCase match {
+    val sameSiteSetting = command.getConfig.getString("shire.sscookie.samesite", "Lax").toLowerCase match {
       case "lax" => Some(SameSite.Lax)
       case "strict" => Some(SameSite.Strict)
       case "none" => None

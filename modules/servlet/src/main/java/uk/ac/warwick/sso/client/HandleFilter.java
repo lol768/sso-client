@@ -88,7 +88,7 @@ public abstract class HandleFilter {
     protected void addAdditionalCookieAttributes(HttpServletResponse response) {
         String originalSetCookieString = response.getHeader("Set-Cookie");
         if (!StringUtils.hasText(originalSetCookieString)) return;
-        String sameSiteConfig = getConfig().getString("shire.sscookie.samesite");
+        String sameSiteConfig = getConfig().getString("shire.sscookie.samesite", "Lax");
         if (sameSiteConfig.equalsIgnoreCase("none")) return;
         String sameSiteSetting = getProperSameSiteValue(sameSiteConfig);
         String newSetCookieString = getSameSiteStrictCookieForSSC(originalSetCookieString, getConfig().getString("shire.sscookie.name"), sameSiteSetting);
