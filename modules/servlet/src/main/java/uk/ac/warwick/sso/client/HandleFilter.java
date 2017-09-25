@@ -97,7 +97,7 @@ public abstract class HandleFilter {
 
     public static String getSameSiteStrictCookieForSSC(String cookie, String ssc, String setting) {
         if (!cookie.contains(ssc)) return cookie;
-        return Arrays.stream(cookie.split(",")).map(e -> e.startsWith(ssc) ? e + "; SameSite=" + setting : e).collect(Collectors.joining(","));
+        return Arrays.stream(cookie.split(",")).map(e -> e.trim().startsWith(ssc) ? e + "; SameSite=" + setting : e).collect(Collectors.joining(","));
     }
 
     public static String getProperSameSiteValue(String s) {
