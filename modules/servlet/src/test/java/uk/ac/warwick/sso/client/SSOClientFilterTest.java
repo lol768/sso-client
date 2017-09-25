@@ -181,6 +181,14 @@ public class SSOClientFilterTest  {
 	}
 
 	@Test
+	public void shouldAddSameSiteCookieToTheMultipleRightCookies() {
+		String originalSetCookieValueInString = "SSC-Cat=123; Max-Age=1234, Random-key=value; Secure, SSC-Cat=222; Max-Age=1234";
+		String actual = HandleFilter.getSameSiteStrictCookieForSSC(originalSetCookieValueInString, "SSC-Cat", "Lax");
+		String expected = "SSC-Cat=123; Max-Age=1234; SameSite=Lax, Random-key=value; Secure, SSC-Cat=222; Max-Age=1234; SameSite=Lax";
+		assertEquals(expected, actual);
+	}
+
+	@Test
 	public void shouldGetProperValueForSameSite() {
 		assertEquals("Lax", HandleFilter.getProperSameSiteValue(null));
 		assertEquals("Lax", HandleFilter.getProperSameSiteValue("wrong"));
