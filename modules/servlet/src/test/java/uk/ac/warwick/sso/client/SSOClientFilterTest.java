@@ -18,6 +18,11 @@ import uk.ac.warwick.userlookup.*;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 public class SSOClientFilterTest  {
@@ -173,18 +178,34 @@ public class SSOClientFilterTest  {
 	}
 
 	@Test
-	public void shouldAddSameSiteCookieToTheRightCookie() {
-		String originalSetCookieValueInString = "SSC-Cat=123; Max-Age=1234, Random-key=value; Secure";
-		String actual = HandleFilter.getSameSiteStrictCookieForSSC(originalSetCookieValueInString, "SSC-Cat", "Lax");
-		String expected = "SSC-Cat=123; Max-Age=1234; SameSite=Lax, Random-key=value; Secure";
+	public void shouldAddSameSiteCookieToSingleSetCookieHeader() {
+		List<String> originalSetCookieValueInString = Collections.singletonList("SSC-Cat=123; Max-Age=1234, Random-key=value; Secure");
+		String actual = HandleFilter.addSameSiteToMultipleSetCookieHeaders(originalSetCookieValueInString, "SSC-Cat", "Lax").toString();
+		String expected = Collections.singletonList("SSC-Cat=123; Max-Age=1234; SameSite=Lax, Random-key=value; Secure").toString();
 		assertEquals(expected, actual);
 	}
 
 	@Test
-	public void shouldAddSameSiteCookieToTheMultipleRightCookies() {
-		String originalSetCookieValueInString = "SSC-Cat=123; Max-Age=1234, Random-key=value; Secure, SSC-Cat=222; Max-Age=1234";
-		String actual = HandleFilter.getSameSiteStrictCookieForSSC(originalSetCookieValueInString, "SSC-Cat", "Lax");
-		String expected = "SSC-Cat=123; Max-Age=1234; SameSite=Lax, Random-key=value; Secure, SSC-Cat=222; Max-Age=1234; SameSite=Lax";
+	public void shouldAddSameSiteCookieToTheRightCookie() {
+		List<String> originalSetCookieValueInString = new ArrayList<>();
+		originalSetCookieValueInString.add("SSC-Cat=123; Max-Age=1234, Random-key=value; Secure");
+		originalSetCookieValueInString.add("SSC-Cat=900; Max-Age=222");
+		originalSetCookieValueInString.add("SSC-Cat=12222; Max-Age=222");
+
+		String actual = HandleFilter.addSameSiteToMultipleSetCookieHeaders(originalSetCookieValueInString, "SSC-Cat", "Lax").toString();
+		String expected = Collections.singletonList("SSC-Cat=123; Max-Age=1234; SameSite=Lax, Random-key=value; Secure, SSC-Cat=900; Max-Age=222; SameSite=Lax, SSC-Cat=12222; Max-Age=222; SameSite=Lax").toString();
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void shouldMergeMultipleSetCookieHeadersToOne() {
+		List<String> originalSetCookieValueInString = new ArrayList<>();
+		originalSetCookieValueInString.add("SSC-Cat=123; Max-Age=1234, Random-key=value; Secure");
+		originalSetCookieValueInString.add("SSC-Cat=900; Max-Age=222");
+		originalSetCookieValueInString.add("SSC-Cat=12222; Max-Age=222");
+
+		String actual = HandleFilter.mergeMultipleSetCookieHeaders(originalSetCookieValueInString);
+		String expected = "SSC-Cat=123; Max-Age=1234, Random-key=value; Secure, SSC-Cat=900; Max-Age=222, SSC-Cat=12222; Max-Age=222";
 		assertEquals(expected, actual);
 	}
 
