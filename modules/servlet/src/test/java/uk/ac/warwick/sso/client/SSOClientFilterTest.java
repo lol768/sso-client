@@ -198,18 +198,6 @@ public class SSOClientFilterTest  {
 	}
 
 	@Test
-	public void shouldMergeMultipleSetCookieHeadersToOne() {
-		List<String> originalSetCookieValueInString = new ArrayList<>();
-		originalSetCookieValueInString.add("SSC-Cat=123; Max-Age=1234, Random-key=value; Secure");
-		originalSetCookieValueInString.add("SSC-Cat=900; Max-Age=222");
-		originalSetCookieValueInString.add("SSC-Cat=12222; Max-Age=222");
-
-		String actual = HandleFilter.mergeMultipleSetCookieHeaders(originalSetCookieValueInString);
-		String expected = "SSC-Cat=123; Max-Age=1234, Random-key=value; Secure, SSC-Cat=900; Max-Age=222, SSC-Cat=12222; Max-Age=222";
-		assertEquals(expected, actual);
-	}
-
-	@Test
 	public void shouldGetProperValueForSameSite() {
 		assertEquals("Lax", HandleFilter.getProperSameSiteValue(null));
 		assertEquals("Lax", HandleFilter.getProperSameSiteValue("wrong"));

@@ -92,16 +92,12 @@ public abstract class HandleFilter {
                 getConfig().getString("shire.sscookie.name"),
                 getProperSameSiteValue(getConfig().getString("shire.sscookie.samesite", "Lax"))
         );
-        String mergedSetCookieHeaders = mergeMultipleSetCookieHeaders(setCookieHeadersWithSSCSameSite);
-        response.setHeader("Set-Cookie", mergedSetCookieHeaders);
+        response.setHeader("Set-Cookie", "");
+        setCookieHeadersWithSSCSameSite.forEach(header -> response.addHeader("Set-Cookie", header));
     }
 
     protected static List<String> addSameSiteToMultipleSetCookieHeaders(List<String> setCookieHeaders, String ssc, String setting) {
         return setCookieHeaders.stream().map(cookie -> addSameSiteStrictCookieForSSC(cookie, ssc, setting)).collect(Collectors.toList());
-    }
-
-    protected static String mergeMultipleSetCookieHeaders(List<String> setCookieHeaders) {
-        return setCookieHeaders.stream().map(String::trim).collect(Collectors.joining(", "));
     }
 
     public static String addSameSiteStrictCookieForSSC(String cookie, String ssc, String setting) {
