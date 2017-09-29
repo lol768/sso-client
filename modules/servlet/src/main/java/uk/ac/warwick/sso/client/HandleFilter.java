@@ -93,13 +93,15 @@ public abstract class HandleFilter {
                 getProperSameSiteValue(getConfig().getString("shire.sscookie.samesite", "Lax"))
         );
 
-        setCookieHeadersWithSSCSameSite.forEach(header -> {
-            if (setCookieHeadersWithSSCSameSite.indexOf(header) == 0) {
+        boolean firstSetCookieHeader = true;
+        for (String header : setCookieHeadersWithSSCSameSite) {
+            if (firstSetCookieHeader) {
                 response.setHeader("Set-Cookie", header);
+                firstSetCookieHeader = false;
             } else {
                 response.addHeader("Set-Cookie", header);
             }
-        });
+        }
     }
 
     protected static List<String> addSameSiteToMultipleSetCookieHeaders(List<String> setCookieHeaders, String ssc, String setting) {
