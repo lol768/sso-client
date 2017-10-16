@@ -10,8 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class HandleFilter {
@@ -86,18 +85,32 @@ public abstract class HandleFilter {
     }
 
     protected void addAdditionalCookieAttributes(HttpServletResponse response) {
-        String originalSetCookieString = response.getHeader("Set-Cookie");
-        if (!StringUtils.hasText(originalSetCookieString)) return;
-        String sameSiteConfig = getConfig().getString("shire.sscookie.samesite", "Lax");
-        if (sameSiteConfig.equalsIgnoreCase("none")) return;
-        String sameSiteSetting = getProperSameSiteValue(sameSiteConfig);
-        String newSetCookieString = getSameSiteStrictCookieForSSC(originalSetCookieString, getConfig().getString("shire.sscookie.name"), sameSiteSetting);
-        response.setHeader("Set-Cookie", newSetCookieString);
+        List<String> originalSetCookieHeaders = new ArrayList<>(response.getHeaders("Set-Cookie"));
+        if (originalSetCookieHeaders.isEmpty()) return;
+        List<String> setCookieHeadersWithSSCSameSite = addSameSiteToMultipleSetCookieHeaders(
+                originalSetCookieHeaders,
+                getConfig().getString("shire.sscookie.name"),
+                getProperSameSiteValue(getConfig().getString("shire.sscookie.samesite", "Lax"))
+        );
+
+        boolean firstSetCookieHeader = true;
+        for (String header : setCookieHeadersWithSSCSameSite) {
+            if (firstSetCookieHeader) {
+                response.setHeader("Set-Cookie", header);
+                firstSetCookieHeader = false;
+            } else {
+                response.addHeader("Set-Cookie", header);
+            }
+        }
     }
 
-    public static String getSameSiteStrictCookieForSSC(String cookie, String ssc, String setting) {
+    protected static List<String> addSameSiteToMultipleSetCookieHeaders(List<String> setCookieHeaders, String ssc, String setting) {
+        return setCookieHeaders.stream().map(cookie -> addSameSiteStrictCookieForSSC(cookie, ssc, setting)).collect(Collectors.toList());
+    }
+
+    public static String addSameSiteStrictCookieForSSC(String cookie, String ssc, String setting) {
         if (!cookie.contains(ssc)) return cookie;
-        return Arrays.stream(cookie.split(",")).map(e -> e.startsWith(ssc) ? e + "; SameSite=" + setting : e).collect(Collectors.joining(","));
+        return Arrays.stream(cookie.split(",")).map(e -> e.trim().startsWith(ssc) ? e + "; SameSite=" + setting : e).collect(Collectors.joining(","));
     }
 
     public static String getProperSameSiteValue(String s) {
