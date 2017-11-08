@@ -22,6 +22,7 @@ public class AdapterUserBuilder {
         user.setWarwickId(a.getUniversityID());
         user.setExtraProperties(a.getAttributes());
         user.setIsLoggedIn(a.isLoggedIn());
+        user.setWarwickPrimary(a.isWarwickPrimary());
         user.setFoundUser(true);
 
         return user;

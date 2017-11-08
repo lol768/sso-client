@@ -474,9 +474,10 @@ public class UserLookup implements UserLookupInterface {
 	}
 
 	/**
-	 * Will return just a single user or an anonymous user that matches the warwickUniId passed in. It is possible that
-	 * it will not be the right user depending on how many users are against this warwickUniId and if their
-	 * login_disabled attributes are correctly populated.
+	 * Will return just a single user or an anonymous user that matches the warwickUniId passed in.
+	 * Will attempt to return the user whose warwickPrimary is true, if any.
+	 * It is possible that it will not be the right user depending on how many users are against
+	 * this warwickUniId and if their login_disabled attributes are correctly populated.
 	 * 
 	 * Even if LDAP lookup fails, it will return an anonymous user and put an error in the logs explaining what went
 	 * wrong.
@@ -500,6 +501,14 @@ public class UserLookup implements UserLookupInterface {
 		if (users.isEmpty()) {
 			LOGGER.debug("No user found that matches Warwick Uni Id:" + warwickUniId);
 			return new AnonymousUser();
+		}
+
+		for (User user : users) {
+			if (user.isWarwickPrimary()) {
+				LOGGER.info("Returning primary user of " + users.size()
+						+ " users that matches Warwick Uni Id:" + warwickUniId);
+				return getUserByUserId(user.getUserId());
+			}
 		}
 		
 		for (User user : users) {
