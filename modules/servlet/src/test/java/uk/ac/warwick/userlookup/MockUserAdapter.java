@@ -75,6 +75,11 @@ public class MockUserAdapter implements UserAttributesAdapter {
     }
 
     @Override
+    public boolean isWarwickPrimary() {
+        return true;
+    }
+
+    @Override
     public Map<String, String> getAttributes() {
         return new HashMap<>();
     }
