@@ -88,4 +88,9 @@ public class MockUserAdapter implements UserAttributesAdapter {
     public String getUniversityID() {
         return "1490600";
     }
+
+    @Override
+    public String getUserSource() {
+        return "WarwickADS";
+    }
 }

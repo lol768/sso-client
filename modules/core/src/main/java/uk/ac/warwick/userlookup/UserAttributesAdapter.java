@@ -38,4 +38,6 @@ public interface UserAttributesAdapter {
 
     String getUniversityID();
 
+    String getUserSource();
+
 }

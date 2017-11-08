@@ -95,6 +95,11 @@ public class SentryUserAdapter implements UserAttributesAdapter {
     }
 
     @Override
+    public String getUserSource() {
+        return get("urn:websignon:usersource");
+    }
+
+    @Override
     public Map<String, String> getAttributes() {
         return attributes;
     }

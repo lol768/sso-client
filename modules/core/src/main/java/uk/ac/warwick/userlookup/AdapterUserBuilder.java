@@ -23,6 +23,7 @@ public class AdapterUserBuilder {
         user.setExtraProperties(a.getAttributes());
         user.setIsLoggedIn(a.isLoggedIn());
         user.setFoundUser(true);
+        user.setUserSource(a.getUserSource());
 
         return user;
     }
