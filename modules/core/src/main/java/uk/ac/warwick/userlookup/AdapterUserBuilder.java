@@ -24,6 +24,7 @@ public class AdapterUserBuilder {
         user.setIsLoggedIn(a.isLoggedIn());
         user.setWarwickPrimary(a.isWarwickPrimary());
         user.setFoundUser(true);
+        user.setUserSource(a.getUserSource());
 
         return user;
     }

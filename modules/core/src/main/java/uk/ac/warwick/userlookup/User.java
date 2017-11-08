@@ -46,13 +46,15 @@ public class User implements Serializable, ExtraProperties {
 	private String _fullName = "";
 
 	private String _warwickId = "";
-	
+
+	private String _userSource;
+
 	private boolean verified = true;
-	
+
 	private boolean oauthUser;
 
     private boolean trustedApplicationsUser;
-	
+
 	private boolean onCampus;
 
 	private boolean _warwickPrimary;
@@ -428,9 +430,11 @@ public class User implements Serializable, ExtraProperties {
 	public final void setLoginDisabled(final boolean loginDisabled) {
 		_loginDisabled = loginDisabled;
 	}
-	
-	
-	
+
+	public final String getUserSource() { return _userSource; }
+
+	public final void setUserSource(String userSource) { this._userSource = userSource; }
+
 
 	public final int hashCode() {
 		return (getUserId() + "").hashCode();
