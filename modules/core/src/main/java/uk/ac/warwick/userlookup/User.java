@@ -55,6 +55,8 @@ public class User implements Serializable, ExtraProperties {
 	
 	private boolean onCampus;
 
+	private boolean _warwickPrimary;
+
 	private Map<String, String> _extraProperties = new HashMap<String, String>();
 
 	/**
@@ -506,6 +508,14 @@ public class User implements Serializable, ExtraProperties {
 
 	public void setOnCampus(boolean onCampus) {
 		this.onCampus = onCampus;
+	}
+
+	public boolean isWarwickPrimary() {
+		return _warwickPrimary;
+	}
+
+	public void setWarwickPrimary(boolean warwickPrimary) {
+		this._warwickPrimary = warwickPrimary;
 	}
 
 }

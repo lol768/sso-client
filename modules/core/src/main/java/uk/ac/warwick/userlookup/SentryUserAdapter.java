@@ -85,6 +85,11 @@ public class SentryUserAdapter implements UserAttributesAdapter {
     }
 
     @Override
+    public boolean isWarwickPrimary() {
+        return get("warwickprimary") != null && "yes".equals(get("warwickprimary").toLowerCase());
+    }
+
+    @Override
     public boolean isLoggedIn() {
         return true;
     }
