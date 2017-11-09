@@ -76,15 +76,17 @@ public class UserLookupTest {
 		result.put("id", "1234567");
 		result.put("user", "cusebr");
 		result.put("warwickitsclass", "Staff");
-		
+		result.put("urn:websignon:usersource", "WarwickADS");
+
 		sentry.setSearchResults(singletonList(searchResult));
 		sentry.setResults(singletonList(result));
 		sentry.run(new Runnable(){ public void run() {
 			User nick = ul.getUserByWarwickUniId("1234567");
 			assertEquals("Staff", nick.getExtraProperty("warwickitsclass"));
+			assertEquals("WarwickADS", nick.getUserSource());
 		}});
 	}
-	
+
 	@Test public void returnsAnonymousUserWhenNotFound() throws Exception {
 		sentry.willReturnUsers(new AnonymousUser());
 		sentry.run(new Runnable() { public void run() {
