@@ -13,6 +13,8 @@ object Users {
     email: Option[String] = None,
     department: Option[Department] = Some(Department(None, None, None)),
 
+    userSource: Option[String] = None,
+
     staff: Boolean = false,
     student: Boolean = false,
     pgr: Boolean = false,
@@ -30,6 +32,7 @@ object Users {
       name = name,
       email = email,
       department = department,
+      userSource = userSource,
       isStaffOrPGR = staff || pgr,
       isStaffNotPGR = staff,
       isStudent = student,
@@ -37,6 +40,7 @@ object Users {
       isFound = found,
       isVerified = verified,
       isLoginDisabled = disabled,
+
       rawProperties = properties
     )
 

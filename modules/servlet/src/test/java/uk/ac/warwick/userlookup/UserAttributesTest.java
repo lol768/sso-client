@@ -45,4 +45,10 @@ public final class UserAttributesTest extends TestCase {
 		assertNull(user.getShortDepartment());
 		assertNull(user.getShortDepartmentHtml());
 	}
+
+	public void testUserWithUserSource() {
+		User user = new User();
+		user.setUserSource("WBSLdap");
+		assertEquals("WBSLdap", user.getUserSource());
+	}
 }

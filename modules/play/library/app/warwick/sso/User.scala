@@ -23,6 +23,12 @@ case class User(
   email: Option[String],
   department: Option[Department],
 
+  /**
+   * Can be used to check for WBS users (== 'WBSLdap'), probably
+   * amongst other things
+   */
+  userSource: Option[String],
+
   isStaffOrPGR: Boolean,
   isStaffNotPGR: Boolean,
   isStudent: Boolean,
@@ -62,6 +68,8 @@ object User {
     name = Name(notEmptyOption(u.getFirstName), notEmptyOption(u.getLastName)),
     email = notEmptyOption(u.getEmail),
     department = Some(Department(notEmptyOption(u.getShortDepartment), notEmptyOption(u.getDepartment), notEmptyOption(u.getDepartmentCode))),
+
+    userSource = notEmptyOption(u.getUserSource),
 
     isStaffOrPGR = u.isStaff,
     isStaffNotPGR = u.isStaff && !isPGR(u),
