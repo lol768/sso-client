@@ -109,6 +109,11 @@ public class SAMLUserAdapter implements UserAttributesAdapter {
     }
 
     @Override
+    public String getUserSource() {
+        return get("urn:websignon:usersource");
+    }
+
+    @Override
     public Map<String, String> getAttributes() {
         Map<String, String> map = new HashMap<>();
 

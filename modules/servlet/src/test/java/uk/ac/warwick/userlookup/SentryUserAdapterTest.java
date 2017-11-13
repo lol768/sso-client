@@ -21,6 +21,7 @@ public class SentryUserAdapterTest extends TestCase {
         attributes.put("token", "xyz");
         attributes.put("urn:websignon:usertype", "Staff");
         attributes.put("user", "u1490600");
+        attributes.put("urn:websignon:usersource", "WarwickADS");
 
         SentryUserAdapter a = new SentryUserAdapter(attributes);
 
@@ -35,6 +36,7 @@ public class SentryUserAdapterTest extends TestCase {
         assertEquals("IN", a.getDepartmentCode());
         assertEquals("ITS", a.getDepartmentShortName());
         assertEquals("1490600", a.getUniversityID());
+        assertEquals("WarwickADS", a.getUserSource());
         assertEquals(attributes, a.getAttributes());
 
         assertTrue(a.isStaff());

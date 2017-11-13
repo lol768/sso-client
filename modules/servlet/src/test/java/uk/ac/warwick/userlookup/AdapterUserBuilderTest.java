@@ -18,6 +18,7 @@ public class AdapterUserBuilderTest extends TestCase {
         assertEquals("IN", user.getDepartmentCode());
         assertEquals("ITS", user.getShortDepartment());
         assertEquals("1490600", user.getWarwickId());
+        assertEquals("WarwickADS", user.getUserSource());
         assertTrue(user.isStaff());
         assertFalse(user.isStudent());
         assertFalse(user.isAlumni());
