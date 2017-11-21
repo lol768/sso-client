@@ -11,17 +11,17 @@ class MockSSOClient @Inject()(
   loginContext: LoginContext
 )(implicit ec: ExecutionContext) extends SSOClient {
 
-  case class Wrap(bodyParser: BodyParser[AnyContent]) extends SSOActionBuilder(bodyParser) {
+  case class Wrap[A](bodyParser: BodyParser[A]) extends SSOActionBuilder[A](bodyParser) {
     override def disallowRedirect = this
-    override def invokeBlock[A](request: Request[A], block: (AuthRequest[A]) => Future[Result]): Future[Result] =
+    override def invokeBlock[B](request: Request[B], block: (AuthRequest[B]) => Future[Result]): Future[Result] =
       block(new AuthRequest(loginContext, request))
   }
 
-  override def Lenient(parser: BodyParser[AnyContent]) = Wrap(parser)
-  override def Strict(parser: BodyParser[AnyContent]) = Wrap(parser)
+  override def Lenient[A](parser: BodyParser[A]) = Wrap(parser)
+  override def Strict[A](parser: BodyParser[A]) = Wrap(parser)
 
-  override def RequireRole(role: RoleName, otherwise: (AuthRequest[_]) => Result)(parser: BodyParser[AnyContent]) = Wrap(parser)
-  override def RequireActualUserRole(role: RoleName, otherwise: (AuthRequest[_]) => Result)(parser: BodyParser[AnyContent]) = Wrap(parser)
+  override def RequireRole[A](role: RoleName, otherwise: (AuthRequest[_]) => Result)(parser: BodyParser[A]) = Wrap(parser)
+  override def RequireActualUserRole[A](role: RoleName, otherwise: (AuthRequest[_]) => Result)(parser: BodyParser[A]) = Wrap(parser)
 
   override def withUser[A](request: RequestHeader)(block: (LoginContext) => TryAcceptResult[A]): TryAcceptResult[A] =
     block(loginContext)
