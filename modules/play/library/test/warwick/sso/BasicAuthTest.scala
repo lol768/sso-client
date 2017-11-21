@@ -13,7 +13,6 @@ import scala.util.Success
 import Users._
 import akka.stream.Materializer
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.libs.json.JsValue
 
 class BasicAuthTest extends PlaySpec with MockitoSugar with GuiceOneAppPerSuite {
   import play.api.mvc.Results._
