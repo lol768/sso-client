@@ -5,6 +5,7 @@ import java.util.Arrays._
 import akka.actor.{Actor, ActorRef, Props}
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.util.ByteString
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.http.message.BasicHeader
 import org.mockito.Matchers._
@@ -95,7 +96,7 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results with Gui
     val roleService = mock[RoleService]
     val bodyParsers = PlayBodyParsers()
     val client: SSOClient = new SSOClientImpl(handler, trustedAppHandler, new SSOConfiguration(new PropertiesConfiguration()), groupService, roleService)
-    val action: Action[AnyContent] = client.Lenient(bodyParsers.default) { _: AuthenticatedRequest[_] => Ok("Great") }
+    val action: Action[ByteString] = client.Lenient(bodyParsers.byteString) { _: AuthenticatedRequest[_] => Ok("Great") }
     val noRunAction: Action[AnyContent] = client.Lenient(bodyParsers.default) { _: AuthenticatedRequest[_] => fail("Shouldn't run this block") }
 
     when(handler.handle(any())).thenReturn(response)

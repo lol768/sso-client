@@ -15,7 +15,7 @@ import scala.util._
   * or you'll receive the result as calculated from `denied`.
   */
 trait BasicAuth {
-  def Check(denied: RequestHeader => Future[Result])(parser: BodyParser[AnyContent]): ActionBuilder[AuthenticatedRequest, AnyContent]
+  def Check[C](denied: RequestHeader => Future[Result])(parser: BodyParser[C]): ActionBuilder[AuthenticatedRequest, C]
 }
 
 /**
@@ -56,7 +56,7 @@ class BasicAuthImpl @Inject()(
 )(implicit ec: ExecutionContext) extends BasicAuth {
   import BasicAuth._
 
-  class BasicAuthCheckActionBuilder(denied: RequestHeader => Future[Result], val parser: BodyParser[AnyContent])(implicit val executionContext: ExecutionContext) extends ActionBuilder[AuthenticatedRequest, AnyContent] {
+  class BasicAuthCheckActionBuilder[C](denied: RequestHeader => Future[Result], val parser: BodyParser[C])(implicit val executionContext: ExecutionContext) extends ActionBuilder[AuthenticatedRequest, C] {
     override def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]): Future[Result] = {
       request.headers.get("Authorization").flatMap {
         case BasicAuthHeader(usercode, pass) =>
@@ -70,7 +70,7 @@ class BasicAuthImpl @Inject()(
     }
   }
 
-  override def Check(denied: RequestHeader => Future[Result])(parser: BodyParser[AnyContent]): ActionBuilder[AuthenticatedRequest, AnyContent] =
+  override def Check[C](denied: RequestHeader => Future[Result])(parser: BodyParser[C]): ActionBuilder[AuthenticatedRequest, C] =
     new BasicAuthCheckActionBuilder(denied, parser)
 
   private def ctx(req: RequestHeader, u: User): LoginContext =
