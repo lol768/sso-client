@@ -14,7 +14,8 @@ Update Maven POMs:
 
     $ mvn versions:set && mvn versions:commit
 
-Update the version in the Play build at `modules/play/build.sbt`.
+You shouldn't need to update `modules/play/build.sbt` as it will read the version
+from the base POM.
 
 Pushing a release onto Nexus
 -------------
