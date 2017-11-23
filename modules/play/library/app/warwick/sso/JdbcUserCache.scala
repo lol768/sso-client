@@ -1,17 +1,14 @@
 package warwick.sso
 
-import java.io.{ObjectOutputStream, IOException, ObjectInputStream}
-import java.sql.{Date, Blob, ResultSet}
-import javax.inject.{Named, Inject}
+import java.io.{ObjectInputStream, ObjectOutputStream}
+import java.sql.{Date, ResultSet}
+import java.time.Instant
+import javax.inject.{Inject, Named}
 
-import org.joda.time.DateTime
 import play.api.Logger
 import play.api.db._
-
+import uk.ac.warwick.sso.client.cache.{UserCache, UserCacheItem}
 import uk.ac.warwick.sso.client.{SSOConfiguration, SSOToken}
-import uk.ac.warwick.sso.client.cache.{UserCacheItem, UserCache}
-
-import scala.util.Try
 
 /**
  * Implementation of UserCache that saves to the database.
@@ -45,7 +42,7 @@ class JdbcUserCache @Inject() (
         oos.close()
         stmt.setString(1, key.getValue)
         stmt.setBlob(2, blob)
-        stmt.setDate(3, new Date(new DateTime().getMillis))
+        stmt.setDate(3, new Date(Instant.now.toEpochMilli))
 
         stmt.executeUpdate()
       }
@@ -76,8 +73,8 @@ class JdbcUserCache @Inject() (
 
         item match {
           case None => null
-          case Some(item) if expired(item) => remove(ssoToken); null
-          case Some(item) => item
+          case Some(i) if expired(i) => remove(ssoToken); null
+          case Some(i) => i
         }
       }
     } else {
@@ -99,5 +96,5 @@ class JdbcUserCache @Inject() (
   if (results.next()) Option(results.getBlob(name))
   else None
 
-  private def expired(it: UserCacheItem) = new DateTime(it.getInTime).plusSeconds(timeout).isBeforeNow
+  private def expired(it: UserCacheItem) = Instant.ofEpochMilli(it.getInTime).plusSeconds(timeout).isBefore(Instant.now)
 }

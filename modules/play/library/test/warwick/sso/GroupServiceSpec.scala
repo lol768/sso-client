@@ -1,6 +1,8 @@
 package warwick.sso
 
-import org.joda.time.DateTime
+import java.time.{Instant, ZoneId, ZonedDateTime}
+import java.util.Date
+
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -24,7 +26,7 @@ class GroupServiceSpec extends PlaySpec with MockitoSugar {
     elabGroup.setOwners(Seq("eve").asJava)
     elabGroup.setDepartment("IT Services")
     elabGroup.setDepartmentCode("IN")
-    elabGroup.setLastUpdatedDate(new DateTime(2016, 1, 1, 9, 30).toDate)
+    elabGroup.setLastUpdatedDate(Date.from(Instant.from(ZonedDateTime.of(2016, 1, 1, 9, 30, 0, 0, ZoneId.systemDefault))))
     elabGroup.setVerified(true)
 
     val otherGroup = new GroupImpl()
@@ -47,7 +49,7 @@ class GroupServiceSpec extends PlaySpec with MockitoSugar {
       group.members mustBe Seq(Usercode("alice"), Usercode("bob"))
       group.owners mustBe Seq(Usercode("eve"))
       group.department mustBe ITServices
-      group.updatedAt mustBe new DateTime(2016, 1, 1, 9, 30)
+      group.updatedAt mustBe ZonedDateTime.of(2016, 1, 1, 9, 30, 0, 0, ZoneId.systemDefault())
 
       group.contains(Usercode("alice")) mustBe true
       group.contains(Usercode("bob")) mustBe true
