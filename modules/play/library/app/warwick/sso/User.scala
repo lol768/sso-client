@@ -8,8 +8,8 @@ case class Usercode(string: String) {
   require(string != null && !string.isEmpty, "Usercode must not be empty")
 }
 case class UniversityID(string: String)
-case class Name(val first: Option[String], val last: Option[String]) {
-  def full = Option(Seq(first,last).flatten.mkString(" ")).filterNot(_.isEmpty)
+case class Name(first: Option[String], last: Option[String]) {
+  def full: Option[String] = Option(Seq(first,last).flatten.mkString(" ")).filterNot(_.isEmpty)
 }
 case class Department(shortName: Option[String], name: Option[String], code: Option[String])
 
@@ -90,5 +90,23 @@ object User {
   }
 
   def hasUsercode(user: uk.ac.warwick.userlookup.User): Boolean = StringUtils.hasText(user.getUserId)
+
+  // A user that was not found by user look-up, but where you want to remember the usercode requested
+  def unknown(usercode: Usercode): User = User(
+    usercode = usercode,
+    universityId = None,
+    name = Name(None, None),
+    email = None,
+    department = None,
+    userSource = None,
+    isStaffOrPGR = false,
+    isStaffNotPGR = false,
+    isStudent = false,
+    isAlumni = false,
+    isFound = false,
+    isVerified = true,
+    isLoginDisabled = false,
+    rawProperties = Map.empty
+  )
 
 }
