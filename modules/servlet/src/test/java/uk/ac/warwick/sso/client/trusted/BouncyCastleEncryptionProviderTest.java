@@ -4,11 +4,14 @@ import org.bouncycastle.util.encoders.Base64;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.junit.Test;
-import uk.ac.warwick.util.core.jodatime.DateTimeUtils;
+import uk.ac.warwick.util.core.DateTimeUtils;
 
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import static org.junit.Assert.*;
 
@@ -128,21 +131,18 @@ public class BouncyCastleEncryptionProviderTest {
             "3TYxaGHv63QYUsGATINoHlNkbnqmT5RfbnmywAb24rLrU5Scxa8Up3XWBNpmflmF//JybOhufRk7ewDLmtpfFFdwi6" +
             "elBjYtofUekVbxK811zzp1yd/IUhxq9nkODIMeSMYRdrZUCJcdJ963RCQBixzCxmkfN7Wiyw==";
 
-        DateTimeUtils.useMockDateTime(base, new DateTimeUtils.Callback() {
-            @Override
-            public void doSomething() {
-                try {
-                    EncryptedCertificate cert = provider.createEncryptedCertificate(username, privateKey, providerID, url);
+        DateTimeUtils.useMockDateTime(base.toDate().toInstant(), () -> {
+			try {
+				EncryptedCertificate cert = provider.createEncryptedCertificate(username, privateKey, providerID, url);
 
-                    assertEquals(expectedCertString, cert.getCertificate());
-                    assertEquals(providerID, cert.getProviderID());
-                    assertEquals(expectedSignature, cert.getSignature());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    fail(e.getMessage());
-                }
-            }
-        });
+				assertEquals(expectedCertString, cert.getCertificate());
+				assertEquals(providerID, cert.getProviderID());
+				assertEquals(expectedSignature, cert.getSignature());
+			} catch (Exception e) {
+				e.printStackTrace();
+				fail(e.getMessage());
+			}
+		});
     }
 
     @Test
