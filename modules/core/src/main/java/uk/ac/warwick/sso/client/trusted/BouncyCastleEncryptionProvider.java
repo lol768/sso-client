@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Base64;
 import org.joda.time.DateTime;
+import uk.ac.warwick.util.core.DateTimeUtils;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -13,6 +14,8 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.Instant;
+import java.time.ZonedDateTime;
 
 public class BouncyCastleEncryptionProvider implements EncryptionProvider {
 
@@ -99,7 +102,8 @@ public class BouncyCastleEncryptionProvider implements EncryptionProvider {
 
     @Override
     public EncryptedCertificate createEncryptedCertificate(String username, PrivateKey privateKey, String providerID, String urlToSign) throws Exception {
-        DateTime timeStamp = DateTime.now();
+        // TODO Replace all this with java.time
+        DateTime timeStamp = new DateTime(Instant.now(DateTimeUtils.CLOCK_IMPLEMENTATION).toEpochMilli());
         final String certificate = generateCertificate(username, timeStamp);
         final String signature = generateSignature(privateKey, TrustedApplicationUtils.generateSignatureBaseString(timeStamp, urlToSign, username));
 

@@ -94,6 +94,11 @@ public class SAMLUserAdapter implements UserAttributesAdapter {
     }
 
     @Override
+    public boolean isWarwickPrimary() {
+        return "yes".equals(get("warwickprimary"));
+    }
+
+    @Override
     public boolean isLoggedIn() {
         return "true".equals(get("urn:websignon:loggedin"));
     }
@@ -101,6 +106,11 @@ public class SAMLUserAdapter implements UserAttributesAdapter {
     @Override
     public String getUniversityID() {
         return get("warwickuniid");
+    }
+
+    @Override
+    public String getUserSource() {
+        return get("urn:websignon:usersource");
     }
 
     @Override

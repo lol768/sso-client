@@ -47,17 +47,17 @@ trait SSOClient {
   /**
    * Fetches any existing user session and provides it as an AuthenticatedRequest which has a User.
    */
-  def Lenient(parser: BodyParser[AnyContent]): SSOActionBuilder
+  def Lenient[C](parser: BodyParser[C]): SSOActionBuilder[C]
 
   /**
    * Like Lenient, but if no user was present it automatically redirects to login so that a user
    * is required.
    */
-  def Strict(parser: BodyParser[AnyContent]): ActionBuilder[AuthRequest, AnyContent]
+  def Strict[C](parser: BodyParser[C]): ActionBuilder[AuthRequest, C]
 
-  def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[AnyContent]): ActionBuilder[AuthRequest, AnyContent]
+  def RequireRole[C](role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[C]): ActionBuilder[AuthRequest, C]
 
-  def RequireActualUserRole(role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[AnyContent]): ActionBuilder[AuthRequest, AnyContent]
+  def RequireActualUserRole[C](role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[C]): ActionBuilder[AuthRequest, C]
 
   /** The type of block you can pass to withUser. */
   type TryAcceptResult[A] = Future[Either[Result, A]]
@@ -82,9 +82,9 @@ trait SSOClient {
 
   def linkGenerator(request: RequestHeader): LinkGenerator
 
-  abstract class SSOActionBuilder(val parser: BodyParser[AnyContent])(implicit ec: ExecutionContext) extends ActionBuilder[AuthRequest, AnyContent] {
+  abstract class SSOActionBuilder[C](val parser: BodyParser[C])(implicit ec: ExecutionContext) extends ActionBuilder[AuthRequest, C] {
     override protected val executionContext = ec
-    def disallowRedirect: SSOActionBuilder
+    def disallowRedirect: SSOActionBuilder[C]
   }
 }
 
@@ -98,17 +98,18 @@ class SSOClientImpl @Inject()(
 
   import play.api.mvc.Results._
 
+
   def linkGenerator(request: RequestHeader) = {
     val req = new PlayHttpRequestHeader(request)
     new LinkGeneratorImpl(configuration, req)
   }
 
-  def Strict(parser: BodyParser[AnyContent]) = Lenient(parser) andThen requireCondition(_.context.user.nonEmpty, otherwise = redirectToSSO)
-  def Lenient(parser: BodyParser[AnyContent]) = FindUser(bodyParser = parser)
+  def Strict[C](parser: BodyParser[C]) = Lenient(parser) andThen requireCondition(_.context.user.nonEmpty, otherwise = redirectToSSO)
+  def Lenient[C](parser: BodyParser[C]) = FindUser(bodyParser = parser)
 
-  override def RequireRole(role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[AnyContent]) = Strict(parser) andThen requireCondition(_.context.userHasRole(role), otherwise)
+  override def RequireRole[C](role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[C]) = Strict(parser) andThen requireCondition(_.context.userHasRole(role), otherwise)
 
-  override def RequireActualUserRole(role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[AnyContent]) = Strict(parser) andThen requireCondition(_.context.actualUserHasRole(role), otherwise)
+  override def RequireActualUserRole[C](role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[C]) = Strict(parser) andThen requireCondition(_.context.actualUserHasRole(role), otherwise)
 
   implicit class BonusResponse(response: Response) {
     lazy val user: Option[User] = Option(response.getUser).filter(User.hasUsercode).map(User.apply)
@@ -129,7 +130,7 @@ class SSOClientImpl @Inject()(
    * a local session. But it won't require a logged in user - if there is no session
    * the user will simply be None.
    */
-  case class FindUser(permitRedirect: Boolean = true, bodyParser: BodyParser[AnyContent]) extends SSOActionBuilder(bodyParser) {
+  case class FindUser[C](permitRedirect: Boolean = true, bodyParser: BodyParser[C]) extends SSOActionBuilder(bodyParser) {
 
     def disallowRedirect = copy(permitRedirect = false)
 

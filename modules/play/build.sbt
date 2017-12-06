@@ -1,5 +1,5 @@
 
-def libraryVersion = "2.34"
+def libraryVersion = Common.projectVersion
 
 lazy val root = (project in file("."))
   .aggregate(library, testing)

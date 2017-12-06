@@ -75,6 +75,11 @@ public class MockUserAdapter implements UserAttributesAdapter {
     }
 
     @Override
+    public boolean isWarwickPrimary() {
+        return true;
+    }
+
+    @Override
     public Map<String, String> getAttributes() {
         return new HashMap<>();
     }
@@ -87,5 +92,10 @@ public class MockUserAdapter implements UserAttributesAdapter {
     @Override
     public String getUniversityID() {
         return "1490600";
+    }
+
+    @Override
+    public String getUserSource() {
+        return "WarwickADS";
     }
 }

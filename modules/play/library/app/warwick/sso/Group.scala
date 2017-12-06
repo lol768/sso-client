@@ -1,6 +1,6 @@
 package warwick.sso
 
-import org.joda.time.DateTime
+import java.time.{ZoneId, ZonedDateTime}
 
 import scala.collection.JavaConverters._
 
@@ -13,7 +13,7 @@ case class Group(
   owners: Seq[Usercode],
   `type`: String,
   department: Department,
-  updatedAt: DateTime,
+  updatedAt: ZonedDateTime,
   restricted: Boolean
 ) {
 
@@ -31,7 +31,7 @@ object Group {
       g.getOwners.asScala.map(Usercode),
       g.getType,
       Department(None, Some(g.getDepartment), Some(g.getDepartmentCode)),
-      new DateTime(g.getLastUpdatedDate),
+      ZonedDateTime.ofInstant(g.getLastUpdatedDate.toInstant, ZoneId.systemDefault()),
       g.isRestricted
     )
 

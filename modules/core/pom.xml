@@ -7,13 +7,13 @@
     <parent>
         <groupId>uk.ac.warwick.sso</groupId>
         <artifactId>sso-client-project</artifactId>
-        <version>2.34</version>
+        <version>2.38</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>uk.ac.warwick.sso</groupId>
     <artifactId>sso-client-core</artifactId>
-    <version>2.34</version>
+    <version>2.38</version>
 
     <build>
         <resources>
@@ -191,6 +191,14 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
             <version>1.52</version>
+        </dependency>
+
+        <!-- TODO This was being transitively included by Utils, but Utils doesn't use it any more.
+        We should migrate SSO Client to java.time at some point as well. -->
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.9.9</version>
         </dependency>
 
         <dependency>

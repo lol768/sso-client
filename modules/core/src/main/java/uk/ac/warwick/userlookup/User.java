@@ -46,14 +46,18 @@ public class User implements Serializable, ExtraProperties {
 	private String _fullName = "";
 
 	private String _warwickId = "";
-	
+
+	private String _userSource;
+
 	private boolean verified = true;
-	
+
 	private boolean oauthUser;
 
     private boolean trustedApplicationsUser;
-	
+
 	private boolean onCampus;
+
+	private boolean _warwickPrimary;
 
 	private Map<String, String> _extraProperties = new HashMap<String, String>();
 
@@ -426,9 +430,11 @@ public class User implements Serializable, ExtraProperties {
 	public final void setLoginDisabled(final boolean loginDisabled) {
 		_loginDisabled = loginDisabled;
 	}
-	
-	
-	
+
+	public final String getUserSource() { return _userSource; }
+
+	public final void setUserSource(String userSource) { this._userSource = userSource; }
+
 
 	public final int hashCode() {
 		return (getUserId() + "").hashCode();
@@ -506,6 +512,14 @@ public class User implements Serializable, ExtraProperties {
 
 	public void setOnCampus(boolean onCampus) {
 		this.onCampus = onCampus;
+	}
+
+	public boolean isWarwickPrimary() {
+		return _warwickPrimary;
+	}
+
+	public void setWarwickPrimary(boolean warwickPrimary) {
+		this._warwickPrimary = warwickPrimary;
 	}
 
 }

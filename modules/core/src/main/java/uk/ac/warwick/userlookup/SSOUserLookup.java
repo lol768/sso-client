@@ -173,6 +173,8 @@ final class SSOUserLookup implements UserFilter {
 //				return null;
 //			}
 
+			boolean warwickPrimary = "yes".equalsIgnoreCase(getAttribute("warwickprimary", attributes));
+
 			LOGGER.debug("Populating user:" + userDn);
 
 			User blankUser = new User();
@@ -184,8 +186,10 @@ final class SSOUserLookup implements UserFilter {
 			blankUser.setWarwickId(getAttribute("warwickuniid", attributes));
 			blankUser.setDepartmentCode(getAttribute("warwickdeptcode", attributes));
 			blankUser.setShortDepartment(getAttribute("deptshort", attributes));
+			blankUser.setUserSource(getAttribute("urn:websignon:usersource", attributes));
 			blankUser.setFoundUser(true);
 			blankUser.setLoginDisabled(loginDisabled);
+			blankUser.setWarwickPrimary(warwickPrimary);
 			
 			/**
 			 * Now we are fetching through SSO we can use the attributes it's set

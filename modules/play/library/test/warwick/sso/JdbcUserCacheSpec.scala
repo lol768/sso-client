@@ -1,6 +1,7 @@
 package warwick.sso
 
-import org.joda.time.DateTime
+import java.time.Instant
+
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
@@ -37,7 +38,7 @@ class JdbcUserCacheSpec extends PlaySpec with MockitoSugar {
       val token = new SSOToken("123", SSOToken.SSC_TICKET_TYPE)
       val item = new UserCacheItem(
         new uk.ac.warwick.userlookup.User("x"),
-        new DateTime().getMillis,
+        Instant.now.toEpochMilli,
         token
       )
       userCache.put(token, item)

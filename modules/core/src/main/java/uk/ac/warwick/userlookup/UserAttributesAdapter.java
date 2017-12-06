@@ -32,10 +32,14 @@ public interface UserAttributesAdapter {
 
     boolean isLoginDisabled();
 
+    boolean isWarwickPrimary();
+
     Map<String, String> getAttributes();
 
     boolean isLoggedIn();
 
     String getUniversityID();
+
+    String getUserSource();
 
 }

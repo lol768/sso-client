@@ -85,6 +85,11 @@ public class SentryUserAdapter implements UserAttributesAdapter {
     }
 
     @Override
+    public boolean isWarwickPrimary() {
+        return get("warwickprimary") != null && "yes".equals(get("warwickprimary").toLowerCase());
+    }
+
+    @Override
     public boolean isLoggedIn() {
         return true;
     }
@@ -92,6 +97,11 @@ public class SentryUserAdapter implements UserAttributesAdapter {
     @Override
     public String getUniversityID() {
         return get("id");
+    }
+
+    @Override
+    public String getUserSource() {
+        return get("urn:websignon:usersource");
     }
 
     @Override
