@@ -4,14 +4,15 @@ import org.bouncycastle.util.encoders.Base64;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import uk.ac.warwick.sso.client.core.ServletRequestAdapter;
 
 import java.security.PublicKey;
+import java.time.Month;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import static org.junit.Assert.*;
 
@@ -42,7 +43,7 @@ public class SSOConfigTrustedApplicationTest {
 
     @Test
     public void testVerifySignature() throws Exception {
-        DateTime base = new DateTime(2014, DateTimeConstants.DECEMBER, 25, 9, 31, 29, 384);
+        ZonedDateTime base = ZonedDateTime.of (2014, Month.DECEMBER.getValue(), 25, 9, 31, 29, 384, ZoneId.of("UTC"));
         String url = "http://warwick.ac.uk?external=true";
         String username = "cuscav";
 
@@ -71,7 +72,7 @@ public class SSOConfigTrustedApplicationTest {
     public void testDecode() throws Exception {
         final MockHttpServletRequest request = new MockHttpServletRequest();
 
-        DateTime creationTime = DateTime.now().minusSeconds(5);
+        ZonedDateTime creationTime = ZonedDateTime.now().minusSeconds(5);
         final ApplicationCertificate applicationCertificate = new ApplicationCertificateImpl(PROVIDER_ID, "cuscav", creationTime);
 
         final EncryptedCertificate encryptedCertificate = new EncryptedCertificateImpl(PROVIDER_ID, "MTQxOTQ5OTg4OTM4NApjdXNjYXY=");
@@ -93,7 +94,7 @@ public class SSOConfigTrustedApplicationTest {
     public void testDecodeExpired() throws Exception {
         final MockHttpServletRequest request = new MockHttpServletRequest();
 
-        DateTime creationTime = DateTime.now().minus(SSOConfigTrustedApplication.CERTIFICATE_TIMEOUT).minusSeconds(1);
+        ZonedDateTime creationTime = ZonedDateTime.now().minus(SSOConfigTrustedApplication.CERTIFICATE_TIMEOUT).minusSeconds(1);
         final ApplicationCertificate applicationCertificate = new ApplicationCertificateImpl(PROVIDER_ID, "cuscav", creationTime);
 
         final EncryptedCertificate encryptedCertificate = new EncryptedCertificateImpl(PROVIDER_ID, "MTQxOTQ5OTg4OTM4NApjdXNjYXY=");
