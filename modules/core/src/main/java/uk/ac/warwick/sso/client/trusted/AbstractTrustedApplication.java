@@ -1,12 +1,12 @@
 package uk.ac.warwick.sso.client.trusted;
 
 import org.bouncycastle.util.encoders.Base64;
-import org.joda.time.DateTime;
 import uk.ac.warwick.sso.client.SSOConfiguration;
 import uk.ac.warwick.sso.client.core.HttpRequest;
 
 import java.io.UnsupportedEncodingException;
 import java.security.PublicKey;
+import java.time.ZonedDateTime;
 
 public abstract class AbstractTrustedApplication implements TrustedApplication {
 
@@ -35,7 +35,7 @@ public abstract class AbstractTrustedApplication implements TrustedApplication {
     public final PublicKey getPublicKey() { return publicKey; }
 
     @Override
-    public final boolean verifySignature(DateTime timestamp, String requestUrl, String username, String receivedSignature) throws SignatureVerificationFailedException {
+    public final boolean verifySignature(ZonedDateTime timestamp, String requestUrl, String username, String receivedSignature) throws SignatureVerificationFailedException {
         try {
             return encryptionProvider.verifySignature(
                 this.publicKey,
@@ -52,10 +52,10 @@ public abstract class AbstractTrustedApplication implements TrustedApplication {
         ApplicationCertificate cert = encryptionProvider.decodeEncryptedCertificate(encCert, publicKey, getProviderID());
 
         // Check expiry of cert
-        DateTime created = cert.getCreationTime();
+        ZonedDateTime created = cert.getCreationTime();
 
-        if (created.plus(CERTIFICATE_TIMEOUT).isBefore(DateTime.now())) {
-            throw new CertificateTimeoutException(cert, CERTIFICATE_TIMEOUT.getMillis());
+        if (created.plus(CERTIFICATE_TIMEOUT).isBefore(ZonedDateTime.now())) {
+            throw new CertificateTimeoutException(cert, CERTIFICATE_TIMEOUT.toMillis());
         }
 
         return cert;

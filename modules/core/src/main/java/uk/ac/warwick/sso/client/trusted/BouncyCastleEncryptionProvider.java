@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Base64;
-import org.joda.time.DateTime;
 import uk.ac.warwick.util.core.DateTimeUtils;
 
 import javax.crypto.BadPaddingException;
@@ -15,6 +14,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 public class BouncyCastleEncryptionProvider implements EncryptionProvider {
@@ -76,7 +76,7 @@ public class BouncyCastleEncryptionProvider implements EncryptionProvider {
             final String created = in.readLine();
             final String username = in.readLine();
 
-            final DateTime timeCreated = new DateTime(Long.parseLong(created));
+            final ZonedDateTime timeCreated = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(created)), ZoneId.of("UTC"));
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(String.format("Application certificate decrypted: providerID=%s, username=%s, timeCreated=%s,", providerID, username, timeCreated.toString()));
@@ -103,7 +103,7 @@ public class BouncyCastleEncryptionProvider implements EncryptionProvider {
     @Override
     public EncryptedCertificate createEncryptedCertificate(String username, PrivateKey privateKey, String providerID, String urlToSign) throws Exception {
         // TODO Replace all this with java.time
-        DateTime timeStamp = new DateTime(Instant.now(DateTimeUtils.CLOCK_IMPLEMENTATION).toEpochMilli());
+        ZonedDateTime timeStamp = ZonedDateTime.now(DateTimeUtils.CLOCK_IMPLEMENTATION);
         final String certificate = generateCertificate(username, timeStamp);
         final String signature = generateSignature(privateKey, TrustedApplicationUtils.generateSignatureBaseString(timeStamp, urlToSign, username));
 
@@ -118,9 +118,9 @@ public class BouncyCastleEncryptionProvider implements EncryptionProvider {
      * @throws IllegalBlockSizeException
      * @throws BadPaddingException
      */
-    private String generateCertificate(String username, DateTime timeStamp) throws IllegalBlockSizeException, BadPaddingException {
+    private String generateCertificate(String username, ZonedDateTime timeStamp) throws IllegalBlockSizeException, BadPaddingException {
         final StringWriter writer = new StringWriter();
-        writer.write(Long.toString(timeStamp.getMillis()));
+        writer.write(Long.toString(timeStamp.toInstant().toEpochMilli()));
         writer.write('\n');
         writer.write(username);
         writer.flush();

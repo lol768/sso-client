@@ -1,6 +1,7 @@
 package uk.ac.warwick.sso.client.trusted;
 
-import org.joda.time.DateTime;
+
+import java.time.ZonedDateTime;
 
 public class ApplicationCertificateImpl implements ApplicationCertificate {
 
@@ -8,9 +9,9 @@ public class ApplicationCertificateImpl implements ApplicationCertificate {
 
     private final String username;
 
-    private final DateTime creationTime;
+    private final ZonedDateTime creationTime;
 
-    public ApplicationCertificateImpl(String providerID, String username, DateTime creationTime) {
+    public ApplicationCertificateImpl(String providerID, String username, ZonedDateTime creationTime) {
         this.providerID = providerID;
         this.username = username;
         this.creationTime = creationTime;
@@ -26,7 +27,7 @@ public class ApplicationCertificateImpl implements ApplicationCertificate {
         return username;
     }
 
-    public DateTime getCreationTime() {
+    public ZonedDateTime getCreationTime() {
         return creationTime;
     }
 }

@@ -1,8 +1,9 @@
 package uk.ac.warwick.sso.client.trusted;
 
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import uk.ac.warwick.sso.client.core.HttpRequest;
+
+import java.time.Duration;
+import java.time.ZonedDateTime;
 
 public interface TrustedApplication extends Application {
 
@@ -22,7 +23,7 @@ public interface TrustedApplication extends Application {
         OK, Error
     }
 
-    Duration CERTIFICATE_TIMEOUT = Duration.standardMinutes(5);
+    Duration CERTIFICATE_TIMEOUT = Duration.ofMinutes(5);
 
     /**
      * This method decodes and validates the received certificate.
@@ -44,6 +45,6 @@ public interface TrustedApplication extends Application {
      * @return true if the signature is verified, false otherwise.
      * @throws SignatureVerificationFailedException
      */
-    boolean verifySignature(DateTime timestamp, String requestUrl, String username, String signature) throws SignatureVerificationFailedException;
+    boolean verifySignature(ZonedDateTime timestamp, String requestUrl, String username, String signature) throws SignatureVerificationFailedException;
 
 }
