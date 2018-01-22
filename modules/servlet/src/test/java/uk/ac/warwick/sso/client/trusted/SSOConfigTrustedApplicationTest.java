@@ -43,7 +43,7 @@ public class SSOConfigTrustedApplicationTest {
 
     @Test
     public void testVerifySignature() throws Exception {
-        ZonedDateTime base = ZonedDateTime.of (2014, Month.DECEMBER.getValue(), 25, 9, 31, 29, 384, ZoneId.of("UTC"));
+        ZonedDateTime base = ZonedDateTime.of (2014, Month.DECEMBER.getValue(), 25, 9, 31, 29, 384, ZoneId.systemDefault());
         String url = "http://warwick.ac.uk?external=true";
         String username = "cuscav";
 

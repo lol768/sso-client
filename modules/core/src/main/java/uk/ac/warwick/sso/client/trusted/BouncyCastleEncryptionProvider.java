@@ -76,7 +76,7 @@ public class BouncyCastleEncryptionProvider implements EncryptionProvider {
             final String created = in.readLine();
             final String username = in.readLine();
 
-            final ZonedDateTime timeCreated = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(created)), ZoneId.of("UTC"));
+            final ZonedDateTime timeCreated = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Long.parseLong(created)), ZoneId.systemDefault());
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(String.format("Application certificate decrypted: providerID=%s, username=%s, timeCreated=%s,", providerID, username, timeCreated.toString()));
