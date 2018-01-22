@@ -4,9 +4,9 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.http.Header;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicHeader;
-import org.joda.time.DateTime;
 
 import java.io.UnsupportedEncodingException;
+import java.time.ZonedDateTime;
 
 public abstract class TrustedApplicationUtils {
 
@@ -19,7 +19,7 @@ public abstract class TrustedApplicationUtils {
      * @param username the received username.
      * @return a protocol specific concatenation of the parameters.
      */
-    public static byte[] generateSignatureBaseString(DateTime timestamp, String requestUrl, String username) throws UnsupportedEncodingException {
+    public static byte[] generateSignatureBaseString(ZonedDateTime timestamp, String requestUrl, String username) throws UnsupportedEncodingException {
         if (requestUrl != null && requestUrl.contains(EncryptionProvider.SIGNATURE_BASE_SEPARATOR)) {
             throw new IllegalStateException("URL to sign contains illegal character [" + EncryptionProvider.SIGNATURE_BASE_SEPARATOR + "]");
         }
@@ -29,7 +29,7 @@ public abstract class TrustedApplicationUtils {
         }
 
         String signatureBaseString =
-            Long.toString(timestamp.getMillis()) +
+            Long.toString(timestamp.toInstant().toEpochMilli()) +
             EncryptionProvider.SIGNATURE_BASE_SEPARATOR +
             requestUrl +
             EncryptionProvider.SIGNATURE_BASE_SEPARATOR +

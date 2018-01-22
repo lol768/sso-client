@@ -193,14 +193,6 @@
             <version>1.52</version>
         </dependency>
 
-        <!-- TODO This was being transitively included by Utils, but Utils doesn't use it any more.
-        We should migrate SSO Client to java.time at some point as well. -->
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.9.9</version>
-        </dependency>
-
         <dependency>
             <groupId>net.sf.ehcache</groupId>
             <artifactId>ehcache</artifactId>

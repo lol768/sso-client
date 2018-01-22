@@ -1,15 +1,13 @@
 package uk.ac.warwick.sso.client.trusted;
 
 import org.bouncycastle.util.encoders.Base64;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
 import org.junit.Test;
 import uk.ac.warwick.util.core.DateTimeUtils;
 
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.time.Instant;
+import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
@@ -67,7 +65,7 @@ public class BouncyCastleEncryptionProviderTest {
 
     @Test
     public void testGenerateSignature() throws Exception {
-        DateTime base = new DateTime(2014, DateTimeConstants.DECEMBER, 25, 9, 31, 29, 384);
+        ZonedDateTime base = ZonedDateTime.of(2014, Month.DECEMBER.getValue(), 25, 9, 31, 29, 384000000, ZoneId.systemDefault());
         String url = "http://warwick.ac.uk?external=true";
         String username = "cuscav";
 
@@ -86,7 +84,7 @@ public class BouncyCastleEncryptionProviderTest {
 
     @Test
     public void testVerifySignature() throws Exception {
-        DateTime base = new DateTime(2014, DateTimeConstants.DECEMBER, 25, 9, 31, 29, 384);
+        ZonedDateTime base = ZonedDateTime.of(2014, Month.DECEMBER.getValue(), 25, 9, 31, 29, 384000000, ZoneId.systemDefault());
         String url = "http://warwick.ac.uk?external=true";
         String username = "cuscav";
 
@@ -103,7 +101,7 @@ public class BouncyCastleEncryptionProviderTest {
     public void testVerifySignatureKeyMismatch() throws Exception {
         PublicKey mismatchedPublicKey = KeyPairGenerator.getInstance("RSA", BouncyCastleEncryptionProvider.PROVIDER).generateKeyPair().getPublic();
 
-        DateTime base = new DateTime(2014, DateTimeConstants.DECEMBER, 25, 9, 31, 29, 384);
+        ZonedDateTime base = ZonedDateTime.of(2014, Month.DECEMBER.getValue(), 25, 9, 31, 29, 384000000, ZoneId.systemDefault());
         String url = "http://warwick.ac.uk?external=true";
         String username = "cuscav";
 
@@ -120,7 +118,7 @@ public class BouncyCastleEncryptionProviderTest {
         final String username = "cuscav";
         final String providerID = "urn:tabula.warwick.ac.uk:tabula:service";
         final PrivateKey privateKey = provider.toPrivateKey(Base64.decode(PRIVATE_KEY));
-        final DateTime base = new DateTime(2014, DateTimeConstants.DECEMBER, 25, 9, 31, 29, 384);
+        final ZonedDateTime base = ZonedDateTime.of(2014, Month.DECEMBER.getValue(), 25, 9, 31, 29, 384000000, ZoneId.systemDefault());
         final String url = "http://warwick.ac.uk?external=true";
 
         final String expectedCertString = "MTQxOTQ5OTg4OTM4NApjdXNjYXY=";
@@ -131,7 +129,7 @@ public class BouncyCastleEncryptionProviderTest {
             "3TYxaGHv63QYUsGATINoHlNkbnqmT5RfbnmywAb24rLrU5Scxa8Up3XWBNpmflmF//JybOhufRk7ewDLmtpfFFdwi6" +
             "elBjYtofUekVbxK811zzp1yd/IUhxq9nkODIMeSMYRdrZUCJcdJ963RCQBixzCxmkfN7Wiyw==";
 
-        DateTimeUtils.useMockDateTime(base.toDate().toInstant(), () -> {
+        DateTimeUtils.useMockDateTime(base.toInstant(), () -> {
 			try {
 				EncryptedCertificate cert = provider.createEncryptedCertificate(username, privateKey, providerID, url);
 
@@ -155,7 +153,10 @@ public class BouncyCastleEncryptionProviderTest {
         PublicKey publicKey = provider.toPublicKey(Base64.decode(PUBLIC_KEY));
         ApplicationCertificate appCert = provider.decodeEncryptedCertificate(cert, publicKey, providerID);
 
-        assertEquals(new DateTime(2014, DateTimeConstants.DECEMBER, 25, 9, 31, 29, 384), appCert.getCreationTime());
+        assertEquals(
+                ZonedDateTime.of(2014, Month.DECEMBER.getValue(), 25, 9, 31, 29, 384000000, ZoneId.systemDefault()),
+                appCert.getCreationTime()
+        );
         assertEquals(providerID, appCert.getProviderID());
         assertEquals("cuscav", appCert.getUsername());
     }

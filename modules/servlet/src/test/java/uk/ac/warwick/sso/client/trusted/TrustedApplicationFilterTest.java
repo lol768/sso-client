@@ -4,7 +4,6 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,6 +20,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import java.time.ZonedDateTime;
 import java.util.Vector;
 
 import static org.junit.Assert.*;
@@ -176,7 +176,7 @@ public class TrustedApplicationFilterTest {
         final TrustedApplication trustedApp = m.mock(TrustedApplication.class);
         final ApplicationCertificate appCertificate = m.mock(ApplicationCertificate.class);
 
-        final DateTime base = DateTime.now();
+        final ZonedDateTime base = ZonedDateTime.now();
         final String username = "cuscav";
 
         m.checking(new Expectations() {{
@@ -219,7 +219,7 @@ public class TrustedApplicationFilterTest {
         final TrustedApplication trustedApp = m.mock(TrustedApplication.class);
         final ApplicationCertificate appCertificate = m.mock(ApplicationCertificate.class);
 
-        final DateTime base = DateTime.now();
+        final ZonedDateTime base = ZonedDateTime.now();
         final String username = "cuscav";
 
         m.checking(new Expectations() {{
@@ -262,7 +262,7 @@ public class TrustedApplicationFilterTest {
         final TrustedApplication trustedApp = m.mock(TrustedApplication.class);
         final ApplicationCertificate appCertificate = m.mock(ApplicationCertificate.class);
 
-        final DateTime base = DateTime.now();
+        final ZonedDateTime base = ZonedDateTime.now();
         final String username = "cuscav";
 
         final User user = new AnonymousUser();
@@ -309,7 +309,7 @@ public class TrustedApplicationFilterTest {
         final TrustedApplication trustedApp = m.mock(TrustedApplication.class);
         final ApplicationCertificate appCertificate = m.mock(ApplicationCertificate.class);
 
-        final DateTime base = DateTime.now();
+        final ZonedDateTime base = ZonedDateTime.now();
         final String username = "cuscav";
 
         final User user = new User() {{
@@ -359,7 +359,7 @@ public class TrustedApplicationFilterTest {
         final TrustedApplication trustedApp = m.mock(TrustedApplication.class);
         final ApplicationCertificate appCertificate = m.mock(ApplicationCertificate.class);
 
-        final DateTime base = DateTime.now();
+        final ZonedDateTime base = ZonedDateTime.now();
         final String username = "cuscav";
 
         final User user = new User() {{
