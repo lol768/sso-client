@@ -4,10 +4,12 @@ import org.apache.http.client.methods.HttpGet;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
 import org.jruby.ext.openssl.x509store.Trust;
 import org.junit.Test;
+
+import java.time.Month;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import static org.junit.Assert.*;
 
@@ -17,7 +19,7 @@ public class TrustedApplicationUtilsTest {
 
     @Test
     public void testGenerateSignatureBaseString() throws Exception {
-        DateTime base = new DateTime(2014, DateTimeConstants.AUGUST, 19, 3, 47, 19, 283);
+        ZonedDateTime base = ZonedDateTime.of(2014, Month.AUGUST.getValue(), 19, 3, 47, 19, 283000000, ZoneId.of("Europe/London"));
         String url = "http://warwick.ac.uk?external=true";
         String username = "cuscav";
 
@@ -25,7 +27,7 @@ public class TrustedApplicationUtilsTest {
         String sigBaseString = new String(sigBase, "UTF-8");
 
         assertEquals(
-            "1408416439283\n" +
+            "1408416439283\n" + // this is based on London time
             "http://warwick.ac.uk?external=true\n" +
             "cuscav",
             sigBaseString
