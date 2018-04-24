@@ -62,7 +62,7 @@ object User {
 
   import warwick.sso.utils.Strings._
 
-  private[sso] def apply(u: uk.ac.warwick.userlookup.User): User = User(
+  def apply(u: uk.ac.warwick.userlookup.User): User = User(
     usercode = Usercode(u.getUserId),
     universityId = notEmptyOption(u.getWarwickId).map(UniversityID),
     name = Name(notEmptyOption(u.getFirstName), notEmptyOption(u.getLastName)),
