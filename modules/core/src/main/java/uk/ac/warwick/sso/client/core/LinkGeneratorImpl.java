@@ -3,6 +3,7 @@ package uk.ac.warwick.sso.client.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.warwick.sso.client.SSOConfiguration;
+import uk.ac.warwick.sso.client.util.ListUtils;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.util.core.StringUtils;
 
@@ -144,9 +145,9 @@ public class LinkGeneratorImpl implements LinkGenerator {
                 LOGGER.debug("Found target from header - " + uriHeader + ": " + target);
             }
 
-        } else if (urlParamKey != null && getRequest().getParameter(urlParamKey).size() > 0) {
+        } else if (urlParamKey != null && getRequest().getQueryParameter(urlParamKey).size() > 0) {
 
-            target = getParamValueFromQueryString(urlParamKey, getRequest().getQueryString());
+            target = ListUtils.head(getRequest().getQueryParameter(urlParamKey));
 
             String queryString = stripQueryStringParam(urlParamKey, getRequest().getQueryString());
 
@@ -169,16 +170,6 @@ public class LinkGeneratorImpl implements LinkGenerator {
         }
         return target;
 
-    }
-
-
-    private String getParamValueFromQueryString(final String paramName, final String queryString) {
-        for (String param : queryString.split("&")) {
-            if (param.startsWith(paramName + "=")) {
-                return param.split("=")[1];
-            }
-        }
-        return null;
     }
 
     /**

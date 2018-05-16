@@ -80,7 +80,7 @@ public class SSOLinkGenerator {
 				LOGGER.debug("Found target from header - " + uriHeader + ": " + target);
 			}
 			
-		} else if (urlParamKey != null && getRequest().getParameter(urlParamKey) != null) {
+		} else if (urlParamKey != null && getParamValueFromQueryString(urlParamKey, getRequest().getQueryString()) != null) {
 
 			target = getParamValueFromQueryString(urlParamKey, getRequest().getQueryString());
 

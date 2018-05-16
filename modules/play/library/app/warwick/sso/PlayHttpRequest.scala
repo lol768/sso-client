@@ -57,6 +57,8 @@ class PlayHttpRequestHeader(req: RequestHeader) extends HttpRequest {
 
   override def getQueryString: String = req.rawQueryString
 
+  override def getQueryParameter(name: String): util.List[String] = req.queryString(name).asJava
+
   // Just the path, no query strings
   override def getRequestURI: String = req.path
 

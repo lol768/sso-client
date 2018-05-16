@@ -37,6 +37,8 @@ public interface HttpRequest {
 
     String getQueryString();
 
+    List<String> getQueryParameter(String name);
+
     String getMethod();
 
     List<Cookie> getCookies();

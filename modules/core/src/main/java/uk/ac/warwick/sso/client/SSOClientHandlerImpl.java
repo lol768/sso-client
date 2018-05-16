@@ -259,10 +259,10 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
     		/* [SSO-550] These variables are for handling sending WarwickSSO as a parameter,
              * useful in limited cases like Flash apps who can't send cookies
     		 */
-            String requestToken = ListUtils.head(request.getParameter(WARWICK_SSO));
+            String requestToken = ListUtils.head(request.getQueryParameter(WARWICK_SSO));
             boolean postCookies = ("POST".equalsIgnoreCase(request.getMethod()) && requestToken != null);
 
-            if (allowBasic && request.getParameter("forcebasic").contains("true") && !isBasicAuthRequest(request)) {
+            if (allowBasic && request.getQueryParameter("forcebasic").contains("true") && !isBasicAuthRequest(request)) {
                 return basicAuthHeaders();
             }
 
