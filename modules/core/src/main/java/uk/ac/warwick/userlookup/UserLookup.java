@@ -214,12 +214,12 @@ public class UserLookup implements UserLookupInterface {
 
 		_userByUniIdCache = Caches.newCache(USER_CACHE_NAME, new CacheEntryFactory<String, User>() {
 			public User create(String key) {
-				return getUserByWarwickUniIdUncached(key, true);
+				return getUserByWarwickUniIdUncached(key);
 			}
 
 			public Map<String, User> create(List<String> keys) {
 				return keys.stream()
-						.map(uniId -> new Pair<>(uniId, getUserByWarwickUniIdUncached(uniId, true)))
+						.map(uniId -> new Pair<>(uniId, getUserByWarwickUniIdUncached(uniId)))
 						.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
 			}
 			public boolean isSupportsMultiLookups() {
@@ -529,7 +529,7 @@ public class UserLookup implements UserLookupInterface {
 			if (!returnDisabledUsers && user.isLoginDisabled()) return new AnonymousUser();
 			return user;
 		} catch (CacheEntryUpdateException e) {
-			LOGGER.warn("Couldn't get user by Warwick Uni ID", e);
+			LOGGER.warn("Couldn't get user by uniId", e);
 			return new UnverifiedUser(e);
 		}
 	}
@@ -544,16 +544,15 @@ public class UserLookup implements UserLookupInterface {
 	 * wrong.
 	 *
 	 * @param warwickUniId
-	 * @param returnDisabledUsers if false, will only return enabled accounts (ie skips logindisabled=true)
 	 * @return
 	 */
-	private final User getUserByWarwickUniIdUncached(final String warwickUniId, boolean returnDisabledUsers) {
+	private final User getUserByWarwickUniIdUncached(final String warwickUniId) {
 
 		Map<String,String> filterValues = new HashMap<String,String>();
 		filterValues.put("warwickuniid", warwickUniId);
 		List<User> users;
 		try {
-			users = findUsersWithFilterUnsafe(filterValues, returnDisabledUsers);
+			users = findUsersWithFilterUnsafe(filterValues, true);
 		} catch (UserLookupException e) {
 			LOGGER.warn("Problem looking up user by warwickuniid, returning unverified user");
 			return new UnverifiedUser(e);
@@ -581,11 +580,6 @@ public class UserLookup implements UserLookupInterface {
 		}
 
 		User user = (User) users.get(0);
-		if (!returnDisabledUsers && user.isLoginDisabled()) {
-			LOGGER.info("No active user for Warwick Uni Id:" + warwickUniId + ". Returning anonymous");
-			user = new AnonymousUser();
-		}
-
 		return getUserByUserId(user.getUserId());
 	}
 
