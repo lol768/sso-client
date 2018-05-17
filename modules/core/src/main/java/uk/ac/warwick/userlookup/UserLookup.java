@@ -12,6 +12,7 @@ import uk.ac.warwick.util.collections.Pair;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static java.lang.Integer.parseInt;
 
@@ -48,7 +49,7 @@ public class UserLookup implements UserLookupInterface {
 	
 	private static Object defaultPropertiesLock = new Object();
 	private static Properties defaultProperties;
-	
+
 	/**
 	 * Default timeout in seconds for the userId cache, this can be large
 	 */
@@ -63,7 +64,7 @@ public class UserLookup implements UserLookupInterface {
 	private static final int DEFAULT_TOKEN_CACHE_SIZE = parseInt(getConfigProperty("ssoclient.cache.token.size"));
 	public static final int DEFAULT_CONNECTION_TIMEOUT = parseInt(getConfigProperty("ssoclient.net.connection-timeout.millis"));
 	public static final int DEFAULT_DATA_TIMEOUT = parseInt(getConfigProperty("ssoclient.net.data-timeout.millis"));
-	
+
 	// Names of UserLookup caches, to use as reference to external cache stores like Ehcache.
 	public static final String USER_CACHE_NAME = "UserLookupCache";
 	public static final String GROUP_CACHE_NAME = "WebgroupCache";
@@ -71,20 +72,22 @@ public class UserLookup implements UserLookupInterface {
 	public static final String GROUP_MEMBER_CACHE_NAME = "WebgroupMemberCache";
 	public static final String USER_GROUPS_CACHE_NAME = "UserGroupsCache";
 	public static final String AUTH_CACHE_NAME = "UserAuthCache";
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserLookup.class);
 
 
 	private static UserLookup INSTANCE;
-	
+
 	private Cache<String,User> _userByTokenCache;
 
 	private Cache<String,User> _userByUserIdCache;
 
+	private Cache<String,User> _userByUniIdCache;
+
 	private CacheWithDataInitialisation<String, Pair<String, User>, String> _authCache;
 
 	private String _ssosUrl;
-	
+
 	private String _apiKey;
 
 	private int _httpDataTimeout;
@@ -92,14 +95,14 @@ public class UserLookup implements UserLookupInterface {
 	private int _httpConnectionTimeout;
 
 	private GroupService _groupService;
-	
+
 	// the innermmost groupService.
 	private GroupService _groupServiceBackend;
 
 	private String _version;
-	
+
 	private OnCampusService _onCampusService;
-	
+
 	private String groupServiceLocation;
 
 	private boolean asynchronousUpdates = true;
@@ -154,7 +157,7 @@ public class UserLookup implements UserLookupInterface {
 			parseInt(getConfigProperty("ssoclient.cache.auth.timeout.secs")),
 			Caches.CacheStrategy.valueOf(cacheStrategy)
 		);
-		
+
 		_userByTokenCache = Caches.newCache(USER_CACHE_NAME, new SingularCacheEntryFactory<String, User>() {
             public User create(String key) throws CacheEntryUpdateException {
                 try {
@@ -208,7 +211,51 @@ public class UserLookup implements UserLookupInterface {
             public void cacheHit(String key, CacheEntry<String, User> entry) {
             }
         });
-		
+
+		_userByUniIdCache = Caches.newCache(USER_CACHE_NAME, new CacheEntryFactory<String, User>() {
+			public User create(String key) {
+				return getUserByWarwickUniIdUncached(key, true);
+			}
+
+			public Map<String, User> create(List<String> keys) {
+				return keys.stream()
+						.map(uniId -> new Pair<>(uniId, getUserByWarwickUniIdUncached(uniId, true)))
+						.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+			}
+			public boolean isSupportsMultiLookups() {
+				return true;
+			}
+			public boolean shouldBeCached(User val) {
+				return val.isVerified();
+			}
+			public int secondsToLive(User val) {
+				if (val.isFoundUser()) {
+					return TIME_TO_LIVE_ETERNITY;
+				} else {
+					return MISSING_USERID_CACHE_TIMEOUT * 2; // twice the stale time
+				}
+			}
+		}, DEFAULT_USERID_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
+		_userByUniIdCache.setMaxSize(DEFAULT_USERID_CACHE_SIZE);
+		_userByUniIdCache.setAsynchronousUpdateEnabled(true);
+		_userByUniIdCache.setExpiryStrategy(new TTLCacheExpiryStrategy<String, User>() {
+			@Override
+			public Pair<Number, TimeUnit> getTTL(CacheEntry<String, User> entry) {
+				if (entry.getValue().isFoundUser()) {
+					return Pair.of((Number) userIdCacheTimeout, TimeUnit.SECONDS);
+				} else {
+					return Pair.of((Number) (MISSING_USERID_CACHE_TIMEOUT * 2), TimeUnit.SECONDS); // twice the stale time
+				}
+			}
+
+			@Override
+			public boolean isStale(CacheEntry<String, User> entry) {
+				final long staleTime = entry.getTimestamp() + (DEFAULT_USERID_CACHE_TIMEOUT * 1000);
+				final long now = System.currentTimeMillis();
+				return staleTime <= now;
+			}
+		});
+
 		_userByUserIdCache = Caches.newCache(USER_CACHE_NAME, new CacheEntryFactory<String, User>() {
 			public User create(String key) throws CacheEntryUpdateException {
 				try {
@@ -265,7 +312,7 @@ public class UserLookup implements UserLookupInterface {
                 return staleTime <= now;
             }
 		});
-		
+
 
 		if (UserLookup.getConfigProperty("userlookup.useridcachesize") != null) {
 			_userByUserIdCache.setMaxSize(Integer.parseInt(UserLookup.getConfigProperty("userlookup.useridcachesize")));
@@ -289,7 +336,7 @@ public class UserLookup implements UserLookupInterface {
 		} else {
 			_httpDataTimeout = DEFAULT_DATA_TIMEOUT;
 		}
-		
+
 		_apiKey = UserLookup.getConfigProperty("userlookup.ssos.apiKey");
 
 		if (_version == null || _version.equals("")) {
@@ -299,7 +346,7 @@ public class UserLookup implements UserLookupInterface {
 
 	/**
 	 * Do a userlookup that returns all users in a given department, eg. Information Technology Services
-	 * 
+	 *
 	 * @param department
 	 * @return
 	 */
@@ -321,7 +368,7 @@ public class UserLookup implements UserLookupInterface {
 
 	/**
 	 * Do a userlookup from LDAP that returns all users in a given department code, eg. IN, AR, BO
-	 * 
+	 *
 	 * @param department
 	 * @return
 	 */
@@ -420,7 +467,7 @@ public class UserLookup implements UserLookupInterface {
 		return new WebUserLookup(getSsosUrl(), new WebServiceTimeoutConfig(getHttpConnectionTimeout(), getHttpDataTimeout()),
 				_version, _apiKey);
 	}
-	
+
 	public void setUserLookupBackend(UserLookupBackend backend) {
 		this._backend = backend;
 	}
@@ -456,21 +503,35 @@ public class UserLookup implements UserLookupInterface {
 
 	}
 
-	
+
 	/**
 	 * Will return just a single user or an anonymous user that matches the warwickUniId passed in. It is possible that
 	 * it will not be the right user depending on how many users are against this warwickUniId and if their
 	 * login_disabled attributes are correctly populated.
-	 * 
+	 *
 	 * Even if LDAP lookup fails, it will return an anonymous user and put an error in the logs explaining what went
 	 * wrong.
-	 * 
+	 *
 	 * This method will show users whose login is disabled. To ignore these, use the method with the extra argument.
-	 * 
+	 *
 	 * @param warwickUniId
 	 */
 	public final User getUserByWarwickUniId(final String warwickUniId) {
 		return getUserByWarwickUniId(warwickUniId, true);
+	}
+
+	public final User getUserByWarwickUniId(final String warwickUniId, boolean returnDisabledUsers){
+		if (warwickUniId == null || warwickUniId.isEmpty()) {
+			return new AnonymousUser();
+		}
+		try {
+			User user = getUserByUniIdCache().get(warwickUniId.trim());
+			if (!returnDisabledUsers && user.isLoginDisabled()) return new AnonymousUser();
+			return user;
+		} catch (CacheEntryUpdateException e) {
+			LOGGER.warn("Couldn't get user by Warwick Uni ID", e);
+			return new UnverifiedUser(e);
+		}
 	}
 
 	/**
@@ -478,15 +539,15 @@ public class UserLookup implements UserLookupInterface {
 	 * Will attempt to return the user whose warwickPrimary is true, if any.
 	 * It is possible that it will not be the right user depending on how many users are against
 	 * this warwickUniId and if their login_disabled attributes are correctly populated.
-	 * 
+	 *
 	 * Even if LDAP lookup fails, it will return an anonymous user and put an error in the logs explaining what went
 	 * wrong.
-	 * 
+	 *
 	 * @param warwickUniId
 	 * @param returnDisabledUsers if false, will only return enabled accounts (ie skips logindisabled=true)
 	 * @return
 	 */
-	public final User getUserByWarwickUniId(final String warwickUniId, boolean returnDisabledUsers) {
+	private final User getUserByWarwickUniIdUncached(final String warwickUniId, boolean returnDisabledUsers) {
 
 		Map<String,String> filterValues = new HashMap<String,String>();
 		filterValues.put("warwickuniid", warwickUniId);
@@ -510,7 +571,7 @@ public class UserLookup implements UserLookupInterface {
 				return getUserByUserId(user.getUserId());
 			}
 		}
-		
+
 		for (User user : users) {
 			if (user.getEmail() != null && !user.getEmail().equals("")) {
 				LOGGER.info("Returning user with email address (" + user.getUserId() + ") of " + users.size()
@@ -524,10 +585,10 @@ public class UserLookup implements UserLookupInterface {
 			LOGGER.info("No active user for Warwick Uni Id:" + warwickUniId + ". Returning anonymous");
 			user = new AnonymousUser();
 		}
-		
+
 		return getUserByUserId(user.getUserId());
 	}
-	
+
 	public final List<User> findUsersWithFilter(final Map<String,String> filterValues) {
 		return findUsersWithFilter(filterValues, false);
 	}
@@ -558,7 +619,7 @@ public class UserLookup implements UserLookupInterface {
 //		}
 		return list;
 	}
-	
+
 	public final String getSsosUrl() {
 		// A default is used deeper down
 //		if (_ssosUrl == null) {
@@ -607,7 +668,7 @@ public class UserLookup implements UserLookupInterface {
 
 	/**
 	 * You can set this here, or use the system property "userlookup.tokencachesize"
-	 * 
+	 *
 	 * @param userCacheSize
 	 */
 	public final void setTokenCacheSize(final int userCacheSize) {
@@ -623,7 +684,7 @@ public class UserLookup implements UserLookupInterface {
 
 	/**
 	 * You can set this here, or use the system property "userlookup.useridcachesize"
-	 * 
+	 *
 	 * @param userCacheSize
 	 */
 	public final void setUserIdCacheSize(final int userCacheSize) {
@@ -640,9 +701,9 @@ public class UserLookup implements UserLookupInterface {
 
 	public final GroupService getGroupService() {
 		if (_groupService == null) {
-			String location = this.groupServiceLocation; 
+			String location = this.groupServiceLocation;
 			if (location == null) {
-				location = UserLookup.getConfigProperty("userlookup.groupservice.location"); 
+				location = UserLookup.getConfigProperty("userlookup.groupservice.location");
 			}
 			if (location != null || _groupServiceBackend != null) {
 				if (_groupServiceBackend == null) {
@@ -650,7 +711,7 @@ public class UserLookup implements UserLookupInterface {
 					_groupServiceBackend.setTimeoutConfig(new WebServiceTimeoutConfig(getHttpConnectionTimeout(), getHttpDataTimeout()));
 				}
 				// cache the groups
-				_groupService = 
+				_groupService =
 						new GroupAliasAwareGroupService(
 						new GroupNameCheckerGroupService(
 						new UsersInGroupCachingGroupsService(
@@ -666,7 +727,7 @@ public class UserLookup implements UserLookupInterface {
 		}
 		return _groupService;
 	}
-	
+
 	final boolean isUserByUserIdCacheEmpty() {
         try {
 		    return _userByUserIdCache.getStatistics().getCacheSize() == 0;
@@ -686,10 +747,10 @@ public class UserLookup implements UserLookupInterface {
 	public final void setVersion(String version) {
 		_version = version;
 	}
-	
+
 	public final Map<String, Set<Cache<?, ?>>> getCaches() {
 		Map<String, Set<Cache<?, ?>>> caches = new HashMap<String, Set<Cache<?,?>>>();
-		
+
 		return Collections.unmodifiableMap(caches);
 	}
 
@@ -705,11 +766,11 @@ public class UserLookup implements UserLookupInterface {
 	public void setOnCampusService(OnCampusService onCampusService) {
 		this._onCampusService = onCampusService;
 	}
-	
+
 	public boolean isAsynchronousUpdates() {
 		return this.asynchronousUpdates;
 	}
-	
+
 	public void setAsynchronousUpdates(final boolean async) {
 		this.asynchronousUpdates = async;
 	}
@@ -723,7 +784,7 @@ public class UserLookup implements UserLookupInterface {
 	public void setGroupServiceLocation(String groupServiceLocation) {
 		this.groupServiceLocation = groupServiceLocation;
 	}
-	
+
 	/**
 	 * If you provide UserLookup with a Properties object here, it will
 	 * use it to check for configuration properties instead of using system
@@ -755,15 +816,15 @@ public class UserLookup implements UserLookupInterface {
 		if (configProperties != null) {
 			value = configProperties.getProperty(propertyName);
 		}
-		
+
 		if (value == null) {
 			value = System.getProperty(propertyName);
 		}
-		
+
 		if (value == null) {
 			value = defaultProperties.getProperty(propertyName);
 		}
-		
+
 		return value;
 	}
 
@@ -781,10 +842,14 @@ public class UserLookup implements UserLookupInterface {
 	public Cache<String,User> getUserByTokenCache() {
 		return _userByTokenCache;
 	}
-	
+
 	public Cache<String,User> getUserByUserIdCache() {
 		return _userByUserIdCache;
 	}
+
+	public Cache<String, User> getUserByUniIdCache() {
+	    return _userByUniIdCache;
+    }
 
 	Cache<String, Pair<String, User>> getAuthCache() {
 		return _authCache;
