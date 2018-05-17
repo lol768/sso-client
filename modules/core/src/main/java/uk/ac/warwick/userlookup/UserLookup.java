@@ -504,6 +504,9 @@ public class UserLookup implements UserLookupInterface {
 
 	}
 
+	public final User getUserByWarwickUniId(final String warwickUniId) {
+		return getUserByWarwickUniId(warwickUniId, true);
+	}
 
 	/**
 	 * Will return just a single user or an anonymous user that matches the warwickUniId passed in. It is possible that
@@ -516,11 +519,8 @@ public class UserLookup implements UserLookupInterface {
 	 * This method will show users whose login is disabled. To ignore these, use the method with the extra argument.
 	 *
 	 * @param warwickUniId
+	 * @param returnDisabledUsers if false, will only return enabled accounts (ie skips logindisabled=true)
 	 */
-	public final User getUserByWarwickUniId(final String warwickUniId) {
-		return getUserByWarwickUniId(warwickUniId, true);
-	}
-
 	public final User getUserByWarwickUniId(final String warwickUniId, boolean returnDisabledUsers){
 		if (warwickUniId == null || warwickUniId.isEmpty()) {
 			return new AnonymousUser();
@@ -535,18 +535,6 @@ public class UserLookup implements UserLookupInterface {
 		}
 	}
 
-	/**
-	 * Will return just a single user or an anonymous user that matches the warwickUniId passed in.
-	 * Will attempt to return the user whose warwickPrimary is true, if any.
-	 * It is possible that it will not be the right user depending on how many users are against
-	 * this warwickUniId and if their login_disabled attributes are correctly populated.
-	 *
-	 * Even if LDAP lookup fails, it will return an anonymous user and put an error in the logs explaining what went
-	 * wrong.
-	 *
-	 * @param warwickUniId
-	 * @return
-	 */
 	private final User getUserByWarwickUniIdUncached(final String warwickUniId) {
 
 		Map<String,String> filterValues = new HashMap<String,String>();
