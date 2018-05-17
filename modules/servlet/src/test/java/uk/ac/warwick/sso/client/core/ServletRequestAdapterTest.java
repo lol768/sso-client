@@ -14,11 +14,12 @@ public class ServletRequestAdapterTest {
     @Test
     public void getQueryParameter() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-        servletRequest.setQueryString("field1=value1&field2=value2&field2=value3");
+        servletRequest.setQueryString("field1=value1&forcebasic&field2=value2&field2=value3");
 
         ServletRequestAdapter request = new ServletRequestAdapter(servletRequest);
         assertEquals(asList("value1"), request.getQueryParameter("field1"));
         assertEquals(asList("value2","value3"), request.getQueryParameter("field2"));
+        assertEquals(asList(""), request.getQueryParameter("forcebasic"));
         assertEquals(Collections.emptyList(), request.getQueryParameter("nonsense"));
     }
 }
