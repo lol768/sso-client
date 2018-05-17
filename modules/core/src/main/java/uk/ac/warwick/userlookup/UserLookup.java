@@ -67,6 +67,7 @@ public class UserLookup implements UserLookupInterface {
 
 	// Names of UserLookup caches, to use as reference to external cache stores like Ehcache.
 	public static final String USER_CACHE_NAME = "UserLookupCache";
+	public static final String USER_BY_UNI_ID_CACHE_NAME = "UserByUniIdLookupCache";
 	public static final String GROUP_CACHE_NAME = "WebgroupCache";
 	public static final String IN_GROUP_CACHE_NAME = "InWebgroupCache";
 	public static final String GROUP_MEMBER_CACHE_NAME = "WebgroupMemberCache";
@@ -212,7 +213,7 @@ public class UserLookup implements UserLookupInterface {
             }
         });
 
-		_userByUniIdCache = Caches.newCache(USER_CACHE_NAME, new CacheEntryFactory<String, User>() {
+		_userByUniIdCache = Caches.newCache(USER_BY_UNI_ID_CACHE_NAME, new CacheEntryFactory<String, User>() {
 			public User create(String key) {
 				return getUserByWarwickUniIdUncached(key);
 			}
