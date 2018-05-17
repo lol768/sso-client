@@ -8,7 +8,7 @@ public class ListUtils {
      * Get the first item of a list, or null if the list is empty.
      */
     public static <E> E head(List<E> list) {
-        if (list.isEmpty()) return null;
+        if (list == null || list.isEmpty()) return null;
         return list.get(0);
     }
 }

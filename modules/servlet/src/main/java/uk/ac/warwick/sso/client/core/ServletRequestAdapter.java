@@ -20,7 +20,7 @@ public class ServletRequestAdapter implements HttpRequest {
     @Override
     public List<String> getParameter(String name) {
         if (req.getParameterMap().containsKey(name)) {
-            return (List<String>)Arrays.asList(req.getParameterMap().get(name));
+            return Arrays.asList(req.getParameterValues(name));
         } else {
             return Collections.emptyList();
         }
@@ -70,7 +70,10 @@ public class ServletRequestAdapter implements HttpRequest {
                 parsedQuery = new HashMap<>();
             }
         }
-        return parsedQuery.get(name);
+        if (parsedQuery.containsKey(name)) {
+            return parsedQuery.get(name);
+        }
+        return Collections.emptyList();
     }
 
     @Override

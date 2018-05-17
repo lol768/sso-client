@@ -28,7 +28,7 @@
 
     <properties>
         <org.springframework.version>4.1.4.RELEASE</org.springframework.version>
-        <jetty.version>7.0.1.v20091125</jetty.version>
+        <jetty.version>8.2.0.v20160908</jetty.version>
         <warwickutils.version>20171206</warwickutils.version>
         <ssoclient.artifacts.dir>/tmp</ssoclient.artifacts.dir>
 
