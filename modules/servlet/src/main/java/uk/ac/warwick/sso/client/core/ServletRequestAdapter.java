@@ -11,11 +11,11 @@ import java.util.*;
 public class ServletRequestAdapter implements HttpRequest {
     private final HttpServletRequest req;
 
+    private Map<String, List<String>> parsedQuery;
+
     public ServletRequestAdapter(HttpServletRequest req) {
         this.req = req;
     }
-
-    private Map<String, List<String>> parsedQuery;
 
     @Override
     public List<String> getParameter(String name) {
