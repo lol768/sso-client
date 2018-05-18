@@ -231,18 +231,9 @@ public class UserLookup implements UserLookupInterface {
 			}
 		};
 
-		_userByUniIdCache = Caches.newCache(USER_BY_UNI_ID_CACHE_NAME, new CacheEntryFactory<String, User>() {
+		_userByUniIdCache = Caches.newCache(USER_BY_UNI_ID_CACHE_NAME, new SingularCacheEntryFactory<String, User>() {
 			public User create(String key) {
 				return getUserByWarwickUniIdUncached(key);
-			}
-
-			public Map<String, User> create(List<String> keys) {
-				return keys.stream()
-						.map(uniId -> new Pair<>(uniId, getUserByWarwickUniIdUncached(uniId)))
-						.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
-			}
-			public boolean isSupportsMultiLookups() {
-				return true;
 			}
 			public boolean shouldBeCached(User val) {
 				return val.isVerified();
