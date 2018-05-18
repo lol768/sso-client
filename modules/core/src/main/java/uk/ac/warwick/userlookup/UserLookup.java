@@ -213,6 +213,24 @@ public class UserLookup implements UserLookupInterface {
             }
         });
 
+		TTLCacheExpiryStrategy<String, User> ttlCacheExpiryStrategyForUserByUserIdCacheAndUserByUniIdCache = new TTLCacheExpiryStrategy<String, User>() {
+			@Override
+			public Pair<Number, TimeUnit> getTTL(CacheEntry<String, User> entry) {
+				if (entry.getValue().isFoundUser()) {
+					return Pair.of((Number) userIdCacheTimeout, TimeUnit.SECONDS);
+				} else {
+					return Pair.of((Number) (MISSING_USERID_CACHE_TIMEOUT * 2), TimeUnit.SECONDS); // twice the stale time
+				}
+			}
+
+			@Override
+			public boolean isStale(CacheEntry<String, User> entry) {
+				final long staleTime = entry.getTimestamp() + (DEFAULT_USERID_CACHE_TIMEOUT * 1000);
+				final long now = System.currentTimeMillis();
+				return staleTime <= now;
+			}
+		};
+
 		_userByUniIdCache = Caches.newCache(USER_BY_UNI_ID_CACHE_NAME, new CacheEntryFactory<String, User>() {
 			public User create(String key) {
 				return getUserByWarwickUniIdUncached(key);
@@ -239,23 +257,8 @@ public class UserLookup implements UserLookupInterface {
 		}, DEFAULT_USERID_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
 		_userByUniIdCache.setMaxSize(DEFAULT_USERID_CACHE_SIZE);
 		_userByUniIdCache.setAsynchronousUpdateEnabled(true);
-		_userByUniIdCache.setExpiryStrategy(new TTLCacheExpiryStrategy<String, User>() {
-			@Override
-			public Pair<Number, TimeUnit> getTTL(CacheEntry<String, User> entry) {
-				if (entry.getValue().isFoundUser()) {
-					return Pair.of((Number) userIdCacheTimeout, TimeUnit.SECONDS);
-				} else {
-					return Pair.of((Number) (MISSING_USERID_CACHE_TIMEOUT * 2), TimeUnit.SECONDS); // twice the stale time
-				}
-			}
+		_userByUniIdCache.setExpiryStrategy(ttlCacheExpiryStrategyForUserByUserIdCacheAndUserByUniIdCache);
 
-			@Override
-			public boolean isStale(CacheEntry<String, User> entry) {
-				final long staleTime = entry.getTimestamp() + (DEFAULT_USERID_CACHE_TIMEOUT * 1000);
-				final long now = System.currentTimeMillis();
-				return staleTime <= now;
-			}
-		});
 
 		_userByUserIdCache = Caches.newCache(USER_CACHE_NAME, new CacheEntryFactory<String, User>() {
 			public User create(String key) throws CacheEntryUpdateException {
@@ -296,23 +299,7 @@ public class UserLookup implements UserLookupInterface {
 		}, DEFAULT_USERID_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
 		_userByUserIdCache.setMaxSize(DEFAULT_USERID_CACHE_SIZE);
 		_userByUserIdCache.setAsynchronousUpdateEnabled(true);
-		_userByUserIdCache.setExpiryStrategy(new TTLCacheExpiryStrategy<String, User>() {
-            @Override
-            public Pair<Number, TimeUnit> getTTL(CacheEntry<String, User> entry) {
-                if (entry.getValue().isFoundUser()) {
-                    return Pair.of((Number) userIdCacheTimeout, TimeUnit.SECONDS);
-                } else {
-                    return Pair.of((Number) (MISSING_USERID_CACHE_TIMEOUT * 2), TimeUnit.SECONDS); // twice the stale time
-                }
-            }
-
-            @Override
-            public boolean isStale(CacheEntry<String, User> entry) {
-                final long staleTime = entry.getTimestamp() + (DEFAULT_USERID_CACHE_TIMEOUT * 1000);
-                final long now = System.currentTimeMillis();
-                return staleTime <= now;
-            }
-		});
+		_userByUserIdCache.setExpiryStrategy(ttlCacheExpiryStrategyForUserByUserIdCacheAndUserByUniIdCache);
 
 
 		if (UserLookup.getConfigProperty("userlookup.useridcachesize") != null) {
