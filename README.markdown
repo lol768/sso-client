@@ -31,6 +31,9 @@ app's dependencies to use that version.
 
 It's important to only do this with snapshots because normal release versions are designed
 to be immutable, and you'll find it won't update with your changes without great difficulty.
+
+##### Snapshot sso-client-play
+`cd modules/play` then run `sbt publishLocal` to publish to local cache. Then update your Play! app dependencies to use that SNAPSHOT version
     
 Generating distributables without pushing to Nexus
 -------------
