@@ -2,10 +2,11 @@ package warwick.sso
 
 import java.util.Arrays._
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.util.ByteString
+import javax.inject.Inject
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.http.message.BasicHeader
 import org.mockito.Matchers._
@@ -24,8 +25,11 @@ import play.api.test.Helpers._
 import uk.ac.warwick.sso.client.core.Response
 import uk.ac.warwick.sso.client.trusted.TrustedApplicationHandler
 import uk.ac.warwick.sso.client.{SSOClientHandler, SSOConfiguration}
+import uk.ac.warwick.userlookup
+import uk.ac.warwick.userlookup.UserBuilder
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.collection.JavaConverters._
 
 object WebsocketTesting {
   class A(ctx: LoginContext, out: ActorRef) extends Actor { def receive = PartialFunction.empty }
@@ -36,20 +40,17 @@ object WebsocketTesting {
   /** Example of using SSOClient in a websocket. This code isn't actually executed,
     * but it's nice to know that it compiles
     */
-  class C(client: SSOClient) extends InjectedController {
-    import play.api.Play.current
+  class C @Inject()(client: SSOClient)(implicit system: ActorSystem, mat: Materializer) extends InjectedController {
 
     import scala.concurrent.ExecutionContext.Implicits.global
-    implicit val mat = current.materializer
-    implicit val system = current.actorSystem
 
-    def actor = WebSocket.acceptOrResult[JsValue, JsValue] { req =>
+    def actor: WebSocket = WebSocket.acceptOrResult[JsValue, JsValue] { req =>
       client.withUser(req) { loginContext =>
-        Future.successful(Right(ActorFlow.actorRef(A.props(loginContext) _)))
+        Future.successful(Right(ActorFlow.actorRef(A.props(loginContext))))
       }
     }
 
-    def iteratee = WebSocket.acceptOrResult[String, String] { req =>
+    def iteratee: WebSocket = WebSocket.acceptOrResult[String, String] { req =>
       client.withUser(req) { loginContext =>
         val name = loginContext.user.flatMap(_.name.full).getOrElse("nobody")
         val iteratee = Iteratee.foreach[String](println)
@@ -89,6 +90,12 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results with Gui
   implicit lazy val materializer: Materializer = app.materializer
 
   class Context {
+    val ssoUser: userlookup.User = new userlookup.User("jim") {
+      setFoundUser(true)
+      setWarwickId("1234567")
+    }
+    val user = User(ssoUser)
+
     val handler = mock[SSOClientHandler]
     val trustedAppHandler = mock[TrustedApplicationHandler]
     val response = new Response
@@ -117,6 +124,18 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results with Gui
       val props = result.futureValue.right.get.apply(testActor)
       props.args(0) must be (a[LoginContext])
       props.args(1) must be (testActor)
+    }
+
+    "reuse existing data from a request attribute" in new Context {
+      val context = new LoginContextImpl(null, Option(user), Option(user))(groupService, roleService)
+      val req = FakeRequest().addAttr(AuthenticatedRequest.LoginContextDataAttr, context)
+
+      val newContext = client.withUser(req) { loginContext =>
+        Future.successful(Right(loginContext))
+      }.futureValue.right.get
+
+      newContext.user.get must be (user)
+      newContext.actualUser.get must be (user)
 
     }
   }
@@ -149,6 +168,20 @@ class SsoClientImplSpec extends PlaySpec with MockitoSugar with Results with Gui
       response.setRedirect("http://www.example.net/googles")
       val result = client.Lenient(bodyParsers.default).disallowRedirect { _: AuthenticatedRequest[_] => Ok("super") }.apply(FakeRequest())
       headers(of=result).get("Location") mustBe None
+    }
+
+    "reuse existing data from a request attribute" in new Context {
+      val context = new LoginContextImpl(null, Option(user), Option(user))(groupService, roleService)
+      val req = FakeRequest().addAttr(AuthenticatedRequest.LoginContextDataAttr, context)
+
+      val myAction: Action[AnyContent] = client.Lenient(bodyParsers.default) { implicit request =>
+        val newContext = request.context
+        newContext.user.get must be (user)
+        newContext.actualUser.get must be (user)
+        Ok
+      }
+
+      myAction.apply(req)
     }
 
   }

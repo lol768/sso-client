@@ -1,5 +1,7 @@
 package uk.ac.warwick.sso.client.core;
 
+import uk.ac.warwick.util.web.Uri;
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
@@ -9,15 +11,16 @@ import java.util.*;
 public class ServletRequestAdapter implements HttpRequest {
     private final HttpServletRequest req;
 
+    private Map<String, List<String>> parsedQuery;
+
     public ServletRequestAdapter(HttpServletRequest req) {
         this.req = req;
     }
 
-
     @Override
     public List<String> getParameter(String name) {
         if (req.getParameterMap().containsKey(name)) {
-            return (List<String>)Arrays.asList(req.getParameterMap().get(name));
+            return Arrays.asList(req.getParameterValues(name));
         } else {
             return Collections.emptyList();
         }
@@ -56,6 +59,21 @@ public class ServletRequestAdapter implements HttpRequest {
     @Override
     public String getQueryString() {
         return req.getQueryString();
+    }
+
+    @Override
+    public List<String> getQueryParameter(String name) {
+        if (parsedQuery == null) {
+            if (getQueryString() != null) {
+                parsedQuery = Uri.parse("?" + getQueryString()).getQueryParameters();
+            } else {
+                parsedQuery = new HashMap<>();
+            }
+        }
+        if (parsedQuery.containsKey(name)) {
+            return parsedQuery.get(name);
+        }
+        return Collections.emptyList();
     }
 
     @Override

@@ -2,6 +2,14 @@ package uk.ac.warwick.sso.client;
 
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
@@ -17,11 +25,7 @@ import uk.ac.warwick.userlookup.*;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -202,5 +206,47 @@ public class SSOClientFilterTest  {
 		assertEquals("Lax", HandleFilter.getProperSameSiteValue(null));
 		assertEquals("Lax", HandleFilter.getProperSameSiteValue("wrong"));
 		assertEquals("Strict", HandleFilter.getProperSameSiteValue("strict"));
+	}
+
+	/**
+	 * When an application form POSTs an urlencoded form, it should be able to read that
+	 * InputStream itself. If we call getParameter or anything else that consumes the request body,
+	 * applications end up with a consumed InputStream with no data.
+	 *
+	 * We need to fire up Jetty to verify the behaviour of a real life request/response;
+	 * MockHttpServletRequest will let you re-read its input stream many times.
+	 */
+	@Test
+	public void inputStreamNotConsumed() throws Exception {
+		int port = 20000 + new Random().nextInt(10000);
+		Server server = new Server(port);
+		try {
+			WebAppContext webapp = new WebAppContext();
+			webapp.setContextPath("/");
+			webapp.setWar(getClass().getResource("/test-webapp").getFile());
+
+			server.setHandler(webapp);
+			server.start();
+
+			try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
+				HttpPost request = new HttpPost(String.format("http://localhost:%s/diagnostic", port));
+				request.setHeader("Content-Type","application/x-www-form-urlencoded");
+				request.setEntity(new UrlEncodedFormEntity(Arrays.asList(
+					new BasicNameValuePair("field1","value1"),
+					new BasicNameValuePair("field2","value2")
+				)));
+
+				try (CloseableHttpResponse response = client.execute(request)) {
+					// Our DiagnosticServlet reports back as response headers
+					assertEquals(response.getStatusLine().getReasonPhrase(), 200, response.getStatusLine().getStatusCode());
+					assertEquals("27", response.getFirstHeader("Request-Body-Length").getValue());
+					// Check that SSOClientFilter did actually run
+					assertEquals("false", response.getFirstHeader("User-Found").getValue());
+				}
+			}
+		} finally {
+			server.stop();
+		}
+
 	}
 }

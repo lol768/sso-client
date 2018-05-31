@@ -15,6 +15,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -28,12 +30,14 @@ import uk.ac.warwick.sso.client.SSOConfiguration;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookupAdapter;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -58,13 +62,17 @@ public class TrustedApplicationEndToEndTest {
         ServletContextHandler handler = new ServletContextHandler();
         handler.addServlet(UsernameEchoingServlet.class, "/user");
 
-        handler.addFilter(MultiPartFilter.class, "/*", 1);
-        handler.addFilter(SSOClientFilter.class, "/*", 1);
-        final FilterHolder taFilterHolder = handler.addFilter(TrustedApplicationFilter.class, "*", 1);
+        handler.addFilter(MultiPartFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
+        handler.addFilter(SSOClientFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
+        final FilterHolder taFilterHolder = handler.addFilter(TrustedApplicationFilter.class, "*", EnumSet.of(DispatcherType.REQUEST));
 
         ContextHandler.Context context = handler.getServletContext();
         context.setAttribute("SSO-CONFIG", new SSOConfiguration(new XMLConfiguration(TrustedApplicationEndToEndTest.class.getResource("/sso-config-trustedapps.xml"))));
-        context.setInitParameter("ssoclient.config", "/sso-config-trustedapps.xml");
+        handler.addLifeCycleListener(new AbstractLifeCycle.AbstractLifeCycleListener() {
+            @Override public void lifeCycleStarting(LifeCycle event) {
+                context.setInitParameter("ssoclient.config", "/sso-config-trustedapps.xml");
+            }
+        });
 
         server.setHandler(handler);
 
