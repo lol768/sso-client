@@ -28,11 +28,11 @@ public abstract class UserLookupAdapter implements UserLookupInterface {
 		delegate.clearCaches();
 	}
 
-	public List<User> findUsersWithFilter(Map<String, String> filterValues) {
+	public List<User> findUsersWithFilter(Map<String, Object> filterValues) {
 		return delegate.findUsersWithFilter(filterValues);
 	}
 
-	public List<User> findUsersWithFilter(Map<String, String> filterValues,
+	public List<User> findUsersWithFilter(Map<String, Object> filterValues,
 			boolean returnDisabledUsers) {
 		return delegate.findUsersWithFilter(filterValues, returnDisabledUsers);
 	}
@@ -56,6 +56,16 @@ public abstract class UserLookupAdapter implements UserLookupInterface {
 	public User getUserByWarwickUniId(String warwickUniId,
 			boolean includeDisabledLogins) {
 		return delegate.getUserByWarwickUniId(warwickUniId, includeDisabledLogins);
+	}
+
+	@Override
+	public Map<String, User> getUsersByWarwickUniIds(List<String> warwickUniIds) {
+		return delegate.getUsersByWarwickUniIds(warwickUniIds);
+	}
+
+	@Override
+	public Map<String, User> getUsersByWarwickUniIds(List<String> warwickUniIds, boolean includeDisabledLogins) {
+		return delegate.getUsersByWarwickUniIds(warwickUniIds, includeDisabledLogins);
 	}
 
 	public Map<String, User> getUsersByUserIds(List<String> userIdList) {

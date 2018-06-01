@@ -15,9 +15,6 @@ public class AnonymousUser extends User {
 
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * Constructor for AnonymousUser.
-	 */
 	public AnonymousUser() {
 		super();
 		setEmail("");
@@ -30,7 +27,10 @@ public class AnonymousUser extends User {
 		setOldWarwickSSOToken("");
 		setUserId("");
 		setUserType(UNKNOWN_USER_TYPE);
-		
 	}
 
+	public AnonymousUser(String userId) {
+		super();
+		setUserId(userId);
+	}
 }

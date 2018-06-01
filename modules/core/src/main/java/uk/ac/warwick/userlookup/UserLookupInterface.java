@@ -61,7 +61,10 @@ public interface UserLookupInterface extends UserResolver, CacheingService {
 	 */
 	User getUserByWarwickUniId(final String warwickUniId);
 	User getUserByWarwickUniId(final String warwickUniId, boolean includeDisabledLogins);
-	
+
+	Map<String, User> getUsersByWarwickUniIds(final List<String> warwickUniIds);
+	Map<String, User> getUsersByWarwickUniIds(final List<String> warwickUniIds, boolean includeDisabledLogins);
+
 	/**
 	 * Return a list of users with names matching the parameters passed in FilterValues.
 	 * <p>
@@ -71,7 +74,7 @@ public interface UserLookupInterface extends UserResolver, CacheingService {
 	 * If there was any error retrieving the data, an empty list will be returned, and
 	 * a warning logged.
 	 */
-	List<User> findUsersWithFilter(final Map<String, String> filterValues);
+	List<User> findUsersWithFilter(final Map<String, Object> filterValues);
 
 	/**
 	 * Return a list of users with names matching the parameters passed in FilterValues.
@@ -83,7 +86,7 @@ public interface UserLookupInterface extends UserResolver, CacheingService {
 	 * @param returnDisabledUsers If true, the results will include users even if their
 	 * 		account has been marked as disabled.
 	 */
-	List<User> findUsersWithFilter(final Map<String, String> filterValues, boolean returnDisabledUsers);
+	List<User> findUsersWithFilter(final Map<String, Object> filterValues, boolean returnDisabledUsers);
 	
 	GroupService getGroupService();
 	

@@ -47,14 +47,14 @@ final class SSOUserLookup implements UserFilter {
 	 * @param returnDisabledUsers if true, returns all users found. If false, removes logindisabled=true users from the result.
 	 * @return List[User]
 	 */
-	public List<User> findUsersWithFilter(Map<String,String> filterValues, boolean returnDisabledUsers)
+	public List<User> findUsersWithFilter(Map<String,Object> filterValues, boolean returnDisabledUsers)
 			throws UserLookupException {
 		String error;
 		Exception exception;
 		try {
 			HttpMethodWebService service = new HttpMethodWebService(new URL(_ssosUrl), new GetMethodFactory(), getTimeoutConfig(), _version, _apiKey);
 			Map<String,Object> parameters = new HashMap<String,Object>();
-			for (Entry<String,String> entry : filterValues.entrySet()) {
+			for (Entry<String,Object> entry : filterValues.entrySet()) {
 				parameters.put(FILTER_PARAM_PREFIX + entry.getKey(), entry.getValue());
 			}
 			

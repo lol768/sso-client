@@ -51,7 +51,7 @@ public class UserLookupTest {
 			assertThat(usersMap, hasEntry(is("aaa"), is(unverified()) ));
 			assertThat(usersMap, hasEntry(is("bbb"), is(unverified()) ));
 			
-			List<User> filtered = ul.findUsersWithFilter(mapFrom("sn","Aigabe"));
+			List<User> filtered = ul.findUsersWithFilter(singletonMap("sn","Aigabe"));
 			assertTrue(filtered.isEmpty());
 		}});
 	}
@@ -82,6 +82,7 @@ public class UserLookupTest {
 		sentry.setResults(singletonList(result));
 		sentry.run(new Runnable(){ public void run() {
 			User nick = ul.getUserByWarwickUniId("1234567");
+			assertEquals("Howes", nick.getLastName());
 			assertEquals("Staff", nick.getExtraProperty("warwickitsclass"));
 			assertEquals("WarwickADS", nick.getUserSource());
 		}});

@@ -201,7 +201,13 @@ public final class HttpMethodWebService {
 			}
 
 			for (Entry<String, Object> entry : params.entrySet()) {
-                builder.addQueryParameter(entry.getKey(), entry.getValue().toString());
+				if (entry.getValue() instanceof Iterable) {
+					for (String value : (Iterable<String>)entry.getValue()) {
+						builder.addQueryParameter(entry.getKey(), value);
+					}
+				} else {
+					builder.addQueryParameter(entry.getKey(), entry.getValue().toString());
+				}
 			}
 
 			get.setURI(builder.toUri().toJavaUri());

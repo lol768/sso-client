@@ -65,17 +65,6 @@ public class TestMethods {
 		return user;
 	}
 	
-	public static Map<String,String> mapFrom(String... keysAndValues) {
-		if (keysAndValues.length % 2 != 0) {
-			throw new IllegalArgumentException("must be an even number of strings");
-		}
-		Map<String,String> map = new HashMap<String, String>();
-		for (int i=0; i<keysAndValues.length-1; i+=2) {
-			map.put(keysAndValues[i], keysAndValues[i+1]);
-		}
-		return map;
-	}
-	
 	public static Matcher<Map<?,?>> emptyMap() {
 		return new BaseMatcher<Map<?,?>>() {
 			public boolean matches(Object item) {
