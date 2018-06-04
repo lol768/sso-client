@@ -422,12 +422,12 @@ public class UserLookup implements UserLookupInterface {
 	 * @return Map[String,User]
 	 */
 	public final Map<String, User> getUsersByUserIds(final List<String> userIdList) {	
-		Set<String> distinctIds = new HashSet<String>(userIdList);
+		Set<String> distinctIds = new HashSet<>(userIdList);
 		try {
-			return getUserByUserIdCache().get(new ArrayList<String>(distinctIds));
+			return getUserByUserIdCache().get(new ArrayList<>(distinctIds));
 		} catch (CacheEntryUpdateException e) {
 			LOGGER.warn("Couldn't get users by user IDs", e);
-			Map<String,User> unverifiedUsers = new HashMap<String, User>();
+			Map<String,User> unverifiedUsers = new HashMap<>();
 			for (String id : distinctIds) {
 				unverifiedUsers.put(id, new UnverifiedUser(e));
 			}
@@ -535,7 +535,7 @@ public class UserLookup implements UserLookupInterface {
 	}
 
 	/**
-	 * Does a lookup for multiple Uni IDs, then gathers up the results to
+	 * Does a lookup for multiple Uni IDs, then gathers up the results.
 	 *
 	 * The resulting map may not contain keys for IDs that weren't found, but
 	 * the cache factory that uses this does fill in all requested keys with at
@@ -556,17 +556,20 @@ public class UserLookup implements UserLookupInterface {
 			));
 		}
 
-		// The returned list will be a mishmash of accounts and there may be 0-to-many items per Uni ID,
+		// `users` will be a mishmash of accounts and there may be 0-to-many items per Uni ID,
 		// so group by Uni ID then we can resolve each set down to the "best" option, the same way that
 		// we do when looking up a single Uni ID.
-		return users.stream()
+		List<String> lowDetailUserIds = users.stream()
 				.collect(Collectors.groupingBy(User::getWarwickId))
 				.entrySet()
 				.stream()
-				.collect(Collectors.toMap(
-						Map.Entry::getKey,
-						e -> resolveToSingleUser(e.getKey(), e.getValue())
-				));
+				.map(e -> resolveToSingleUser(e.getKey(), e.getValue()))
+				.map(User::getUserId)
+				.distinct()
+				.collect(Collectors.toList());
+
+		// Resolve to high-detail users from the by-userid lookup, some/all of which may be from cache.
+		return getUsersByUserIds(lowDetailUserIds);
 	}
 
 	private User getUserByWarwickUniIdUncached(final String warwickUniId) {
@@ -579,6 +582,9 @@ public class UserLookup implements UserLookupInterface {
 	 * to work out which one is probably the "primary" account. The best indication
 	 * is if a "warwickprimary" attribute is present, which means the directory knows
 	 * this is the correct one.
+	 *
+	 * This _doesn't_ look up by user ID afterward, so the returned User will be a low-detail
+	 * one as returned from the search API.
 	 *
 	 * @param warwickUniId The Uni ID we searched for
 	 * @param users list of users returned from a search by warwickuniid
@@ -594,7 +600,7 @@ public class UserLookup implements UserLookupInterface {
 			if (user.isWarwickPrimary()) {
 				LOGGER.info("Returning primary user of " + users.size()
 						+ " users that matches Warwick Uni Id:" + warwickUniId);
-				return getUserByUserId(user.getUserId());
+				return user;
 			}
 		}
 
@@ -602,12 +608,11 @@ public class UserLookup implements UserLookupInterface {
 			if (user.getEmail() != null && !user.getEmail().equals("")) {
 				LOGGER.info("Returning user with email address (" + user.getUserId() + ") of " + users.size()
 						+ " users that matches Warwick Uni Id:" + warwickUniId);
-				return getUserByUserId(user.getUserId());
+				return user;
 			}
 		}
 
-		User user = (User) users.get(0);
-		return getUserByUserId(user.getUserId());
+		return users.get(0);
 	}
 
 	public final List<User> findUsersWithFilter(final Map<String,Object> filterValues) {
