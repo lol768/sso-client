@@ -1,5 +1,6 @@
 package uk.ac.warwick.userlookup;
 
+import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.warwick.sso.client.SSOClientVersionLoader;
@@ -15,8 +16,11 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * A class to look up arbitrary users from Single Sign-on.
@@ -559,17 +563,26 @@ public class UserLookup implements UserLookupInterface {
 		// `users` will be a mishmash of accounts and there may be 0-to-many items per Uni ID,
 		// so group by Uni ID then we can resolve each set down to the "best" option, the same way that
 		// we do when looking up a single Uni ID.
-		List<String> lowDetailUserIds = users.stream()
+		List<User> lowDetailUsers = users.stream()
 				.collect(Collectors.groupingBy(User::getWarwickId))
 				.entrySet()
 				.stream()
 				.map(e -> resolveToSingleUser(e.getKey(), e.getValue()))
-				.map(User::getUserId)
-				.distinct()
-				.collect(Collectors.toList());
+				.collect(toList());
 
 		// Resolve to high-detail users from the by-userid lookup, some/all of which may be from cache.
-		return getUsersByUserIds(lowDetailUserIds);
+		List<String> lowDetailUserIds = lowDetailUsers.stream()
+				.map(User::getUserId)
+				.distinct()
+				.collect(toList());
+		Map<String, User> highDetailUsers = getUsersByUserIds(lowDetailUserIds);
+
+		// Map back to key by University ID, using the original collection so that we don't
+		// clobber not-found or unverified users
+		return lowDetailUsers.stream().collect(toMap(
+			User::getWarwickId,
+			u -> highDetailUsers.getOrDefault(u.getUserId(), new AnonymousUser())
+		));
 	}
 
 	private User getUserByWarwickUniIdUncached(final String warwickUniId) {
