@@ -527,7 +527,7 @@ public class UserLookup implements UserLookupInterface {
 	public Map<String, User> getUsersByWarwickUniIds(List<String> warwickUniIds, boolean includeDisabledLogins) {
 		try {
 			Map<String, User> allResults = getUserByUniIdCache().get(warwickUniIds);
-			if (!includeDisabledLogins) {
+			if (includeDisabledLogins) {
 				return allResults;
 			}
 			// we cache everything, so filter at runtime
