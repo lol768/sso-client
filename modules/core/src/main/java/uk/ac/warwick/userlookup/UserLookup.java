@@ -783,6 +783,8 @@ public class UserLookup implements UserLookupInterface {
 	public final void clearCaches() {
 		getUserByTokenCache().clear();
 		getUserByUserIdCache().clear();
+		getUserByUniIdCache().clear();
+		getAuthCache().clear();
 	}
 
 	public OnCampusService getOnCampusService() {
