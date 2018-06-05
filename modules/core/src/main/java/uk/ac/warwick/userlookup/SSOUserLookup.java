@@ -7,14 +7,15 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import uk.ac.warwick.sso.client.SSOClientVersionLoader;
-import uk.ac.warwick.userlookup.HttpMethodWebService.GetMethodFactory;
 import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
+import uk.ac.warwick.userlookup.HttpMethodWebService.PostMethodFactory;
 import uk.ac.warwick.userlookup.HttpMethodWebService.WebServiceException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
  * Finds users by filter by calling Websignon's API. The
@@ -52,7 +53,7 @@ final class SSOUserLookup implements UserFilter {
 		String error;
 		Exception exception;
 		try {
-			HttpMethodWebService service = new HttpMethodWebService(new URL(_ssosUrl), new GetMethodFactory(), getTimeoutConfig(), _version, _apiKey);
+			HttpMethodWebService service = new HttpMethodWebService(new URL(_ssosUrl), new PostMethodFactory(), getTimeoutConfig(), _version, _apiKey);
 			Map<String,Object> parameters = new HashMap<String,Object>();
 			for (Entry<String,Object> entry : filterValues.entrySet()) {
 				parameters.put(FILTER_PARAM_PREFIX + entry.getKey(), entry.getValue());
