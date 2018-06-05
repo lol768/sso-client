@@ -7,14 +7,15 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import uk.ac.warwick.sso.client.SSOClientVersionLoader;
-import uk.ac.warwick.userlookup.HttpMethodWebService.GetMethodFactory;
 import uk.ac.warwick.userlookup.HttpMethodWebService.HandlerException;
+import uk.ac.warwick.userlookup.HttpMethodWebService.PostMethodFactory;
 import uk.ac.warwick.userlookup.HttpMethodWebService.WebServiceException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
  * Finds users by filter by calling Websignon's API. The
@@ -47,14 +48,14 @@ final class SSOUserLookup implements UserFilter {
 	 * @param returnDisabledUsers if true, returns all users found. If false, removes logindisabled=true users from the result.
 	 * @return List[User]
 	 */
-	public List<User> findUsersWithFilter(Map<String,String> filterValues, boolean returnDisabledUsers)
+	public List<User> findUsersWithFilter(Map<String,Object> filterValues, boolean returnDisabledUsers)
 			throws UserLookupException {
 		String error;
 		Exception exception;
 		try {
-			HttpMethodWebService service = new HttpMethodWebService(new URL(_ssosUrl), new GetMethodFactory(), getTimeoutConfig(), _version, _apiKey);
+			HttpMethodWebService service = new HttpMethodWebService(new URL(_ssosUrl), new PostMethodFactory(), getTimeoutConfig(), _version, _apiKey);
 			Map<String,Object> parameters = new HashMap<String,Object>();
-			for (Entry<String,String> entry : filterValues.entrySet()) {
+			for (Entry<String,Object> entry : filterValues.entrySet()) {
 				parameters.put(FILTER_PARAM_PREFIX + entry.getKey(), entry.getValue());
 			}
 			

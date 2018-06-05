@@ -3,6 +3,7 @@ package uk.ac.warwick.userlookup;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -101,9 +102,19 @@ public final class HttpMethodWebService {
         request.setConfig(config.build());
 
 		request.setHeader("User-Agent", getUserAgent(_version));
-		
+
 		addApiKeyToUrl(request);
-		
+
+		if (parameters.containsKey("requestType")) {
+			try {
+				UriBuilder builder = new UriBuilder(Uri.fromJavaUri(_location.toURI()));
+				builder.addQueryParameter("requestType", parameters.remove("requestType").toString());
+				request.setURI(builder.toUri().toJavaUri());
+			} catch (URISyntaxException e) {
+				LOGGER.warn("Exception when adding query parameter to sso url", e);
+			}
+		}
+
 		_methodFactory.setMethodParams(request, parameters);
 		LOGGER.debug("Connecting to WebService on " + _location.toExternalForm());
 
@@ -201,7 +212,13 @@ public final class HttpMethodWebService {
 			}
 
 			for (Entry<String, Object> entry : params.entrySet()) {
-                builder.addQueryParameter(entry.getKey(), entry.getValue().toString());
+				if (entry.getValue() instanceof Iterable) {
+					for (String value : (Iterable<String>)entry.getValue()) {
+						builder.addQueryParameter(entry.getKey(), value);
+					}
+				} else {
+					builder.addQueryParameter(entry.getKey(), entry.getValue().toString());
+				}
 			}
 
 			get.setURI(builder.toUri().toJavaUri());
