@@ -15,9 +15,15 @@ trait UserLookupService {
 
   /**
    * @return A Try[Map] from usercode to user. If a code did not match a user,
-   * we don't return it.
+   *      we don't return it. Unverified users (where there was an I/O error) will be
+    *     a failed Try.
    */
   def getUsers(codes: Seq[Usercode]): Try[Map[Usercode, User]]
+  /**
+    * @return A Try[Map] from Uni ID to user. If an ID did not match a user,
+    *     we don't return it. Unverified users (where there was an I/O error) will be
+    *     a failed Try.
+    */
   def getUsers(ids: Seq[UniversityID], includeDisabled: Boolean = false): Try[Map[UniversityID, User]]
   def searchUsers(filters: Map[String,String], includeDisabled: Boolean = false): Try[Seq[User]]
 
@@ -29,7 +35,7 @@ trait UserLookupService {
   def basicAuth(usercode: String, password: String): Try[Option[User]]
 
   def getUser(usercode: Usercode): Try[User] =
-    getUsers(Seq(usercode)).flatMap(users => Try(users.get(usercode).get))
+    getUsers(Seq(usercode)).map(users => users(usercode))
 
 }
 
@@ -49,24 +55,22 @@ class UserLookupServiceImpl @Inject() (userLookupInterface: UserLookupInterface)
       }
   }
 
-  override def searchUsers(filters: Map[String, String], includeDisabled: Boolean = false) = Try {
-    userLookupInterface.findUsersWithFilter(filters.asJava, includeDisabled)
+  override def searchUsers(filters: Map[String,String], includeDisabled: Boolean = false) = Try {
+    userLookupInterface.findUsersWithFilter(filters.mapValues(_.asInstanceOf[Object]).asJava, includeDisabled)
       .asScala
       .filter(existsWithUsercode)
       .map(User.apply)
   }
 
   override def getUsers(ids: Seq[UniversityID], includeDisabled: Boolean = false) = Try {
-    // TODO Websignon supports batch lookup by university ID - implement SSO-1472 to avoid making N requests
-    ids.flatMap { id =>
-      Option(userLookupInterface.getUserByWarwickUniId(id.string, includeDisabled))
-        .filter(existsWithUsercode)
-    }
-    .map(User.apply)
-    .flatMap { user =>
-      user.universityId.map { id => (id -> user) }
-    }
-    .toMap
+    userLookupInterface.getUsersByWarwickUniIds(ids.map(_.string).asJava, includeDisabled)
+      .asScala
+      .toMap
+      .flatMap {
+        case (idString, user) if existsWithUsercode(user) => Some(UniversityID(idString) -> User.apply(user))
+        case (_, user) if !user.isVerified => throw user.asInstanceOf[UnverifiedUser].getVerificationException
+        case _ => None
+      }
   }
 
   override def basicAuth(usercode: String, password: String) = Try {

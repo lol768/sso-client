@@ -1,10 +1,12 @@
 package uk.ac.warwick.userlookup;
 
+import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.warwick.sso.client.SSOClientVersionLoader;
 import uk.ac.warwick.sso.client.core.OnCampusService;
 import uk.ac.warwick.sso.client.core.OnCampusServiceImpl;
+import uk.ac.warwick.sso.client.util.StreamUtils;
 import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService;
 import uk.ac.warwick.util.cache.*;
 import uk.ac.warwick.util.collections.Pair;
@@ -12,9 +14,13 @@ import uk.ac.warwick.util.collections.Pair;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * A class to look up arbitrary users from Single Sign-on.
@@ -47,7 +53,7 @@ public class UserLookup implements UserLookupInterface {
 	
 	private static Properties configProperties;
 	
-	private static Object defaultPropertiesLock = new Object();
+	private static final Object defaultPropertiesLock = new Object();
 	private static Properties defaultProperties;
 
 	/**
@@ -217,9 +223,9 @@ public class UserLookup implements UserLookupInterface {
 			@Override
 			public Pair<Number, TimeUnit> getTTL(CacheEntry<String, User> entry) {
 				if (entry.getValue().isFoundUser()) {
-					return Pair.of((Number) userIdCacheTimeout, TimeUnit.SECONDS);
+					return Pair.of(userIdCacheTimeout, TimeUnit.SECONDS);
 				} else {
-					return Pair.of((Number) (MISSING_USERID_CACHE_TIMEOUT * 2), TimeUnit.SECONDS); // twice the stale time
+					return Pair.of(MISSING_USERID_CACHE_TIMEOUT * 2, TimeUnit.SECONDS); // twice the stale time
 				}
 			}
 
@@ -231,19 +237,29 @@ public class UserLookup implements UserLookupInterface {
 			}
 		};
 
-		_userByUniIdCache = Caches.newCache(USER_BY_UNI_ID_CACHE_NAME, new SingularCacheEntryFactory<String, User>() {
+		_userByUniIdCache = Caches.newCache(USER_BY_UNI_ID_CACHE_NAME, new CacheEntryFactory<String, User>() {
 			public User create(String key) {
 				return getUserByWarwickUniIdUncached(key);
 			}
+
+			@Override
+			public Map<String, User> create(List<String> keys) {
+				Map<String, User> users = getUsersByWarwickUniIdsUncached(keys);
+				for (String key : keys) {
+					if (!users.containsKey(key)) {
+						users.put(key, new AnonymousUser());
+					}
+				}
+				return users;
+			}
+
+			@Override
+			public boolean isSupportsMultiLookups() {
+				return true;
+			}
+
 			public boolean shouldBeCached(User val) {
 				return val.isVerified();
-			}
-			public int secondsToLive(User val) {
-				if (val.isFoundUser()) {
-					return TIME_TO_LIVE_ETERNITY;
-				} else {
-					return MISSING_USERID_CACHE_TIMEOUT * 2; // twice the stale time
-				}
 			}
 		}, DEFAULT_USERID_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
 		_userByUniIdCache.setMaxSize(DEFAULT_USERID_CACHE_SIZE);
@@ -264,9 +280,7 @@ public class UserLookup implements UserLookupInterface {
 					Map<String, User> usersById = getSpecificUserLookupType().getUsersById(keys);
 					for (String key : keys) {
 						if (!usersById.containsKey(key)) {
-							AnonymousUser anon = new AnonymousUser();
-							anon.setUserId(key);
-							usersById.put(key, anon);
+							usersById.put(key, new AnonymousUser(key));
 						}
 					}
 					return usersById;
@@ -279,13 +293,6 @@ public class UserLookup implements UserLookupInterface {
 			}
 			public boolean shouldBeCached(User val) {
 				return val.isVerified();
-			}
-			public int secondsToLive(User val) {
-				if (val.isFoundUser()) {
-					return TIME_TO_LIVE_ETERNITY;
-				} else {
-					return MISSING_USERID_CACHE_TIMEOUT * 2; // twice the stale time
-				}
 			}
 		}, DEFAULT_USERID_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
 		_userByUserIdCache.setMaxSize(DEFAULT_USERID_CACHE_SIZE);
@@ -335,13 +342,12 @@ public class UserLookup implements UserLookupInterface {
 			return new ArrayList<User>();
 		}
 
-		Map<String,String> filterValues = new HashMap<String,String>();
+		Map<String,Object> filterValues = new HashMap<>();
 		filterValues.put("ou", department);
 		// the warwickuniid * line is to get only real users as there appear to
 		// be fake users with no library card numbers
 		filterValues.put("warwickuniid", "*");
-		List<User> users = findUsersWithFilter(filterValues, false);
-		return users;
+		return findUsersWithFilter(filterValues, false);
 
 	}
 
@@ -357,7 +363,7 @@ public class UserLookup implements UserLookupInterface {
 			return new ArrayList<User>();
 		}
 
-		Map<String, String> filterValues = new HashMap<String, String>();
+		Map<String, Object> filterValues = new HashMap<>();
 		filterValues.put("warwickdeptcode", department);
 		// the warwickuniid * line is to get only real users as there appear to
 		// be fake users with no library card numbers
@@ -420,19 +426,18 @@ public class UserLookup implements UserLookupInterface {
 	 * @return Map[String,User]
 	 */
 	public final Map<String, User> getUsersByUserIds(final List<String> userIdList) {	
-		Set<String> distinctIds = new HashSet<String>(userIdList);
+		Set<String> distinctIds = new HashSet<>(userIdList);
 		try {
-			return getUserByUserIdCache().get(new ArrayList<String>(distinctIds));
+			return getUserByUserIdCache().get(new ArrayList<>(distinctIds));
 		} catch (CacheEntryUpdateException e) {
 			LOGGER.warn("Couldn't get users by user IDs", e);
-			Map<String,User> unverifiedUsers = new HashMap<String, User>();
+			Map<String,User> unverifiedUsers = new HashMap<>();
 			for (String id : distinctIds) {
 				unverifiedUsers.put(id, new UnverifiedUser(e));
 			}
 			return unverifiedUsers;
 		}
 	}
-
 
 	public final void signOut(final String token) throws UserLookupException {
 		_userByTokenCache.remove(token);
@@ -513,18 +518,92 @@ public class UserLookup implements UserLookupInterface {
 		}
 	}
 
-	private final User getUserByWarwickUniIdUncached(final String warwickUniId) {
+	@Override
+	public Map<String, User> getUsersByWarwickUniIds(List<String> warwickUniIds) {
+		return getUsersByWarwickUniIds(warwickUniIds, true);
+	}
 
-		Map<String,String> filterValues = new HashMap<String,String>();
-		filterValues.put("warwickuniid", warwickUniId);
+	@Override
+	public Map<String, User> getUsersByWarwickUniIds(List<String> warwickUniIds, boolean includeDisabledLogins) {
+		try {
+			Map<String, User> allResults = getUserByUniIdCache().get(warwickUniIds);
+			if (includeDisabledLogins) {
+				return allResults;
+			}
+			// we cache everything, so filter at runtime
+			return StreamUtils.filterMapValues(allResults, u -> !u.isLoginDisabled());
+		} catch (CacheEntryUpdateException e) {
+			LOGGER.warn("Couldn't get users by uniId", e);
+			return Collections.emptyMap();
+		}
+	}
+
+	/**
+	 * Does a lookup for multiple Uni IDs, then gathers up the results.
+	 *
+	 * The resulting map may not contain keys for IDs that weren't found, but
+	 * the cache factory that uses this does fill in all requested keys with at
+	 * least an AnonymousUser.
+	 */
+	private Map<String, User> getUsersByWarwickUniIdsUncached(List<String> ids) {
+		Map<String,Object> filterValues = new HashMap<>();
+		filterValues.put("warwickuniid", ids);
+
 		List<User> users;
 		try {
 			users = findUsersWithFilterUnsafe(filterValues, true);
 		} catch (UserLookupException e) {
-			LOGGER.warn("Problem looking up user by warwickuniid, returning unverified user");
-			return new UnverifiedUser(e);
+			LOGGER.warn("Problem looking up user by warwickuniid, returning unverified users");
+			return ids.stream().collect(Collectors.toMap(
+					Function.identity(),
+					id -> new UnverifiedUser(e)
+			));
 		}
 
+		// `users` will be a mishmash of accounts and there may be 0-to-many items per Uni ID,
+		// so group by Uni ID then we can resolve each set down to the "best" option, the same way that
+		// we do when looking up a single Uni ID.
+		List<User> lowDetailUsers = users.stream()
+				.collect(Collectors.groupingBy(User::getWarwickId))
+				.entrySet()
+				.stream()
+				.map(e -> resolveToSingleUser(e.getKey(), e.getValue()))
+				.collect(toList());
+
+		// Resolve to high-detail users from the by-userid lookup, some/all of which may be from cache.
+		List<String> lowDetailUserIds = lowDetailUsers.stream()
+				.map(User::getUserId)
+				.distinct()
+				.collect(toList());
+		Map<String, User> highDetailUsers = getUsersByUserIds(lowDetailUserIds);
+
+		// Map back to key by University ID, using the original collection so that we don't
+		// clobber not-found or unverified users
+		return lowDetailUsers.stream().collect(toMap(
+			User::getWarwickId,
+			u -> highDetailUsers.getOrDefault(u.getUserId(), new AnonymousUser())
+		));
+	}
+
+	private User getUserByWarwickUniIdUncached(final String warwickUniId) {
+		Map<String, User> result = getUsersByWarwickUniIdsUncached(Collections.singletonList(warwickUniId));
+		return result.getOrDefault(warwickUniId, new AnonymousUser());
+	}
+
+	/**
+	 * A search by Uni ID can return multiple accounts. This does some heuristics
+	 * to work out which one is probably the "primary" account. The best indication
+	 * is if a "warwickprimary" attribute is present, which means the directory knows
+	 * this is the correct one.
+	 *
+	 * This _doesn't_ look up by user ID afterward, so the returned User will be a low-detail
+	 * one as returned from the search API.
+	 *
+	 * @param warwickUniId The Uni ID we searched for
+	 * @param users list of users returned from a search by warwickuniid
+	 * @return A single user (which may be AnonymousUser if nothing else worked)
+	 */
+	private User resolveToSingleUser(String warwickUniId, List<User> users) {
 		if (users.isEmpty()) {
 			LOGGER.debug("No user found that matches Warwick Uni Id:" + warwickUniId);
 			return new AnonymousUser();
@@ -534,7 +613,7 @@ public class UserLookup implements UserLookupInterface {
 			if (user.isWarwickPrimary()) {
 				LOGGER.info("Returning primary user of " + users.size()
 						+ " users that matches Warwick Uni Id:" + warwickUniId);
-				return getUserByUserId(user.getUserId());
+				return user;
 			}
 		}
 
@@ -542,20 +621,19 @@ public class UserLookup implements UserLookupInterface {
 			if (user.getEmail() != null && !user.getEmail().equals("")) {
 				LOGGER.info("Returning user with email address (" + user.getUserId() + ") of " + users.size()
 						+ " users that matches Warwick Uni Id:" + warwickUniId);
-				return getUserByUserId(user.getUserId());
+				return user;
 			}
 		}
 
-		User user = (User) users.get(0);
-		return getUserByUserId(user.getUserId());
+		return users.get(0);
 	}
 
-	public final List<User> findUsersWithFilter(final Map<String,String> filterValues) {
+	public final List<User> findUsersWithFilter(final Map<String,Object> filterValues) {
 		return findUsersWithFilter(filterValues, false);
 	}
 
 
-	public final List<User> findUsersWithFilter(final Map<String,String> filterValues, boolean returnDisabledUsers) {
+	public final List<User> findUsersWithFilter(final Map<String,Object> filterValues, boolean returnDisabledUsers) {
 		try {
 			return findUsersWithFilterUnsafe(filterValues, returnDisabledUsers);
 		} catch (UserLookupException e) {
@@ -565,28 +643,15 @@ public class UserLookup implements UserLookupInterface {
 	}
 
 	private List<User> findUsersWithFilterUnsafe(
-			final Map<String, String> filterValues, boolean returnDisabledUsers)
+			final Map<String, Object> filterValues, boolean returnDisabledUsers)
 			throws UserLookupException {
 		List<User> list = new SSOUserLookup(getSsosUrl(), _apiKey).findUsersWithFilter(filterValues, returnDisabledUsers);
-		// SSO-1147 don't put these low-detail User objects in cache.
-//		final Cache<String, User> cache = getUserByUserIdCache();
-//		for (User user : list) {
-//			if (user.isFoundUser()) {
-//				String userId = user.getUserId();
-//				if (userId != null && !"".equals(userId.trim())) {
-//					cache.put(new Entry<String,User>(userId, user));
-//				}
-//			}
-//		}
+		// SSO-1147 We no longer put these User objects in cache as they are low-detail
 		return list;
 	}
 
 	public final String getSsosUrl() {
-		// A default is used deeper down
-//		if (_ssosUrl == null) {
-//			LOGGER.error("About to throw an exception because we don't have the SSO URL");
-//			throw new IllegalStateException("No URL to SSO has been specified. Either specify the userlookup.ssosUrl system property, or call userLookup.setSsosUrl(...)");
-//		}
+		// A fallback default is handled elsewhere
 		return _ssosUrl;
 	}
 
@@ -718,6 +783,8 @@ public class UserLookup implements UserLookupInterface {
 	public final void clearCaches() {
 		getUserByTokenCache().clear();
 		getUserByUserIdCache().clear();
+		getUserByUniIdCache().clear();
+		getAuthCache().clear();
 	}
 
 	public OnCampusService getOnCampusService() {

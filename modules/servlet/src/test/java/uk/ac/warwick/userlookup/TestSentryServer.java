@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections.EnumerationUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.eclipse.jetty.server.Handler;
@@ -97,13 +98,14 @@ public class TestSentryServer extends AbstractHandler {
 			List<String> requestedUserIds = Arrays.asList(req.getParameterValues("user"));
 			handleSentry(req, res, requestedUserIds);
 		} else if (req.getRequestURI().startsWith("/origin/api/userSearch")) {			
-			Map<String,String> filter = new HashMap<String, String>();
+			Map<String,String[]> filter = new HashMap<>();
 			for (Object key : EnumerationUtils.toList(req.getParameterNames())) {
 				String name = (String)key;
 				if (name.startsWith("f_")) {
 					String attribute = name.substring(2);
-					String value = req.getParameter(name);
-					filter.put(attribute, value);
+					String[] values = req.getParameterValues(name);
+					filter.put(attribute, values);
+					LOGGER.info(String.format("Received filter attribute %s=%s", attribute, StringUtils.join(values, ",")));
 					//System.out.println(attribute + "=" + value);
 				}
 			}
@@ -112,7 +114,7 @@ public class TestSentryServer extends AbstractHandler {
 			out.println("<users>");
 			
 			for (Map<String,String> result : lookupResults) {
-				for (Entry<String,String> entry : filter.entrySet()) {
+				for (Entry<String,String[]> entry : filter.entrySet()) {
 					String columnName = entry.getKey();
 					if (result.containsKey(columnName) &&
 							filterMatches(entry.getValue(), result.get(columnName))) {
@@ -134,12 +136,14 @@ public class TestSentryServer extends AbstractHandler {
 	 * Used for the pretend attribute search. Assumes for the moment that
 	 * it will match any attribute that begins with the search value.
 	 */
-	private boolean filterMatches(String filterValue, String attributeValue) {
-		if (filterValue.endsWith("*")) {
-			return (attributeValue.startsWith(filterValue.substring(0, filterValue.length()-1)));
-		} else {
-			return attributeValue.equals(filterValue);
-		}
+	private boolean filterMatches(String[] filterValues, String attributeValue) {
+		return Arrays.stream(filterValues).anyMatch( filterValue -> {
+			if (filterValue.endsWith("*")) {
+				return (attributeValue.startsWith(filterValue.substring(0, filterValue.length() - 1)));
+			} else {
+				return attributeValue.equals(filterValue);
+			}
+		});
 	}
 
 	private void handleSentry(Request req, HttpServletResponse res,

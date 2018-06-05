@@ -39,7 +39,7 @@ class UserLookupServiceImplSpec extends PlaySpec with MockitoSugar {
 
     "searchUsers" in new Context {
       val filters = Map("species" -> "foulBird")
-      when (userlookup.findUsersWithFilter(filters.asJava, false)) thenReturn List(heronUser, anon).asJava
+      when (userlookup.findUsersWithFilter(filters.asInstanceOf[Map[String,Object]].asJava, false)) thenReturn List(heronUser, anon).asJava
 
       service.searchUsers(filters, false).get must be(Seq(User(heronUser)))
     }
@@ -61,13 +61,18 @@ class UserLookupServiceImplSpec extends PlaySpec with MockitoSugar {
 
     "getUsers by university ID" in new Context {
       val ids = UniversityID("gleb") :: universityIds
-      when(userlookup.getUserByWarwickUniId("heron", false)) thenReturn heronUser
-      when(userlookup.getUserByWarwickUniId("1170836", false)) thenReturn ritchieUser
-      when(userlookup.getUserByWarwickUniId("gleb", false)) thenReturn anon
-      service.getUsers(ids).get must be(Map(
-        UniversityID("heron") -> User(heronUser).copy(universityId = Some(UniversityID("heron"))),
-        UniversityID("1170836") -> User(ritchieUser).copy(universityId = Some(UniversityID("1170836")))
-      ))
+      val jids = ids.map(_.string).asJava
+
+      when(userlookup.getUsersByWarwickUniIds(jids, false)) thenReturn Map(
+        heronUser.getWarwickId -> heronUser,
+        ritchieUser.getWarwickId -> ritchieUser,
+        "gleb" -> anon
+      ).asJava
+
+      service.getUsers(ids).get mustBe Map(
+        UniversityID("heron") -> User(heronUser),
+        UniversityID("1170836") -> User(ritchieUser)
+      )
     }
 
     "basicAuth success" in new Context {

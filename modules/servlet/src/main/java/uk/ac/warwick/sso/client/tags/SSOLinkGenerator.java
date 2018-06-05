@@ -110,15 +110,15 @@ public class SSOLinkGenerator {
 	}
 
 	private String getParamValueFromQueryString(final String paramName, final String queryString) {
-
-		String[] params = queryString.split("&");
-		for (int i = 0; i < params.length; i++) {
-			String param = params[i];
-			if (param.startsWith(paramName + "=")) {
-				return param.split("=")[1];
+		if (queryString != null) {
+			String[] params = queryString.split("&");
+			for (int i = 0; i < params.length; i++) {
+				String param = params[i];
+				if (param.startsWith(paramName + "=")) {
+					return param.split("=")[1];
+				}
 			}
 		}
-
 		return null;
 
 	}
