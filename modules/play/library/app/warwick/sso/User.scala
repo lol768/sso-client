@@ -34,6 +34,10 @@ case class User(
   isStudent: Boolean,
   isAlumni: Boolean,
 
+  isUndergraduate: Boolean,
+  isPGT: Boolean,
+  isPGR: Boolean,
+
   /** Does this represent a user that exists? */
   isFound: Boolean,
   /**
@@ -76,6 +80,10 @@ object User {
     isStudent    = u.isStudent,
     isAlumni = u.isAlumni,
 
+    isUndergraduate = isUndergraduate(u),
+    isPGT = isPGT(u),
+    isPGR = isPGR(u),
+
     isFound = u.isFoundUser,
     isVerified = u.isVerified,
     isLoginDisabled = u.isLoginDisabled,
@@ -83,7 +91,24 @@ object User {
     rawProperties = u.getExtraProperties.asScala.toMap
   )
 
-  def isPGR(u: uk.ac.warwick.userlookup.User): Boolean = {
+  private def isUndergraduate(u: uk.ac.warwick.userlookup.User): Boolean = {
+    val attributes = u.getExtraProperties
+    import attributes.get
+    get("warwickitsclass") == "UG" ||
+      get("warwickcategory") == "U" ||
+      // Undergraduate PT users have warwickitsclass=PG(T) so check the target group
+      StringUtils.nullGuard(get("warwicktargetgroup")).contains("Undergraduate")
+  }
+
+  private def isPGT(u: uk.ac.warwick.userlookup.User): Boolean = {
+    val attributes = u.getExtraProperties
+    import attributes.get
+    get("warwickcategory") == "T" ||
+      // Undergraduate PT users have warwickitsclass=PG(T) so check the target group
+      get("warwickitsclass") == "PG(T)" && StringUtils.nullGuard(get("warwicktargetgroup")).contains("Postgraduate")
+  }
+
+  private def isPGR(u: uk.ac.warwick.userlookup.User): Boolean = {
     val attributes = u.getExtraProperties
     import attributes.get
     get("warwickitsclass") == "PG(R)" || get("warwickcategory") == "R"
@@ -103,6 +128,9 @@ object User {
     isStaffNotPGR = false,
     isStudent = false,
     isAlumni = false,
+    isUndergraduate = false,
+    isPGT = false,
+    isPGR = false,
     isFound = false,
     isVerified = true,
     isLoginDisabled = false,
