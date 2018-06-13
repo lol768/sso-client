@@ -18,6 +18,8 @@ object Users {
     staff: Boolean = false,
     student: Boolean = false,
     pgr: Boolean = false,
+    pgt: Boolean = false,
+    undergraduate: Boolean = false,
     alumni: Boolean = false,
 
     found: Boolean = true,
@@ -36,6 +38,9 @@ object Users {
       isStaffOrPGR = staff || pgr,
       isStaffNotPGR = staff,
       isStudent = student,
+      isUndergraduate = undergraduate,
+      isPGT = pgt,
+      isPGR = pgr,
       isAlumni = alumni,
       isFound = found,
       isVerified = verified,
