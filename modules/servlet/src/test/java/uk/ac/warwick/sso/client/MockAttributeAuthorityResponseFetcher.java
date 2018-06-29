@@ -42,7 +42,8 @@ public class MockAttributeAuthorityResponseFetcher implements AttributeAuthority
 	public final User getUserFromSubject(final SAMLSubject subject) throws SSOException {
 		User user = new User();
 		user.setUserId("Test");
-		Map props = new HashMap();
+		user.setFoundUser(true);
+		Map<String,String> props = new HashMap<>();
 		props.put(SSOToken.SSC_TICKET_TYPE,"Testing123");
 		user.setExtraProperties(props);
 

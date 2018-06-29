@@ -10,7 +10,7 @@ import org.springframework.mock.web.MockServletContext;
 import uk.ac.warwick.sso.client.cache.spring.DatabaseUserCache;
 import uk.ac.warwick.sso.client.cache.InMemoryUserCache;
 
-public final class SSOConfigLoaderTests extends MockObjectTestCase {
+public final class SSOConfigLoaderTest extends MockObjectTestCase {
 
 	public void testConfigLoader() throws Exception {
 

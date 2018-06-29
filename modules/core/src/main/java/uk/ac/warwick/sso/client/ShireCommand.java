@@ -148,10 +148,12 @@ public class ShireCommand {
 		user.setIsLoggedIn(true);
 		UserCacheItem item = new UserCacheItem(user, new Date().getTime(), token);
 		getCache().put(token, item);
-		
+
 		// also place the new user in the UserLookup user-by-id cache
 		final String userId = user.getUserId();
-		if (user.isFoundUser() && userId != null && !"".equals(userId.trim())) {
+
+		boolean updateUserIdCache = _config.getBoolean("shire.updateidcache", true);
+		if (updateUserIdCache && user.isFoundUser() && userId != null && !"".equals(userId.trim())) {
 			_userIdCache.put(new CacheEntry<>(userId, user));
 		}		
 		
