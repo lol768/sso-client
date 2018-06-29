@@ -19,7 +19,7 @@ import org.opensaml.SAMLResponse;
 
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
 
-public class DecodingTests extends TestCase {
+public class DecodingTest extends TestCase {
 
 	public final void testDecode64() throws Exception {
 

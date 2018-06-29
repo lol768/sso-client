@@ -21,7 +21,7 @@ import uk.ac.warwick.userlookup.User;
 import junit.framework.TestCase;
 
 
-public class SSOProxyCookieHelperTests extends TestCase {
+public class SSOProxyCookieHelperTest extends TestCase {
 	
 	public final void testProxyCookie() throws Exception {
 		

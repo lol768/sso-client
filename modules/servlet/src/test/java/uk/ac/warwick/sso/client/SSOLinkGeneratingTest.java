@@ -17,7 +17,7 @@ import uk.ac.warwick.sso.client.tags.SSOLoginLinkGenerator;
 import uk.ac.warwick.sso.client.tags.SSOLogoutLinkGenerator;
 import uk.ac.warwick.userlookup.User;
 
-public class SSOLinkGeneratingTests extends TestCase {
+public class SSOLinkGeneratingTest extends TestCase {
 
 	Configuration config;
 	

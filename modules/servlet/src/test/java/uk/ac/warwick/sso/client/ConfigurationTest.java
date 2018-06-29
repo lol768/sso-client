@@ -10,9 +10,9 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.XMLConfiguration;
 
 
-public class ConfigurationTests extends TestCase {
+public class ConfigurationTest extends TestCase {
 
-	public ConfigurationTests() {
+	public ConfigurationTest() {
 		super();
 	}
 

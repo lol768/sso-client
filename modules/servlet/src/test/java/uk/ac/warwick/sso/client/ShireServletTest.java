@@ -24,7 +24,7 @@ public class ShireServletTest extends TestCase {
 	/**
 	 * Not easy to test a POST as it will create a real AA fetcher that tries
 	 * to grab attributes. We test the vast majority of the functionality in
-	 * ShireCommandTests already so it doesn't matter - the main thing is to
+	 * ShireCommandTest already so it doesn't matter - the main thing is to
 	 * doublecheck that it has different behaviout to doGet.
 	 */
 	public void testPost() throws Exception {
