@@ -128,4 +128,52 @@ public final class GroupAliasAwareGroupService extends GroupServiceAdapter imple
         
 		return getDecorated().getUserCodesInGroup(group);
     }
+
+    public List<Group> getGroupsForUser(final String userId) throws GroupServiceException {
+        User user = _userLookup.getUserByUserId(userId);
+        List<Group> groups = getDecorated().getGroupsForUser(userId);
+
+        groups.add(groupAliasBuilder(ANYONE));
+
+        if (user.isStaff() || user.isStudent()) {
+            groups.add(groupAliasBuilder(MEMBER));
+        }
+
+        if (user.isStaff()) {
+            groups.add(groupAliasBuilder(STAFF));
+        }
+
+        if (userIsStaffNotPGR(user)) {
+            groups.add(groupAliasBuilder(STAFFNOPGR));
+        }
+
+        if (userIsPGR(user)) {
+            groups.add(groupAliasBuilder(PGRESEARCH));
+        }
+
+        if (userIsPGR(user)) {
+            groups.add(groupAliasBuilder(PGRESEARCH));
+        }
+
+        if (user.isStudent()) {
+            groups.add(groupAliasBuilder(STUDENT));
+        }
+
+        if (userIsStudentNotPGT(user)) {
+            groups.add(groupAliasBuilder(STUDENTNOPGT));
+        }
+
+        if (userIsPGT(user)) {
+            groups.add(groupAliasBuilder(PGTAUGHT));
+        }
+
+        return groups;
+    }
+
+    private Group groupAliasBuilder(String groupName) {
+        GroupImpl group = new GroupImpl();
+        group.setName(groupName);
+        group.setVerified(true);
+        return group;
+    }
 }
