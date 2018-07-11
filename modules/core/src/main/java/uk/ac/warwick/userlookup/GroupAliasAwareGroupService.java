@@ -151,10 +151,6 @@ public final class GroupAliasAwareGroupService extends GroupServiceAdapter imple
             groups.add(groupAliasBuilder(PGRESEARCH));
         }
 
-        if (userIsPGR(user)) {
-            groups.add(groupAliasBuilder(PGRESEARCH));
-        }
-
         if (user.isStudent()) {
             groups.add(groupAliasBuilder(STUDENT));
         }
@@ -165,6 +161,10 @@ public final class GroupAliasAwareGroupService extends GroupServiceAdapter imple
 
         if (userIsPGT(user)) {
             groups.add(groupAliasBuilder(PGTAUGHT));
+        }
+
+        if (user.isAlumni()) {
+            groups.add(groupAliasBuilder(ALUMNI));
         }
 
         return groups;
