@@ -1,10 +1,10 @@
 package warwick.sso
 
-import java.io.{ObjectInputStream, ObjectOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import java.sql.{Date, ResultSet}
 import java.time.Instant
-import javax.inject.{Inject, Named}
 
+import javax.inject.{Inject, Named}
 import play.api.Logger
 import play.api.db._
 import uk.ac.warwick.sso.client.cache.{UserCache, UserCacheItem}
@@ -35,13 +35,16 @@ class JdbcUserCache @Inject() (
       remove(key)
       db.withConnection { conn =>
         val stmt = conn.prepareStatement("insert into objectcache (key, objectdata, createddate) values (?,?,?)")
-        val blob = conn.createBlob()
-        val output = blob.setBinaryStream(1)
-        val oos = new ObjectOutputStream(output)
+
+        val baos = new ByteArrayOutputStream()
+        val oos = new ObjectOutputStream(baos)
         oos.writeObject(value)
         oos.close()
+
+        val bytes = baos.toByteArray
+
         stmt.setString(1, key.getValue)
-        stmt.setBlob(2, blob)
+        stmt.setBinaryStream(2, new ByteArrayInputStream(bytes), bytes.length)
         stmt.setDate(3, new Date(Instant.now.toEpochMilli))
 
         stmt.executeUpdate()
@@ -82,19 +85,17 @@ class JdbcUserCache @Inject() (
     }
 
   private def readItem(results: ResultSet): Option[UserCacheItem] =
-    readBlob(results, "objectdata").flatMap { blob =>
-      try {
-        Option(new ObjectInputStream(blob.getBinaryStream).readObject().asInstanceOf[UserCacheItem])
-      } catch {
-        case e: Exception =>
-          logger.error("Could not get cache item back from database", e)
-          None
+    Option(results).filter(_.next())
+      .flatMap { r => Option(r.getBinaryStream("objectdata")) }
+      .flatMap { is =>
+        try {
+          Option(new ObjectInputStream(is).readObject().asInstanceOf[UserCacheItem])
+        } catch {
+          case e: Exception =>
+            logger.error("Could not get cache item back from database", e)
+            None
+        }
       }
-    }
-
-  private def readBlob(results: ResultSet, name: String) =
-  if (results.next()) Option(results.getBlob(name))
-  else None
 
   private def expired(it: UserCacheItem) = Instant.ofEpochMilli(it.getInTime).plusSeconds(timeout).isBefore(Instant.now)
 }

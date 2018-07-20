@@ -16,7 +16,7 @@ class JdbcUserCacheSpec extends PlaySpec with MockitoSugar {
   "JdbcUserCache" should {
 
     "store blobs correctly" in  {
-      val app = GuiceApplicationBuilder().configure(Map() ++ inMemoryDatabase()).build()
+      val app = GuiceApplicationBuilder().configure(Map() ++ inMemoryDatabase("default", Map("MODE" -> "Oracle"))).build()
       val config = app.injector.instanceOf[Configuration]
       val ssoConfig = new SSOConfiguration(new PlayConfiguration(config))
       val db = app.injector.instanceOf[DBApi].database("default")
