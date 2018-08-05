@@ -1,0 +1,5 @@
+apply from: '../play.gradle'
+
+dependencies {
+    play project(':sso-client-play')
+}

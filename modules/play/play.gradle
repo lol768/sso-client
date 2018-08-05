@@ -1,0 +1,42 @@
+apply plugin: 'play'
+
+project.ext.playVersion = '2.6.15'
+project.ext.scalaVersion = '2.12'
+
+model {
+    components {
+        play {
+            platform play: playVersion, scala: '2.12', java: '1.8'
+            injectedRoutesGenerator = true
+        }
+    }
+}
+
+repositories {
+    jcenter()
+    maven {
+        name "lightbend-maven-release"
+        url "https://repo.lightbend.com/lightbend/maven-releases"
+    }
+    ivy {
+        name "lightbend-ivy-release"
+        url "https://repo.lightbend.com/lightbend/ivy-releases"
+        layout "ivy"
+    }
+}
+
+dependencies {
+    play project(':sso-client-core')
+
+    play group: 'com.typesafe.play', name: "play-jdbc_${scalaVersion}", version: playVersion
+    play group: 'com.typesafe.play', name: "play-iteratees_${scalaVersion}", version: '2.6.1'
+    play group: 'com.typesafe.play', name: "play-iteratees-reactive-streams_${scalaVersion}", version: '2.6.1'
+    play 'com.google.inject:guice:4.0'
+
+    playTest "org.scalatest:scalatest_${scalaVersion}:3.0.3"
+    playTest "org.scalatestplus.play:scalatestplus-play_${scalaVersion}:3.1.0"
+    playTest "org.scalacheck:scalacheck_${scalaVersion}:1.13.5"
+    playTest "org.mockito:mockito-all:1.10.19"
+    playTest "com.h2database:h2:1.4.193"
+
+}

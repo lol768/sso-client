@@ -1,0 +1,77 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url 'https://plugins.gradle.org/m2/' }
+        maven { url 'https://maven.eveoh.nl/content/repositories/releases' }
+        maven {
+            credentials {
+                username nexusUser
+                password nexusPassword
+            }
+            url 'https://mvn.elab.warwick.ac.uk/nexus/content/groups/public'
+        }
+        mavenLocal()
+    }
+
+    dependencies {
+        classpath 'uk.ac.warwick:warwick-gradle-plugin:1.3'
+    }
+}
+
+allprojects  {
+  group = 'uk.ac.warwick.sso'
+  version = '2.42-SNAPSHOT'
+}
+
+//tasks.withType(Test).forEach {
+//  it.dependsOn subprojects.collect { it.tasks.withType(Test) }
+//}
+
+subprojects {
+//  apply plugin: 'java'
+
+  tasks.withType(JavaCompile) {
+  	options.encoding = 'UTF-8'
+  	targetCompatibility = 1.8
+	sourceCompatibility = 1.8
+  }
+  
+  repositories {
+    mavenLocal()
+
+    maven {
+        url "https://mvn.elab.warwick.ac.uk/nexus/content/groups/public"
+        credentials {
+            username nexusUser
+            password nexusPassword
+        }
+    }
+    maven { url "http://repo1.maven.org/maven2" }
+    maven { url "http://oauth.googlecode.com/svn/code/maven" }
+  }
+}
+
+task testReport(type: TestReport) {
+    destinationDir = file("$buildDir/reports/allTests")
+    // Include the results from the `test` task in all subprojects
+    subprojects {
+        tasks.withType(Test) {
+            reportOn it
+        }
+    }
+}
+
+//def exportedProjects = [
+//    ":sso-client",
+//    ":sso-client-core"
+//]
+
+//task alljavadoc(type: Javadoc) {
+//    println 'alljavadoc working'
+//    source exportedProjects.collect { project(it).sourceSets.main.allJava }
+//    classpath = files(exportedProjects.collect { project(it).sourceSets.main.compileClasspath })
+//    //options.memberLevel = JavadocMemberLevel.PRIVATE
+//    //classpath = configurations.compile
+//    destinationDir = file("${buildDir}/docs/javadoc")
+//}
+

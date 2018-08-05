@@ -1,0 +1,10 @@
+rootProject.name = 'sso-client-project'
+include ':sso-client-core'
+include ':sso-client'
+include ':sso-client-play'
+include ':sso-client-play:testing'
+
+project(':sso-client').projectDir = "$rootDir/modules/servlet" as File
+project(':sso-client-core').projectDir = "$rootDir/modules/core" as File
+project(':sso-client-play').projectDir = "$rootDir/modules/play/library" as File
+project(':sso-client-play:testing').projectDir = "$rootDir/modules/play/testing" as File
