@@ -1,7 +1,7 @@
 package warwick.sso
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
-import java.sql.{Date, ResultSet}
+import java.sql.{ResultSet, Timestamp}
 import java.time.Instant
 
 import javax.inject.{Inject, Named}
@@ -45,7 +45,7 @@ class JdbcUserCache @Inject() (
 
         stmt.setString(1, key.getValue)
         stmt.setBinaryStream(2, new ByteArrayInputStream(bytes), bytes.length)
-        stmt.setDate(3, new Date(Instant.now.toEpochMilli))
+        stmt.setTimestamp(3, new Timestamp(Instant.now.toEpochMilli))
 
         stmt.executeUpdate()
       }
