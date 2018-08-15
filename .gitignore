@@ -1,11 +1,12 @@
 /bin
-/build
+build
 logs/
 target/
 project/target/
 project/project/
 /dist/*-SNAPSHOT*#
 *~
+.gradle
 
 # Eclipse
 .project

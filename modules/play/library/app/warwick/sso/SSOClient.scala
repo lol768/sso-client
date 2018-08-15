@@ -88,7 +88,7 @@ trait SSOClient {
    *     }
    *
    * Where `object A { def props(ctx: LoginContext)(out: ActorRef): Props }` is defined. The first param
-   * list is for yu to pass any dependencies to the actor, and the second is kept to be called by the
+   * list is for you to pass any dependencies to the actor, and the second is kept to be called by the
    * WebSocket class as it requires an `ActorRef => Props` function.
    *
    * Obviously you can do proper Future stuff if you need to, and you can return a Left[Result] if you

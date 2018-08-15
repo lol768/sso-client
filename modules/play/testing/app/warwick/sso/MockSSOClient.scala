@@ -1,20 +1,27 @@
 package warwick.sso
 
 import javax.inject.Inject
-
+import play.api.libs.typedmap.TypedKey
 import play.api.mvc._
 import uk.ac.warwick.sso.client.core.LinkGenerator
 
 import scala.concurrent.{ExecutionContext, Future}
 
+object MockSSOClient {
+  val LoginContextAttr: TypedKey[LoginContext] = TypedKey.apply[LoginContext]("loginContext")
+}
+
 class MockSSOClient @Inject()(
-  loginContext: LoginContext
+  defaultLoginContext: LoginContext
 )(implicit ec: ExecutionContext) extends SSOClient {
+
+  private def currentContext(request: RequestHeader): LoginContext =
+    request.attrs.get(MockSSOClient.LoginContextAttr).getOrElse(defaultLoginContext)
 
   case class Wrap[C](bodyParser: BodyParser[C]) extends SSOActionBuilder(bodyParser) {
     override def disallowRedirect = this
     override def invokeBlock[A](request: Request[A], block: (AuthRequest[A]) => Future[Result]): Future[Result] =
-      block(new AuthRequest(loginContext, request))
+      block(new AuthRequest(currentContext(request), request))
   }
 
   override def Lenient[C](parser: BodyParser[C]) = Wrap(parser)
@@ -24,7 +31,7 @@ class MockSSOClient @Inject()(
   override def RequireActualUserRole[C](role: RoleName, otherwise: (AuthRequest[_]) => Result)(parser: BodyParser[C]) = Wrap(parser)
 
   override def withUser[A](request: RequestHeader)(block: (LoginContext) => TryAcceptResult[A]): TryAcceptResult[A] =
-    block(loginContext)
+    block(currentContext(request))
 
   override def linkGenerator(request: RequestHeader) = new LinkGenerator {
     private var target: Option[String] = None
