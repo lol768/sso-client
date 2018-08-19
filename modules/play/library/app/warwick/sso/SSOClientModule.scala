@@ -48,6 +48,7 @@ class SSOClientModule extends PrivateModule {
 
     // things that probably shouldn't be public, but if you're good...
     expose(classOf[UserCache])
+    expose(classOf[SSOClientHandler])
   }
 
   @Singleton

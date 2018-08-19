@@ -69,6 +69,7 @@ trait SSOClient {
    * Like Lenient, but if no user was present it automatically redirects to login so that a user
    * is required.
    */
+  // FIXME doesn't supported disallowRedirect as Lenient does - type is lost
   def Strict[C](parser: BodyParser[C]): ActionBuilder[AuthRequest, C]
 
   def RequireRole[C](role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[C]): ActionBuilder[AuthRequest, C]
@@ -135,7 +136,7 @@ class SSOClientImpl @Inject()(
   def Strict[C](parser: BodyParser[C]): ActionBuilder[AuthRequest, C] =
     Lenient(parser) andThen requireCondition(_.context.user.nonEmpty, otherwise = redirectToSSO)
 
-  def Lenient[C](parser: BodyParser[C]): FindUser[C] = FindUser(bodyParser = parser)
+  def Lenient[C](parser: BodyParser[C]): SSOActionBuilder[C] = FindUser(bodyParser = parser)
 
   override def RequireRole[C](role: RoleName, otherwise: AuthRequest[_] => Result)(parser: BodyParser[C]): ActionBuilder[AuthRequest, C] =
     Strict(parser) andThen requireCondition(_.context.userHasRole(role), otherwise)
