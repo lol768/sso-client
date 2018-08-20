@@ -11,6 +11,10 @@ object MockSSOClient {
   val LoginContextAttr: TypedKey[LoginContext] = TypedKey.apply[LoginContext]("loginContext")
 }
 
+/**
+  * Do-nothing implementation of SSOClient. Note that it doesn't enforce ANY rules, even Strict,
+  * so you might find actions that require a user being executed even if no user is present.
+  */
 class MockSSOClient @Inject()(
   defaultLoginContext: LoginContext
 )(implicit ec: ExecutionContext) extends SSOClient {
