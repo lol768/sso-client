@@ -26,8 +26,8 @@ import scala.util.{Success, Try}
   * ]
   */
 class MockGroupService @Inject()(
-                                   config: Configuration
-                                 ) extends GroupService {
+ config: Configuration
+) extends GroupService {
 
   lazy val groups: Seq[Group] = config.get[Seq[Group]]("webgroups.test-data.groups")
 
