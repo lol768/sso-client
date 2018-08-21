@@ -42,7 +42,6 @@ class PlayHttpRequestHeader(req: RequestHeader) extends HttpRequest {
 
   override def getParameterNames: util.Set[String] = (req.queryString.keySet ++ bodyParams.keySet).asJava
 
-  // When we upgrade to Play 2.6 this should use Play request attributes instead of tags
   override def getAttribute(s: String): AnyRef = req.attrs.get(TypedKey(s)).orNull
 
   override def getRequestURL: String = {
@@ -53,11 +52,17 @@ class PlayHttpRequestHeader(req: RequestHeader) extends HttpRequest {
     sb.toString
   }
 
-  override def getCookies: util.List[Cookie] = req.cookies.map(toCoreCookie).toSeq.asJava
+  override def getCookies: util.List[Cookie] = {
+    try {
+      req.cookies.map(toCoreCookie).toSeq
+    } catch {
+      case _=> Nil
+    }
+  }.asJava
 
   override def getQueryString: String = req.rawQueryString
 
-  override def getQueryParameter(name: String): util.List[String] = req.queryString.get(name).getOrElse(Nil).asJava
+  override def getQueryParameter(name: String): util.List[String] = req.queryString.getOrElse(name, Nil).asJava
 
   // Just the path, no query strings
   override def getRequestURI: String = req.path

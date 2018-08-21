@@ -11,6 +11,10 @@ object MockSSOClient {
   val LoginContextAttr: TypedKey[LoginContext] = TypedKey.apply[LoginContext]("loginContext")
 }
 
+/**
+  * Do-nothing implementation of SSOClient. Note that it doesn't enforce ANY rules, even Strict,
+  * so you might find actions that require a user being executed even if no user is present.
+  */
 class MockSSOClient @Inject()(
   defaultLoginContext: LoginContext
 )(implicit ec: ExecutionContext) extends SSOClient {
@@ -19,16 +23,22 @@ class MockSSOClient @Inject()(
     request.attrs.get(MockSSOClient.LoginContextAttr).getOrElse(defaultLoginContext)
 
   case class Wrap[C](bodyParser: BodyParser[C]) extends SSOActionBuilder(bodyParser) {
-    override def disallowRedirect = this
-    override def invokeBlock[A](request: Request[A], block: (AuthRequest[A]) => Future[Result]): Future[Result] =
+    override def disallowRedirect: SSOActionBuilder[C] = this
+    override def invokeBlock[A](request: Request[A], block: AuthRequest[A] => Future[Result]): Future[Result] =
       block(new AuthRequest(currentContext(request), request))
   }
 
-  override def Lenient[C](parser: BodyParser[C]) = Wrap(parser)
-  override def Strict[C](parser: BodyParser[C]) = Wrap(parser)
+  override def Lenient[C](parser: BodyParser[C]): SSOActionBuilder[C] =
+    Wrap(parser)
 
-  override def RequireRole[C](role: RoleName, otherwise: (AuthRequest[_]) => Result)(parser: BodyParser[C]) = Wrap(parser)
-  override def RequireActualUserRole[C](role: RoleName, otherwise: (AuthRequest[_]) => Result)(parser: BodyParser[C]) = Wrap(parser)
+  override def Strict[C](parser: BodyParser[C]): ActionBuilder[AuthRequest, C] =
+    Wrap(parser)
+
+  override def RequireRole[C](role: RoleName, otherwise: (AuthRequest[_]) => Result)(parser: BodyParser[C]): ActionBuilder[AuthRequest, C] =
+    Wrap(parser)
+
+  override def RequireActualUserRole[C](role: RoleName, otherwise: (AuthRequest[_]) => Result)(parser: BodyParser[C]): ActionBuilder[AuthRequest, C] =
+    Wrap(parser)
 
   override def withUser[A](request: RequestHeader)(block: (LoginContext) => TryAcceptResult[A]): TryAcceptResult[A] =
     block(currentContext(request))
