@@ -91,11 +91,13 @@ class AssertionConsumer @Inject() (
     }
   }
 
-  /**
-   *
-   */
-  def hasExistingServiceCookie(req: Request[_]) =
-    req.cookies.get(config.getString("shire.sscookie.name")).isDefined
+  def hasExistingServiceCookie(req: Request[_]): Boolean = {
+    try {
+      req.cookies.get(config.getString("shire.sscookie.name")).isDefined
+    } catch {
+      case _ => false
+    }
+  }
 
   def remoteHost(request: Request[_]): String = {
     val xff = request.headers.get("X-Forwarded-For")
