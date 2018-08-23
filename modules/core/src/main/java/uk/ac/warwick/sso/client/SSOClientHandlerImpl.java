@@ -187,7 +187,7 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
                 public boolean shouldBeCached(UserAndHash uah) {
                     return uah.getUser().isFoundUser();
                 }
-            }, BASIC_AUTH_CACHE_TIME_SECONDS, Caches.CacheStrategy.valueOf(getConfig().getString("ssoclient.cache.strategy")));
+            }, BASIC_AUTH_CACHE_TIME_SECONDS, Caches.CacheStrategy.valueOf(getConfig().getString("ssoclient.cache.strategy")), getConfig().getCacheProperties());
         }
         return _basicAuthCache;
     }
@@ -528,7 +528,7 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
     }
 
     @Override
-    public Configuration getConfig() {
+    public SSOConfiguration getConfig() {
         return _config;
     }
 

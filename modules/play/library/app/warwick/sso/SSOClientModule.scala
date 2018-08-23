@@ -1,8 +1,8 @@
 package warwick.sso
 
 import java.util.Properties
-import javax.inject._
 
+import javax.inject._
 import com.google.inject.{Exposed, PrivateModule, Provides, Scopes}
 import play.api.Configuration
 import play.api.db.{DBApi, Database}
@@ -127,8 +127,10 @@ class SSOClientModule extends PrivateModule {
 
   @Singleton
   @Provides
-  def userIdCache(conf: SSOConfiguration): Cache[String, uk.ac.warwick.userlookup.User] =
-    Caches.newCache(UserLookup.USER_CACHE_NAME, null, 0, Caches.CacheStrategy.valueOf(conf.getString("ssoclient.cache.strategy")))
+  def userIdCache(conf: SSOConfiguration, userLookup: UserLookupInterface): Cache[String, uk.ac.warwick.userlookup.User] = {
+    // It looks like UserLookup isn't used here but we need to set the properties on it first so it's an ordering thing
+    Caches.newCache(UserLookup.USER_CACHE_NAME, null, 0, Caches.CacheStrategy.valueOf(conf.getString("ssoclient.cache.strategy")), UserLookup.getCacheProperties())
+  }
 
   @Singleton
   @Provides

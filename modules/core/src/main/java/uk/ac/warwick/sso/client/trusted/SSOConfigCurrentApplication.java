@@ -34,7 +34,8 @@ public class SSOConfigCurrentApplication extends AbstractTrustedApplication impl
                 CERTIFICATE_CACHE_NAME,
                 new CacheEntryFactory(),
                 config.getInt("ssoclient.trusted.cache.certificate.timeout.secs"),
-                Caches.CacheStrategy.valueOf(config.getString("ssoclient.cache.strategy"))
+                Caches.CacheStrategy.valueOf(config.getString("ssoclient.cache.strategy")),
+                config.getCacheProperties()
         );
 
         this.privateKey = encryptionProvider.toPrivateKey(Base64.decode(config.getString("trustedapps.privatekey")));
