@@ -24,7 +24,7 @@ class SSOClientModuleTest extends PlaySpec with MockitoSugar {
       contents.setProperty("cluster.enabled", true)
       contents.setProperty("cluster.db", "default")
       val ssoConfig = new SSOConfiguration(contents)
-      val props = module.makeProps(ssoConfig, playConf)
+      val props = module.makeProps(ssoConfig)
 
       props.getProperty("userlookup.ssosUrl") must not be (null)
     }

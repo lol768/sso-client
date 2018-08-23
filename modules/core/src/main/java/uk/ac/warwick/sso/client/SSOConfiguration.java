@@ -73,8 +73,12 @@ public class SSOConfiguration extends CompositeConfiguration {
 	private void copyString(String from, String to) {
 		final String value = getString(from, null);
 		if (value != null) {
-			overrides.addProperty(to, value);
+			addOverride(to, value);
 		}
+	}
+
+	public void addOverride(String key, Object value) {
+		overrides.addProperty(key, value);
 	}
 
 	void addDefaultConfiguration() {
