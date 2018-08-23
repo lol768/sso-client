@@ -164,7 +164,8 @@ public class UserLookup implements UserLookupInterface {
 
 			},
 			parseInt(getConfigProperty("ssoclient.cache.auth.timeout.secs")),
-			Caches.CacheStrategy.valueOf(cacheStrategy)
+			Caches.CacheStrategy.valueOf(cacheStrategy),
+			getCacheProperties()
 		);
 
 		_userByTokenCache = Caches.newCache(USER_CACHE_NAME, new SingularCacheEntryFactory<String, User>() {
@@ -184,7 +185,7 @@ public class UserLookup implements UserLookupInterface {
             public boolean shouldBeCached(User val) {
                 return val.isVerified();
             }
-        }, DEFAULT_TOKEN_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
+        }, DEFAULT_TOKEN_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")), getCacheProperties());
         _userByTokenCache.setExpiryStrategy(new TTLCacheExpiryStrategy<String, User>() {
             @Override
             public Pair<Number, TimeUnit> getTTL(CacheEntry<String, User> entry) {
@@ -263,7 +264,7 @@ public class UserLookup implements UserLookupInterface {
 			public boolean shouldBeCached(User val) {
 				return val.isVerified();
 			}
-		}, DEFAULT_USERID_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
+		}, DEFAULT_USERID_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")), getCacheProperties());
 		_userByUniIdCache.setMaxSize(DEFAULT_USERID_CACHE_SIZE);
 		_userByUniIdCache.setAsynchronousUpdateEnabled(true);
 		_userByUniIdCache.setExpiryStrategy(userByIdCacheExpiryStrategy);
@@ -296,7 +297,7 @@ public class UserLookup implements UserLookupInterface {
 			public boolean shouldBeCached(User val) {
 				return val.isVerified();
 			}
-		}, DEFAULT_USERID_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
+		}, DEFAULT_USERID_CACHE_TIMEOUT, Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")), getCacheProperties());
 		_userByUserIdCache.setMaxSize(DEFAULT_USERID_CACHE_SIZE);
 		_userByUserIdCache.setAsynchronousUpdateEnabled(true);
 		_userByUserIdCache.setExpiryStrategy(userByIdCacheExpiryStrategy);

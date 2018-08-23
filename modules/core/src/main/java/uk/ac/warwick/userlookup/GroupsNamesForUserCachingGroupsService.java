@@ -9,6 +9,7 @@ import uk.ac.warwick.sso.client.cache.SerializeUtils;
 import uk.ac.warwick.util.cache.SingularCacheEntryFactory;
 import uk.ac.warwick.userlookup.webgroups.GroupServiceException;
 
+import static uk.ac.warwick.userlookup.UserLookup.getCacheProperties;
 import static uk.ac.warwick.userlookup.UserLookup.getConfigProperty;
 
 /**
@@ -38,7 +39,7 @@ final class GroupsNamesForUserCachingGroupsService extends CacheingGroupServiceA
             public boolean shouldBeCached(ArrayList<String> val) {
                 return true;
             }
-        }, determineCacheTimeOut(), Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy"))));
+        }, determineCacheTimeOut(), Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")), getCacheProperties()));
 	}
 
 	private long determineCacheTimeOut() {

@@ -42,7 +42,7 @@ public class InMemoryUserCache extends BasicCacheAdapter {
 			public boolean shouldBeCached(UserCacheItem item) {
 				return item != null;
 			}
-		}, DEFAULT_TIME_OUT, Caches.CacheStrategy.valueOf(conf.getString("ssoclient.cache.strategy")));
+		}, DEFAULT_TIME_OUT, Caches.CacheStrategy.valueOf(conf.getString("ssoclient.cache.strategy")), conf.getCacheProperties());
 
 		newCache.setMaxSize(DEFAULT_MAX_ENTRIES); //ignored if we are using Ehcache.
 		return newCache;

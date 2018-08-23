@@ -22,11 +22,15 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 
 import org.apache.commons.configuration.*;
 
 import uk.ac.warwick.sso.client.internal.KeyAndCertUtils;
 import uk.ac.warwick.sso.client.ssl.KeyStoreHelper;
+import uk.ac.warwick.util.cache.Caches;
+import uk.ac.warwick.util.cache.memcached.MemcachedCacheStore;
+import uk.ac.warwick.util.core.StringUtils;
 
 /**
  * Holder for a Thread-local SSOConfiguration. Also wraps the loaded
@@ -44,6 +48,8 @@ public class SSOConfiguration extends CompositeConfiguration {
 	private static final String LOGIN_LOCATION_KEY = "origin.login.location";
 	
 	private KeyAuthentication authenticationDetails;
+
+	private Properties cacheProperties;
 
 	// These properties come first so they override any other properties.
 	private BaseConfiguration overrides = new BaseConfiguration();
@@ -200,6 +206,50 @@ public class SSOConfiguration extends CompositeConfiguration {
 			initialiseAuthenticationDetails();
 		}
 		return authenticationDetails;
+	}
+
+	public Properties getCacheProperties() {
+		switch (Caches.CacheStrategy.valueOf(getString("ssoclient.cache.strategy"))) {
+			case MemcachedIfAvailable:
+			case MemcachedRequired:
+				if (cacheProperties == null) {
+					// Does a custom properties file exist? If it does, just use that
+					String customConfigLocation = System.getProperty("warwick.memcached.config", MemcachedCacheStore.CUSTOM_CONFIG_URL);
+
+					if (MemcachedCacheStore.class.getResource(customConfigLocation) != null) {
+						return null;
+					}
+
+					Properties properties = new Properties();
+
+					for (String configProperty : new String[]{
+						"memcached.servers",
+						"memcached.daemon",
+						"memcached.failureMode",
+						"memcached.hashAlgorithm",
+						"memcached.locatorType",
+						"memcached.maxReconnectDelay",
+						"memcached.opQueueMaxBlockTime",
+						"memcached.opTimeout",
+						"memcached.protocol",
+						"memcached.readBufferSize",
+						"memcached.shouldOptimize",
+						"memcached.timeoutExceptionThreshold",
+						"memcached.useNagleAlgorithm",
+						"memcached.transcoder.compressionThreshold"
+					}) {
+						if (containsKey("ssoclient.cache." + configProperty)) {
+							properties.setProperty(configProperty, getString("ssoclient.cache." + configProperty));
+						}
+					}
+
+					cacheProperties = properties;
+				}
+
+				return cacheProperties;
+			default:
+				return null;
+		}
 	}
 
 	public static final SSOConfiguration getConfig() {

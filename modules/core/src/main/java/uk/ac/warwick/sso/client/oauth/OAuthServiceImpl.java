@@ -51,9 +51,9 @@ public final class OAuthServiceImpl implements TrustedOAuthService {
     
     // access/disabled tokens only
     private final Cache<String, OAuthConsumer> consumerCache
-        = Caches.newCache(CONSUMER_CACHE_NAME, new OAuthConsumerEntryFactory(), parseInt(getConfigProperty("ssoclient.oauth.cache.consumer.timeout.secs")), Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
+        = Caches.newCache(CONSUMER_CACHE_NAME, new OAuthConsumerEntryFactory(), parseInt(getConfigProperty("ssoclient.oauth.cache.consumer.timeout.secs")), Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")), getCacheProperties());
     private final Cache<String, OAuthToken> tokenCache
-        = Caches.newCache(TOKEN_CACHE_NAME, new OAuthTokenEntryFactory(), parseInt(getConfigProperty("ssoclient.oauth.cache.token.timeout.secs")), Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")));
+        = Caches.newCache(TOKEN_CACHE_NAME, new OAuthTokenEntryFactory(), parseInt(getConfigProperty("ssoclient.oauth.cache.token.timeout.secs")), Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy")), getCacheProperties());
 
     protected OAuthServiceImpl() {
     }

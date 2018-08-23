@@ -168,7 +168,7 @@ public class ShireServlet extends HttpServlet {
 		}
 
 		if (getUserIdCache() == null) {
-			_userIdCache = Caches.newCache(UserLookup.USER_CACHE_NAME, null, 0, Caches.CacheStrategy.valueOf(UserLookup.getConfigProperty("ssoclient.cache.strategy")));
+			_userIdCache = Caches.newCache(UserLookup.USER_CACHE_NAME, null, 0, Caches.CacheStrategy.valueOf(UserLookup.getConfigProperty("ssoclient.cache.strategy")), UserLookup.getCacheProperties());
 		}
 	}
 
