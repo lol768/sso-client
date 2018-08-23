@@ -53,8 +53,8 @@ class SSOClientModule extends PrivateModule {
 
   @Singleton
   @Provides
-  def userlookup(ssoConfig: SSOConfiguration): UserLookupInterface = {
-    UserLookup.setConfigProperties(makeProps(ssoConfig))
+  def userlookup(ssoConfig: SSOConfiguration, playConfig: Configuration): UserLookupInterface = {
+    UserLookup.setConfigProperties(makeProps(ssoConfig, playConfig))
     new UserLookup()
   }
 
@@ -63,11 +63,32 @@ class SSOClientModule extends PrivateModule {
   def groupService(userLookup: UserLookupInterface) =
     userLookup.getGroupService
 
-  private[sso] def makeProps(ssoConfig: SSOConfiguration): Properties = {
+  private[sso] def makeProps(ssoConfig: SSOConfiguration, playConfig: Configuration): Properties = {
     val props = new Properties()
     for (key <- ssoConfig.getKeys.asScala.asInstanceOf[Iterator[String]]) {
       props.setProperty(key, ssoConfig.getProperty(key).toString)
     }
+
+    // SSO-2203 Copy properties from Play locations for caching
+    if (playConfig.has("memcached.host") || playConfig.has("memcached.1.host")) {
+      props.setProperty("ssoclient.cache.strategy", Caches.CacheStrategy.MemcachedRequired.name())
+    }
+
+    if (playConfig.has("memcached.host")) {
+      props.setProperty("ssoclient.cache.memcached.servers", playConfig.get[String]("memcached.host"))
+    } else if (playConfig.has("memcached.1.host")) {
+      def accumulate(n: Int, acc: Seq[String]): Seq[String] =
+        if (playConfig.has(s"memcached.$n.host"))
+          accumulate(n + 1, acc :+ playConfig.get[String](s"memcached.$n.host"))
+        else acc
+
+      props.setProperty("ssoclient.cache.memcached.servers", accumulate(1, Nil).mkString(" "))
+    }
+
+    if (playConfig.getOptional[Boolean]("memcached.consistentHashing").getOrElse(false)) {
+      props.setProperty("ssoclient.cache.memcached.hashAlgorithm", "KETAMA")
+    }
+
     props
   }
 
