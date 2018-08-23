@@ -9,7 +9,9 @@ import uk.ac.warwick.sso.client.core.OnCampusServiceImpl;
 import uk.ac.warwick.sso.client.util.StreamUtils;
 import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService;
 import uk.ac.warwick.util.cache.*;
+import uk.ac.warwick.util.cache.memcached.MemcachedCacheStore;
 import uk.ac.warwick.util.collections.Pair;
+import uk.ac.warwick.util.core.StringUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -866,6 +868,47 @@ public class UserLookup implements UserLookupInterface {
 		return result;
 	}
 
+	@Deprecated
+	public static Properties getCacheProperties() {
+		switch (Caches.CacheStrategy.valueOf(getConfigProperty("ssoclient.cache.strategy"))) {
+			case MemcachedIfAvailable:
+			case MemcachedRequired:
+				// Does a custom properties file exist? If it does, just use that
+				String customConfigLocation = System.getProperty("warwick.memcached.config", MemcachedCacheStore.CUSTOM_CONFIG_URL);
+
+				if (MemcachedCacheStore.class.getResource(customConfigLocation) != null) {
+					return null;
+				}
+
+				Properties properties = new Properties();
+
+				for (String configProperty : new String[] {
+					"memcached.servers",
+					"memcached.daemon",
+					"memcached.failureMode",
+					"memcached.hashAlgorithm",
+					"memcached.locatorType",
+					"memcached.maxReconnectDelay",
+					"memcached.opQueueMaxBlockTime",
+					"memcached.opTimeout",
+					"memcached.protocol",
+					"memcached.readBufferSize",
+					"memcached.shouldOptimize",
+					"memcached.timeoutExceptionThreshold",
+					"memcached.useNagleAlgorithm",
+					"memcached.transcoder.compressionThreshold"
+				}) {
+					String v = getConfigProperty("ssoclient.cache." + configProperty);
+					if (StringUtils.hasText(v)) {
+						properties.setProperty(configProperty, v);
+					}
+				}
+
+				return properties;
+			default:
+				return null;
+		}
+	}
 
 	public Cache<String,User> getUserByTokenCache() {
 		return _userByTokenCache;
