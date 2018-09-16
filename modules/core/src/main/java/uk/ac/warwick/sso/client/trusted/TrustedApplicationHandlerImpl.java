@@ -18,6 +18,8 @@ public class TrustedApplicationHandlerImpl implements TrustedApplicationHandler 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TrustedApplicationHandlerImpl.class);
 
+    private final boolean checkAccountDisabled;
+
     private UserLookupInterface userLookup;
 
     private TrustedApplicationsManager appManager;
@@ -33,6 +35,8 @@ public class TrustedApplicationHandlerImpl implements TrustedApplicationHandler 
         this.userLookup = userLookup;
         this.appManager = appManager;
         this.config = config;
+
+        this.checkAccountDisabled = config.getBoolean("trustedapps.checkaccountdisabled", false);
     }
 
     public Response handle(HttpRequest request) throws IOException {
@@ -109,7 +113,7 @@ public class TrustedApplicationHandlerImpl implements TrustedApplicationHandler 
         }
 
         User user = userLookup.getUserByUserId(certificate.getUsername());
-        if (user != null && user.isFoundUser() && !user.isLoginDisabled()) {
+        if (user != null && user.isFoundUser() && !(checkAccountDisabled && user.isLoginDisabled())) {
             user.setTrustedApplicationsUser(true);
 
             // Ensure the user is logged in
