@@ -1,8 +1,7 @@
 package warwick.sso
 
-import com.typesafe.config.ConfigFactory
 import org.scalatestplus.play.PlaySpec
-import play.api.{ConfigLoader, Configuration, Environment}
+import play.api.{Configuration, Environment}
 
 import scala.util.{Success, Try}
 
