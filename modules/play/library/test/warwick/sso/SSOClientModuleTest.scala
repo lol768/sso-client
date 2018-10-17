@@ -1,5 +1,7 @@
 package warwick.sso
 
+import com.google.inject.Inject
+import com.google.inject.name.Named
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -17,7 +19,7 @@ class SSOClientModuleTest extends PlaySpec with MockitoSugar {
       "cluster.enabled" -> false
     )
   ))
-
+  
   "SSO Client module" should {
     "convert SSO config to Properties for Userlookup" in {
       val contents = new PropertiesConfiguration()
@@ -33,6 +35,26 @@ class SSOClientModuleTest extends PlaySpec with MockitoSugar {
       val app = GuiceApplicationBuilder(modules = Seq(module), configuration = playConf).build()
       app.injector.instanceOf(classOf[UserLookupService]) must be theSameInstanceAs app.injector.instanceOf(classOf[UserLookupService])
     }
+    
+    "return a generic GroupService" in {
+      val app = GuiceApplicationBuilder(modules = Seq(module), configuration = playConf).build()
+      val gs = app.injector.instanceOf(classOf[GroupService])
+      gs.isInstanceOf[UncachedGroupServiceImpl] must be (false)
+    }
+    
+    "return GroupService, both cached and uncached (using @Named)" in {
+      val app = GuiceApplicationBuilder(modules = Seq(module), configuration = playConf).build()
+      val testClass = app.injector.instanceOf(classOf[UsesUncached])
+      testClass.gs.isInstanceOf[UncachedGroupServiceImpl] must be (false)
+      testClass.ugs.isInstanceOf[UncachedGroupServiceImpl] must be (true)
+    }
   }
+}
 
+class UsesUncached {
+  @Inject @Named("uncached")
+  val ugs: GroupService = null
+
+  @Inject
+  val gs: GroupService = null
 }

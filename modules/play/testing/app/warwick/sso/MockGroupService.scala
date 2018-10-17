@@ -63,5 +63,4 @@ class MockGroupService @Inject()(
       group.title.exists(_.contains(query))
     }
   )
-
 }
