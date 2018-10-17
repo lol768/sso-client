@@ -1,6 +1,6 @@
 package warwick.sso
 
-import com.google.inject.{ImplementedBy, Inject}
+import com.google.inject.ImplementedBy
 import uk.ac.warwick.userlookup
 import uk.ac.warwick.userlookup.webgroups.{GroupNotFoundException, GroupServiceException, WarwickGroupsService}
 
@@ -19,9 +19,11 @@ trait GroupService {
   def getGroupsInDepartment(department: Department): Try[Seq[Group]]
 
   def getGroupsForQuery(query: String): Try[Seq[Group]]
+  
+  def hasCache: Boolean
 }
 
-class GroupServiceImpl @Inject()(
+class GroupServiceImpl(
   groupService: userlookup.GroupService
 ) extends GroupService {
 
@@ -46,31 +48,7 @@ class GroupServiceImpl @Inject()(
 
   override def getGroupsForQuery(query: String) =
     Try(groupService.getGroupsForQuery(query).asScala.map(Group.apply))
-}
-
-class UncachedGroupServiceImpl @Inject()(
-  groupService: WarwickGroupsService
-) extends GroupService {
-
-  override def getWebGroup(groupName: GroupName) =
-    try {
-      val group = Group(groupService.getGroupByName(groupName.string))
-
-      Success(Some(group))
-    } catch {
-      case _: GroupNotFoundException => Success(None)
-      case e: GroupServiceException => Failure(e)
-    }
-
-  override def isUserInGroup(usercode: Usercode, groupName: GroupName) =
-    Try(groupService.isUserInGroup(usercode.string, groupName.string))
-
-  override def getGroupsForUser(usercode: Usercode) =
-    Try(groupService.getGroupsForUser(usercode.string).asScala.map(Group.apply))
-
-  override def getGroupsInDepartment(department: Department) =
-    Try(groupService.getGroupsForDeptCode(department.code.getOrElse(throw new IllegalArgumentException("Department code is empty"))).asScala.map(Group.apply))
-
-  override def getGroupsForQuery(query: String) =
-    Try(groupService.getGroupsForQuery(query).asScala.map(Group.apply))
+  
+  override def hasCache =
+    !groupService.isInstanceOf[WarwickGroupsService]
 }

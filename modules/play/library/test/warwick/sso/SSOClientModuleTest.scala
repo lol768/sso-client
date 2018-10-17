@@ -39,14 +39,14 @@ class SSOClientModuleTest extends PlaySpec with MockitoSugar {
     "return a generic GroupService" in {
       val app = GuiceApplicationBuilder(modules = Seq(module), configuration = playConf).build()
       val gs = app.injector.instanceOf(classOf[GroupService])
-      gs.isInstanceOf[UncachedGroupServiceImpl] must be (false)
+      gs.hasCache must be (true)
     }
     
     "return GroupService, both cached and uncached (using @Named)" in {
       val app = GuiceApplicationBuilder(modules = Seq(module), configuration = playConf).build()
       val testClass = app.injector.instanceOf(classOf[UsesUncached])
-      testClass.gs.isInstanceOf[UncachedGroupServiceImpl] must be (false)
-      testClass.ugs.isInstanceOf[UncachedGroupServiceImpl] must be (true)
+      testClass.ugs.hasCache must be (false)
+      testClass.gs.hasCache must be (true)
     }
   }
 }

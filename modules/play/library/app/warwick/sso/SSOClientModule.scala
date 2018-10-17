@@ -3,8 +3,8 @@ package warwick.sso
 import java.util.Properties
 
 import com.google.inject.name.{Named, Names}
-import javax.inject._
 import com.google.inject.{Provider => _, Singleton => _, _}
+import javax.inject._
 import play.api.Configuration
 import play.api.db.{DBApi, Database}
 import uk.ac.warwick.sso.client._
@@ -12,7 +12,7 @@ import uk.ac.warwick.sso.client.cache.{InMemoryUserCache, UserCache}
 import uk.ac.warwick.sso.client.core.{OnCampusService, OnCampusServiceImpl}
 import uk.ac.warwick.sso.client.trusted.{SSOConfigTrustedApplicationsManager, TrustedApplicationHandler, TrustedApplicationHandlerImpl, TrustedApplicationsManager}
 import uk.ac.warwick.userlookup.webgroups.WarwickGroupsService
-import uk.ac.warwick.userlookup.{UserLookup, UserLookupInterface}
+import uk.ac.warwick.userlookup.{UserLookup, UserLookupInterface, GroupService => GroupServiceInterface}
 import uk.ac.warwick.util.cache.{Cache, Caches}
 
 import scala.collection.JavaConverters._
@@ -31,13 +31,6 @@ class SSOClientModule extends PrivateModule {
     bind(classOf[TrustedApplicationHandler]).to(classOf[TrustedApplicationHandlerImpl]).in(Scopes.SINGLETON)
     bind(classOf[OnCampusService]).to(classOf[OnCampusServiceImpl]).in(Scopes.SINGLETON)
     bind(classOf[UserLookupService]).in(Scopes.SINGLETON)
-    bind(classOf[GroupService])
-      .to(classOf[GroupServiceImpl])
-      .in(Scopes.SINGLETON)
-    bind(classOf[GroupService])
-      .annotatedWith(Names.named("uncached"))
-      .to(classOf[UncachedGroupServiceImpl])
-      .in(Scopes.SINGLETON)
     bind(classOf[LogoutController]).in(Scopes.SINGLETON)
     bind(classOf[BasicAuth]).to(classOf[BasicAuthImpl]).in(Scopes.SINGLETON)
     bind(classOf[TrustedApplicationsManager])
@@ -52,9 +45,6 @@ class SSOClientModule extends PrivateModule {
     expose(classOf[BasicAuth])
     expose(classOf[TrustedApplicationsManager])
     expose(classOf[UserLookupInterface])
-    expose(classOf[GroupService])
-    expose(classOf[GroupService])
-      .annotatedWith(Names.named("uncached"))
 
     // things that probably shouldn't be public, but if you're good...
     expose(classOf[UserCache])
@@ -70,8 +60,21 @@ class SSOClientModule extends PrivateModule {
 
   @Singleton
   @Provides
-  def groupService(userLookup: UserLookupInterface) =
+  def groupService(userLookup: UserLookupInterface): GroupServiceInterface =
     userLookup.getGroupService
+
+  @Singleton
+  @Provides
+  @Exposed
+  def cachingGroupService(gs: GroupServiceInterface): GroupService =
+    new GroupServiceImpl(gs)
+
+  @Singleton
+  @Provides
+  @Exposed
+  @Named("uncached")
+  def cachingGroupService(wgs: WarwickGroupsService): GroupService =
+    new GroupServiceImpl(wgs)
   
   private[sso] def makeProps(ssoConfig: SSOConfiguration): Properties = {
     val props = new Properties()
