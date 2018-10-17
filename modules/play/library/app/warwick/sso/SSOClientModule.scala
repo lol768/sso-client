@@ -73,7 +73,7 @@ class SSOClientModule extends PrivateModule {
   @Provides
   @Exposed
   @Named("uncached")
-  def cachingGroupService(wgs: WarwickGroupsService): GroupService =
+  def uncachedGroupService(wgs: WarwickGroupsService): GroupService =
     new GroupServiceImpl(wgs)
   
   private[sso] def makeProps(ssoConfig: SSOConfiguration): Properties = {
