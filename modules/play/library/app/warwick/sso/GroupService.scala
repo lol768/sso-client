@@ -1,8 +1,8 @@
 package warwick.sso
 
-import com.google.inject.{ImplementedBy, Inject}
+import com.google.inject.ImplementedBy
 import uk.ac.warwick.userlookup
-import uk.ac.warwick.userlookup.webgroups.{GroupNotFoundException, GroupServiceException}
+import uk.ac.warwick.userlookup.webgroups.{GroupNotFoundException, GroupServiceException, WarwickGroupsService}
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
@@ -19,10 +19,11 @@ trait GroupService {
   def getGroupsInDepartment(department: Department): Try[Seq[Group]]
 
   def getGroupsForQuery(query: String): Try[Seq[Group]]
-
+  
+  def hasCache: Boolean
 }
 
-class GroupServiceImpl @Inject()(
+class GroupServiceImpl(
   groupService: userlookup.GroupService
 ) extends GroupService {
 
@@ -47,5 +48,7 @@ class GroupServiceImpl @Inject()(
 
   override def getGroupsForQuery(query: String) =
     Try(groupService.getGroupsForQuery(query).asScala.map(Group.apply))
-
+  
+  override def hasCache =
+    !groupService.isInstanceOf[WarwickGroupsService]
 }
