@@ -2,11 +2,11 @@ package uk.ac.warwick.sso.client.trusted;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.junit.Test;
-import uk.ac.warwick.util.core.DateTimeUtils;
 
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.time.Clock;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -129,18 +129,20 @@ public class BouncyCastleEncryptionProviderTest {
             "3TYxaGHv63QYUsGATINoHlNkbnqmT5RfbnmywAb24rLrU5Scxa8Up3XWBNpmflmF//JybOhufRk7ewDLmtpfFFdwi6" +
             "elBjYtofUekVbxK811zzp1yd/IUhxq9nkODIMeSMYRdrZUCJcdJ963RCQBixzCxmkfN7Wiyw==";
 
-        DateTimeUtils.useMockDateTime(base.toInstant(), () -> {
-			try {
-				EncryptedCertificate cert = provider.createEncryptedCertificate(username, privateKey, providerID, url);
+        try {
+            BouncyCastleEncryptionProvider.CLOCK_IMPLEMENTATION = Clock.fixed(base.toInstant(), ZoneId.systemDefault());
 
-				assertEquals(expectedCertString, cert.getCertificate());
-				assertEquals(providerID, cert.getProviderID());
-				assertEquals(expectedSignature, cert.getSignature());
-			} catch (Exception e) {
-				e.printStackTrace();
-				fail(e.getMessage());
-			}
-		});
+            EncryptedCertificate cert = provider.createEncryptedCertificate(username, privateKey, providerID, url);
+
+            assertEquals(expectedCertString, cert.getCertificate());
+            assertEquals(providerID, cert.getProviderID());
+            assertEquals(expectedSignature, cert.getSignature());
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        } finally {
+            BouncyCastleEncryptionProvider.CLOCK_IMPLEMENTATION = Clock.systemDefaultZone();
+        }
     }
 
     @Test
