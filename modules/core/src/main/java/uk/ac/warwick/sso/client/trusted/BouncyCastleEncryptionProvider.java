@@ -1,10 +1,9 @@
 package uk.ac.warwick.sso.client.trusted;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Base64;
-import uk.ac.warwick.util.core.DateTimeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -13,11 +12,14 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 public class BouncyCastleEncryptionProvider implements EncryptionProvider {
+
+    public static Clock CLOCK_IMPLEMENTATION = Clock.systemDefaultZone();
 
     public static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
 
@@ -102,8 +104,7 @@ public class BouncyCastleEncryptionProvider implements EncryptionProvider {
 
     @Override
     public EncryptedCertificate createEncryptedCertificate(String username, PrivateKey privateKey, String providerID, String urlToSign) throws Exception {
-        // TODO Replace all this with java.time
-        ZonedDateTime timeStamp = ZonedDateTime.now(DateTimeUtils.CLOCK_IMPLEMENTATION);
+        ZonedDateTime timeStamp = ZonedDateTime.now(CLOCK_IMPLEMENTATION);
         final String certificate = generateCertificate(username, timeStamp);
         final String signature = generateSignature(privateKey, TrustedApplicationUtils.generateSignatureBaseString(timeStamp, urlToSign, username));
 
