@@ -161,6 +161,10 @@ public class ShireCommand {
 		cookie.setPath(_config.getString("shire.sscookie.path"));
 		cookie.setDomain(_config.getString("shire.sscookie.domain"));
 		cookie.setSecure(_config.getBoolean("shire.sscookie.secure", false));
+		String sameSiteSetting = getConfig().getString("shire.sscookie.samesite", null);
+		if (sameSiteSetting != null) {
+			applySameSite(cookie, sameSiteSetting);
+		}
 		cookie.setHttpOnly(true);
 
 		if (_config.getBoolean("shire.sscookie.indefinite", false)) {
@@ -169,6 +173,19 @@ public class ShireCommand {
 
 		// create cookie so that service can retrieve user from cache
 		return cookie;
+	}
+
+	private void applySameSite(Cookie cookie, String sameSiteSetting) {
+		switch(sameSiteSetting.toLowerCase()) {
+			case "strict":
+				cookie.setSameSite(Cookie.SameSiteValue.STRICT);
+				break;
+			case "lax":
+				cookie.setSameSite(Cookie.SameSiteValue.LAX);
+				break;
+			default:
+				throw new IllegalArgumentException(sameSiteSetting + " is not a valid sameSite attribute value");
+		}
 	}
 
 	private User getUserFromAuthSubject(final SAMLSubject subject) throws SSOException {

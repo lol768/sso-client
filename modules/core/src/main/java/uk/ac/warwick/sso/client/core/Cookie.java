@@ -11,6 +11,7 @@ public class Cookie {
     private boolean secure;
     private boolean httpOnly;
     private int version;
+    private SameSiteValue sameSite;
 
     private boolean delete;
 
@@ -89,5 +90,17 @@ public class Cookie {
 
     public void setDelete(boolean d) {
         this.delete = d;
+    }
+
+    public SameSiteValue getSameSite() {
+        return sameSite;
+    }
+
+    public void setSameSite(SameSiteValue sameSite) {
+        this.sameSite = sameSite;
+    }
+
+    public enum SameSiteValue {
+        LAX, STRICT
     }
 }
