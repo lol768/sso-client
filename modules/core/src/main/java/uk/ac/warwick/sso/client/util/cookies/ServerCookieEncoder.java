@@ -70,7 +70,7 @@ public final class ServerCookieEncoder extends CookieEncoder {
 
         add(buf, name, value);
 
-        if (cookie.getMaxAge() != Integer.MIN_VALUE) {
+        if (cookie.getMaxAge() >= 0) {
             add(buf, CookieHeaderNames.MAX_AGE, cookie.getMaxAge());
             Date expires = cookie.getMaxAge() <= 0
                     ? new Date(0) // Set expires to the Unix epoch
