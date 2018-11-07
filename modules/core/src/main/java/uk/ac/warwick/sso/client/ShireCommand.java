@@ -161,10 +161,8 @@ public class ShireCommand {
 		cookie.setPath(_config.getString("shire.sscookie.path"));
 		cookie.setDomain(_config.getString("shire.sscookie.domain"));
 		cookie.setSecure(_config.getBoolean("shire.sscookie.secure", false));
-		String sameSiteSetting = getConfig().getString("shire.sscookie.samesite", null);
-		if (sameSiteSetting != null) {
-			applySameSite(cookie, sameSiteSetting);
-		}
+		String sameSiteSetting = getConfig().getString("shire.sscookie.samesite", "Lax");
+		applySameSite(cookie, sameSiteSetting);
 		cookie.setHttpOnly(true);
 
 		if (_config.getBoolean("shire.sscookie.indefinite", false)) {
@@ -182,6 +180,8 @@ public class ShireCommand {
 				break;
 			case "lax":
 				cookie.setSameSite(Cookie.SameSiteValue.LAX);
+				break;
+			case "none":
 				break;
 			default:
 				throw new IllegalArgumentException(sameSiteSetting + " is not a valid sameSite attribute value");
