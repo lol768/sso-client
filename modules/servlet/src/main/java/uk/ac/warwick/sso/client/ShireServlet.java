@@ -16,14 +16,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.warwick.sso.client.cache.UserCache;
-import uk.ac.warwick.sso.client.core.ServletCookies;
+import uk.ac.warwick.sso.client.util.cookies.ServerCookieEncoder;
 import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookup;
 import uk.ac.warwick.util.cache.Cache;
 import uk.ac.warwick.util.cache.Caches;
 import uk.ac.warwick.util.core.StringUtils;
 
-import static uk.ac.warwick.userlookup.UserLookup.getConfigProperty;
 
 /**
  * <h2>What on earth is a shire?</h2>
@@ -66,6 +65,8 @@ public class ShireServlet extends HttpServlet {
 	private Cache<String, User> _userIdCache;
 	
 	private String getMessage = null;
+
+	private ServerCookieEncoder serverCookieEncoder = new ServerCookieEncoder(true);
 
 	public ShireServlet() {
 		super();
@@ -117,16 +118,16 @@ public class ShireServlet extends HttpServlet {
 		}
 
 		ShireCommand command = createShireCommand(remoteHost);
-		Cookie cookie = null;
+		uk.ac.warwick.sso.client.core.Cookie cookie = null;
 		try {
-			cookie = ServletCookies.toServlet(command.process(saml64, target));
+			cookie = command.process(saml64, target);
 		} catch (SSOException e) {
 			LOGGER.warn("Could not generate cookie", e);
 		}
 
 		if (cookie != null) {
 			LOGGER.debug("Adding SSC (" + cookie.getValue() + " ) to response");
-			res.addCookie(cookie);
+			res.addHeader("Set-Cookie", serverCookieEncoder.encode(cookie));
 			LOGGER.debug("User being redirected to target with new SSC");
 		} else if (getCookie(req.getCookies(), _config.getString("shire.sscookie.name")) == null) {
 			LOGGER.warn("No SSC cookie returned to client, nor do they have a previous SSC");
