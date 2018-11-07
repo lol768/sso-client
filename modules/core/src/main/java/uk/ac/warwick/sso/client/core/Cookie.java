@@ -1,7 +1,11 @@
 package uk.ac.warwick.sso.client.core;
 
-
 public class Cookie {
+
+    public enum SameSiteValue {
+        LAX, STRICT
+    }
+
     private final String name;
     private String value;
     private String comment;
@@ -98,9 +102,5 @@ public class Cookie {
 
     public void setSameSite(SameSiteValue sameSite) {
         this.sameSite = sameSite;
-    }
-
-    public enum SameSiteValue {
-        LAX, STRICT
     }
 }
