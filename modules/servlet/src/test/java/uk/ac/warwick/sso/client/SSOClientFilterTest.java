@@ -181,33 +181,6 @@ public class SSOClientFilterTest  {
 		assertEquals("andy", actualUser.getUserId());
 	}
 
-	@Test
-	public void shouldAddSameSiteCookieToSingleSetCookieHeader() {
-		List<String> originalSetCookieValueInString = Collections.singletonList("SSC-Cat=123; Max-Age=1234, Random-key=value; Secure");
-		String actual = HandleFilter.addSameSiteToMultipleSetCookieHeaders(originalSetCookieValueInString, "SSC-Cat", "Lax").toString();
-		String expected = Collections.singletonList("SSC-Cat=123; Max-Age=1234; SameSite=Lax, Random-key=value; Secure").toString();
-		assertEquals(expected, actual);
-	}
-
-	@Test
-	public void shouldAddSameSiteCookieToTheRightCookie() {
-		List<String> originalSetCookieValueInString = new ArrayList<>();
-		originalSetCookieValueInString.add("SSC-Cat=123; Max-Age=1234, Random-key=value; Secure");
-		originalSetCookieValueInString.add("SSC-Cat=900; Max-Age=222");
-		originalSetCookieValueInString.add("SSC-Cat=12222; Max-Age=222");
-
-		String actual = HandleFilter.addSameSiteToMultipleSetCookieHeaders(originalSetCookieValueInString, "SSC-Cat", "Lax").toString();
-		String expected = Collections.singletonList("SSC-Cat=123; Max-Age=1234; SameSite=Lax, Random-key=value; Secure, SSC-Cat=900; Max-Age=222; SameSite=Lax, SSC-Cat=12222; Max-Age=222; SameSite=Lax").toString();
-		assertEquals(expected, actual);
-	}
-
-	@Test
-	public void shouldGetProperValueForSameSite() {
-		assertEquals("Lax", HandleFilter.getProperSameSiteValue(null));
-		assertEquals("Lax", HandleFilter.getProperSameSiteValue("wrong"));
-		assertEquals("Strict", HandleFilter.getProperSameSiteValue("strict"));
-	}
-
 	/**
 	 * When an application form POSTs an urlencoded form, it should be able to read that
 	 * InputStream itself. If we call getParameter or anything else that consumes the request body,

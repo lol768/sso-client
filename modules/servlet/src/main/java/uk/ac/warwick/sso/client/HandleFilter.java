@@ -3,7 +3,6 @@ package uk.ac.warwick.sso.client;
 import org.apache.http.Header;
 import uk.ac.warwick.sso.client.core.*;
 import uk.ac.warwick.userlookup.User;
-import uk.ac.warwick.util.core.StringUtils;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -11,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public abstract class HandleFilter {
 
@@ -53,7 +51,6 @@ public abstract class HandleFilter {
             else
                 response.setStatus(res.getStatusCode());
         }
-        addAdditionalCookieAttributes(response);
     }
 
     private void putUserIntoKey(final User user, final HeaderSettingHttpServletRequest request, final String userKey) {
@@ -84,44 +81,4 @@ public abstract class HandleFilter {
         return config.getString("shire.filteractualuserkey", ACTUAL_USER_KEY);
     }
 
-    protected void addAdditionalCookieAttributes(HttpServletResponse response) {
-        List<String> originalSetCookieHeaders = new ArrayList<>(response.getHeaders("Set-Cookie"));
-        if (originalSetCookieHeaders.isEmpty()) return;
-        List<String> setCookieHeadersWithSSCSameSite = addSameSiteToMultipleSetCookieHeaders(
-                originalSetCookieHeaders,
-                getConfig().getString("shire.sscookie.name"),
-                getProperSameSiteValue(getConfig().getString("shire.sscookie.samesite", "Lax"))
-        );
-
-        boolean firstSetCookieHeader = true;
-        for (String header : setCookieHeadersWithSSCSameSite) {
-            if (firstSetCookieHeader) {
-                response.setHeader("Set-Cookie", header);
-                firstSetCookieHeader = false;
-            } else {
-                response.addHeader("Set-Cookie", header);
-            }
-        }
-    }
-
-    protected static List<String> addSameSiteToMultipleSetCookieHeaders(List<String> setCookieHeaders, String ssc, String setting) {
-        return setCookieHeaders.stream().map(cookie -> addSameSiteStrictCookieForSSC(cookie, ssc, setting)).collect(Collectors.toList());
-    }
-
-    public static String addSameSiteStrictCookieForSSC(String cookie, String ssc, String setting) {
-        if (!cookie.contains(ssc)) return cookie;
-        return Arrays.stream(cookie.split(",")).map(e -> e.trim().startsWith(ssc) ? e + "; SameSite=" + setting : e).collect(Collectors.joining(","));
-    }
-
-    public static String getProperSameSiteValue(String s) {
-        if (StringUtils.hasText(s)) {
-            switch (s.toLowerCase()) {
-                case "lax":
-                    return "Lax";
-                case "strict":
-                    return "Strict";
-            }
-        }
-        return "Lax";
-    }
 }
