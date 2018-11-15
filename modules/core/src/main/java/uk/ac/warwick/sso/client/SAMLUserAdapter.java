@@ -1,13 +1,14 @@
 package uk.ac.warwick.sso.client;
 
 import org.opensaml.SAMLAttribute;
+import uk.ac.warwick.userlookup.AbstractUserAttributesAdapter;
 import uk.ac.warwick.userlookup.UserAttributesAdapter;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class SAMLUserAdapter implements UserAttributesAdapter {
+public class SAMLUserAdapter extends AbstractUserAttributesAdapter {
 
     private final Properties attributes;
 
@@ -15,7 +16,7 @@ public class SAMLUserAdapter implements UserAttributesAdapter {
         this.attributes = attributes;
     }
 
-    private String get(String name) {
+    protected String get(String name) {
         if (attributes.get(name) == null) {
             return null;
         }
@@ -68,35 +69,6 @@ public class SAMLUserAdapter implements UserAttributesAdapter {
         return get("deptshort");
     }
 
-    @Override
-    public String getUserType() {
-        return get("urn:websignon:usertype");
-    }
-
-    @Override
-    public boolean isStaff() {
-        return "true".equals(get("staff"));
-    }
-
-    @Override
-    public boolean isStudent() {
-        return "true".equals(get("student"));
-    }
-
-    @Override
-    public boolean isAlumni() {
-        return "true".equals(get("alumni")) || "Alumni".equals(getUserType());
-    }
-
-    @Override
-    public boolean isLoginDisabled() {
-        return "true".equals(get("logindisabled"));
-    }
-
-    @Override
-    public boolean isWarwickPrimary() {
-        return "yes".equals(get("warwickprimary"));
-    }
 
     @Override
     public boolean isLoggedIn() {
@@ -106,11 +78,6 @@ public class SAMLUserAdapter implements UserAttributesAdapter {
     @Override
     public String getUniversityID() {
         return get("warwickuniid");
-    }
-
-    @Override
-    public String getUserSource() {
-        return get("urn:websignon:usersource");
     }
 
     @Override

@@ -70,6 +70,11 @@ public class MockUserAdapter implements UserAttributesAdapter {
     }
 
     @Override
+    public boolean isApplicant() {
+        return false;
+    }
+
+    @Override
     public boolean isLoginDisabled() {
         return false;
     }
