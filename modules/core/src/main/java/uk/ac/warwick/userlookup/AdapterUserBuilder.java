@@ -18,6 +18,7 @@ public class AdapterUserBuilder {
         user.setStaff(a.isStaff());
         user.setStudent(a.isStudent());
         user.setAlumni(a.isAlumni());
+        user.setApplicant(a.isApplicant());
         user.setLoginDisabled(a.isLoginDisabled());
         user.setWarwickId(a.getUniversityID());
         user.setExtraProperties(a.getAttributes());
