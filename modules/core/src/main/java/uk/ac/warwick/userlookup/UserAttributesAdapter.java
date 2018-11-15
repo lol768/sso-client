@@ -30,6 +30,8 @@ public interface UserAttributesAdapter {
 
     boolean isAlumni();
 
+    boolean isApplicant();
+
     boolean isLoginDisabled();
 
     boolean isWarwickPrimary();
