@@ -10,18 +10,22 @@ import java.util.Properties;
 
 public class SAMLUserAdapter extends AbstractUserAttributesAdapter {
 
+    private final Map<String, String> map;
     private final Properties attributes;
+
 
     public SAMLUserAdapter(Properties attributes) {
         this.attributes = attributes;
+        this.map = this.getAttributes();
+    }
+
+    public SAMLUserAdapter(Map<String, String> map) {
+        this.attributes = null;
+        this.map = map;
     }
 
     protected String get(String name) {
-        if (attributes.get(name) == null) {
-            return null;
-        }
-
-        return (String) ((SAMLAttribute) attributes.get(name)).getValues().next();
+        return map.get(name);
     }
 
     @Override
@@ -82,11 +86,15 @@ public class SAMLUserAdapter extends AbstractUserAttributesAdapter {
 
     @Override
     public Map<String, String> getAttributes() {
+        if (this.map != null) {
+            return this.map;
+        }
+
         Map<String, String> map = new HashMap<>();
 
         for (Object key : attributes.keySet()) {
             String name = (String) key;
-            String value = get(name);
+            String value = attributes.get(key) == null ? null : (String) ((SAMLAttribute) attributes.get(name)).getValues().next();
             map.put(name, value);
         }
 
