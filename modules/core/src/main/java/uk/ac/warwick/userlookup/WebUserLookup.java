@@ -130,7 +130,7 @@ public class WebUserLookup implements UserLookupBackend {
 	}
 
 	private static User populateUser(final Map<String,String> results) {
-		return new UserBuilder().populateUser(results);
+		return new UserBuilder().populateUserFromSentry(results);
 	}
 
 	/**
