@@ -12,7 +12,7 @@
 
     <groupId>uk.ac.warwick.sso</groupId>
     <artifactId>sso-client-project</artifactId>
-    <version>2.58</version>
+    <version>2.59</version>
     <packaging>pom</packaging>
 
     <name>SSO Client Project</name>
@@ -24,6 +24,18 @@
 
     <build>
         <defaultGoal>install</defaultGoal>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <!-- https://issues.apache.org/jira/browse/SUREFIRE-1588 🤦 -->
+                        <useSystemClassLoader>false</useSystemClassLoader>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
     <properties>

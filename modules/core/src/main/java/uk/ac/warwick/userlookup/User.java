@@ -15,39 +15,41 @@ public class User implements Serializable, ExtraProperties {
 
 	private static final long serialVersionUID = 8170132489896721008L;
 
-	private String _email;
+	private String email;
 	
-	private String _userType;
+	private String userType;
 
-	private String _userId;
+	private String userId;
 
-	private String _token;
+	private String token;
 
-	private boolean _loginDisabled;
+	private boolean loginDisabled;
 
-	private boolean _foundUser;
+	private boolean foundUser;
 
-	private boolean _staff;
+	private boolean staff;
 
-	private boolean _student;
+	private boolean student;
 	
-	private boolean _alumni;
+	private boolean alumni;
 
-	private String _department;
+	private boolean applicant;
 
-	private String _departmentCode;
+	private String department;
+
+	private String departmentCode;
 	
-	private String _shortDepartment;
+	private String shortDepartment;
 
-	private String _firstName = "";
+	private String firstName = "";
 
-	private String _lastName = "";
+	private String lastName = "";
 
-	private String _fullName = "";
+	private String fullName = "";
 
-	private String _warwickId = "";
+	private String warwickId = "";
 
-	private String _userSource;
+	private String userSource;
 
 	private boolean verified = true;
 
@@ -57,16 +59,16 @@ public class User implements Serializable, ExtraProperties {
 
 	private boolean onCampus;
 
-	private boolean _warwickPrimary;
+	private boolean warwickPrimary;
 
-	private Map<String, String> _extraProperties = new HashMap<String, String>();
+	private Map<String, String> extraProperties = new HashMap<>();
 
 	/**
 	 * The user was not obtained from LDAP or SSO
 	 */
 	public static final String UNKNOWN_USER_TYPE = "";
 
-	private boolean _isLoggedIn;
+	private boolean isLoggedIn;
 
 	/**
 	 * Make an empty User instance
@@ -103,7 +105,7 @@ public class User implements Serializable, ExtraProperties {
 	 */
 	public final String getEmail() {
 
-		return _email;
+		return email;
 	}
 
 	/**
@@ -113,8 +115,8 @@ public class User implements Serializable, ExtraProperties {
 	 */
 	public final String getFullName() {
 
-		if (_fullName == null || _fullName.equals("")) {
-			String fullName = _firstName + " " + _lastName;
+		if (fullName == null || fullName.equals("")) {
+			String fullName = firstName + " " + lastName;
 			if (fullName.equals(" ")) {
 				fullName = "";
 			}
@@ -122,7 +124,7 @@ public class User implements Serializable, ExtraProperties {
 			return fullName;
 
 		}
-		return _fullName;
+		return fullName;
 
 	}
 	
@@ -135,7 +137,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @return boolean
 	 */
 	public final boolean isLoggedIn() {
-		return _isLoggedIn;
+		return isLoggedIn;
 	}
 
 	/**
@@ -144,7 +146,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @return String
 	 */
 	public final String getUserId() {
-		return _userId;
+		return userId;
 	}
 
 	/**
@@ -154,7 +156,7 @@ public class User implements Serializable, ExtraProperties {
 	 *            The email to set
 	 */
 	public final void setEmail(final String email) {
-		_email = email;
+		this.email = email;
 	}
 
 	/**
@@ -164,7 +166,7 @@ public class User implements Serializable, ExtraProperties {
 	 *            The isLoggedIn to set
 	 */
 	public final void setIsLoggedIn(final boolean isLoggedIn) {
-		_isLoggedIn = isLoggedIn;
+		this.isLoggedIn = isLoggedIn;
 	}
 
 	/**
@@ -174,7 +176,7 @@ public class User implements Serializable, ExtraProperties {
 	 *            The userId to set
 	 */
 	public final void setUserId(final String userId) {
-		_userId = userId;
+		this.userId = userId;
 	}
 
 	/**
@@ -185,7 +187,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @deprecated
 	 */
 	public final String getToken() {
-		return _token;
+		return token;
 	}
 
 	/**
@@ -195,7 +197,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @return
 	 */
 	public final String getOldWarwickSSOToken() {
-		return _token;
+		return token;
 	}
 
 	/**
@@ -207,7 +209,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @deprecated
 	 */
 	public final void setToken(final String token) {
-		_token = token;
+		this.token = token;
 	}
 
 	/**
@@ -217,7 +219,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @param token
 	 */
 	public final void setOldWarwickSSOToken(final String token) {
-		_token = token;
+		this.token = token;
 	}
 
 	/**
@@ -226,7 +228,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @return boolean
 	 */
 	public final boolean isFoundUser() {
-		return _foundUser;
+		return foundUser;
 	}
 
 	/**
@@ -236,7 +238,7 @@ public class User implements Serializable, ExtraProperties {
 	 *            The foundUser to set
 	 */
 	public final void setFoundUser(final boolean foundUser) {
-		_foundUser = foundUser;
+		this.foundUser = foundUser;
 	}
 
 	/**
@@ -245,7 +247,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @return String
 	 */
 	public final String getUserType() {
-		return _userType;
+		return userType;
 	}
 
 	/**
@@ -255,7 +257,7 @@ public class User implements Serializable, ExtraProperties {
 	 *            The userType to set
 	 */
 	public final void setUserType(final String userType) {
-		_userType = userType;
+		this.userType = userType;
 	}
 
 	/**
@@ -264,7 +266,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @return boolean
 	 */
 	public final boolean isStaff() {
-		return _staff;
+		return staff;
 	}
 
 	/**
@@ -273,7 +275,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @return boolean
 	 */
 	public final boolean isStudent() {
-		return _student;
+		return student;
 	}
 	
 	/**
@@ -282,7 +284,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @return boolean
 	 */
 	public boolean isAlumni() {
-        return _alumni;
+        return alumni;
     }
     
 	/**
@@ -293,7 +295,7 @@ public class User implements Serializable, ExtraProperties {
      *            Whether the user is alumni
      */
     public void setAlumni(final boolean alumni) {
-        this._alumni = alumni;
+        this.alumni = alumni;
     }
 
 	/**
@@ -304,7 +306,7 @@ public class User implements Serializable, ExtraProperties {
 	 *            The staff to set
 	 */
 	public final void setStaff(final boolean staff) {
-		_staff = staff;
+		this.staff = staff;
 	}
 
 	/**
@@ -315,7 +317,7 @@ public class User implements Serializable, ExtraProperties {
 	 *            The student to set
 	 */
 	public final void setStudent(final boolean student) {
-		_student = student;
+		this.student = student;
 	}
 
 	/**
@@ -324,7 +326,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @return
 	 */
 	public final String getDepartment() {
-		return _department;
+		return department;
 	}
 
 	/**
@@ -333,7 +335,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @param string
 	 */
 	public final void setDepartment(final String string) {
-		_department = string;
+		department = string;
 	}
 
 	/**
@@ -342,7 +344,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @return
 	 */
 	public final String getFirstName() {
-		return _firstName;
+		return firstName;
 	}
 
 	/**
@@ -351,7 +353,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @return
 	 */
 	public final String getLastName() {
-		return _lastName;
+		return lastName;
 	}
 
 	/**
@@ -361,7 +363,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @param string
 	 */
 	public final void setFirstName(final String string) {
-		_firstName = string;
+		firstName = string;
 	}
 
 	/**
@@ -370,7 +372,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @param string
 	 */
 	public final void setLastName(final String string) {
-		_lastName = string;
+		lastName = string;
 	}
 
 	/**
@@ -379,7 +381,7 @@ public class User implements Serializable, ExtraProperties {
 	 * @param string
 	 */
 	public final void setFullName(final String string) {
-		_fullName = string;
+		fullName = string;
 	}
 
 
@@ -387,14 +389,14 @@ public class User implements Serializable, ExtraProperties {
 	 * @return
 	 */
 	public final String getWarwickId() {
-		return _warwickId;
+		return warwickId;
 	}
 
 	/**
 	 * @param string
 	 */
 	public final void setWarwickId(final String string) {
-		_warwickId = string;
+		warwickId = string;
 	}
 
 	/**
@@ -404,19 +406,19 @@ public class User implements Serializable, ExtraProperties {
 	 * @return
 	 */
 	public final String getDepartmentCode() {
-		return _departmentCode;
+		return departmentCode;
 	}
 
 	public final void setDepartmentCode(final String departmentCode) {
-		_departmentCode = departmentCode;
+		this.departmentCode = departmentCode;
 	}
 
 	public final Map<String, String> getExtraProperties() {
-		return _extraProperties;
+		return extraProperties;
 	}
 
 	public final void setExtraProperties(final Map<String, String> extraProperties) {
-		_extraProperties = extraProperties;
+		this.extraProperties = extraProperties;
 	}
 
 	public final Object getExtraProperty(final String key) {
@@ -424,16 +426,16 @@ public class User implements Serializable, ExtraProperties {
 	}
 
 	public final boolean isLoginDisabled() {
-		return _loginDisabled;
+		return loginDisabled;
 	}
 
 	public final void setLoginDisabled(final boolean loginDisabled) {
-		_loginDisabled = loginDisabled;
+		this.loginDisabled = loginDisabled;
 	}
 
-	public final String getUserSource() { return _userSource; }
+	public final String getUserSource() { return userSource; }
 
-	public final void setUserSource(String userSource) { this._userSource = userSource; }
+	public final void setUserSource(String userSource) { this.userSource = userSource; }
 
 
 	public final int hashCode() {
@@ -452,8 +454,8 @@ public class User implements Serializable, ExtraProperties {
 	}
 
 	public String getShortDepartment() {
-		if (_shortDepartment != null && _shortDepartment.length() > 0) {
-			return _shortDepartment;
+		if (shortDepartment != null && shortDepartment.length() > 0) {
+			return shortDepartment;
 		}
 		return getDepartment();
 	}
@@ -471,7 +473,7 @@ public class User implements Serializable, ExtraProperties {
 	}
 
 	public void setShortDepartment(String department) {
-		_shortDepartment = department;
+		shortDepartment = department;
 	}
 
 	private String escapeHtml(String input) {
@@ -515,11 +517,18 @@ public class User implements Serializable, ExtraProperties {
 	}
 
 	public boolean isWarwickPrimary() {
-		return _warwickPrimary;
+		return warwickPrimary;
 	}
 
 	public void setWarwickPrimary(boolean warwickPrimary) {
-		this._warwickPrimary = warwickPrimary;
+		this.warwickPrimary = warwickPrimary;
 	}
 
+	public void setApplicant(boolean applicant) {
+		this.applicant = applicant;
+	}
+
+	public boolean isApplicant() {
+		return applicant;
+	}
 }

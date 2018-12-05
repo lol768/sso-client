@@ -1,26 +1,31 @@
 package uk.ac.warwick.sso.client;
 
 import org.opensaml.SAMLAttribute;
+import uk.ac.warwick.userlookup.AbstractUserAttributesAdapter;
 import uk.ac.warwick.userlookup.UserAttributesAdapter;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class SAMLUserAdapter implements UserAttributesAdapter {
+public class SAMLUserAdapter extends AbstractUserAttributesAdapter {
 
+    private final Map<String, String> map;
     private final Properties attributes;
+
 
     public SAMLUserAdapter(Properties attributes) {
         this.attributes = attributes;
+        this.map = this.getAttributes();
     }
 
-    private String get(String name) {
-        if (attributes.get(name) == null) {
-            return null;
-        }
+    public SAMLUserAdapter(Map<String, String> map) {
+        this.attributes = null;
+        this.map = map;
+    }
 
-        return (String) ((SAMLAttribute) attributes.get(name)).getValues().next();
+    protected String get(String name) {
+        return map.get(name);
     }
 
     @Override
@@ -68,35 +73,6 @@ public class SAMLUserAdapter implements UserAttributesAdapter {
         return get("deptshort");
     }
 
-    @Override
-    public String getUserType() {
-        return get("urn:websignon:usertype");
-    }
-
-    @Override
-    public boolean isStaff() {
-        return "true".equals(get("staff"));
-    }
-
-    @Override
-    public boolean isStudent() {
-        return "true".equals(get("student"));
-    }
-
-    @Override
-    public boolean isAlumni() {
-        return "true".equals(get("alumni")) || "Alumni".equals(getUserType());
-    }
-
-    @Override
-    public boolean isLoginDisabled() {
-        return "true".equals(get("logindisabled"));
-    }
-
-    @Override
-    public boolean isWarwickPrimary() {
-        return "yes".equals(get("warwickprimary"));
-    }
 
     @Override
     public boolean isLoggedIn() {
@@ -109,17 +85,16 @@ public class SAMLUserAdapter implements UserAttributesAdapter {
     }
 
     @Override
-    public String getUserSource() {
-        return get("urn:websignon:usersource");
-    }
-
-    @Override
     public Map<String, String> getAttributes() {
+        if (this.map != null) {
+            return this.map;
+        }
+
         Map<String, String> map = new HashMap<>();
 
         for (Object key : attributes.keySet()) {
             String name = (String) key;
-            String value = get(name);
+            String value = attributes.get(key) == null ? null : (String) ((SAMLAttribute) attributes.get(name)).getValues().next();
             map.put(name, value);
         }
 
