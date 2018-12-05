@@ -11,7 +11,7 @@ import java.util.Properties;
 public class SAMLUserAdapter extends AbstractUserAttributesAdapter {
 
     private final Map<String, String> map;
-    private Properties attributes;
+    private final Properties attributes;
 
 
     public SAMLUserAdapter(Properties attributes) {
@@ -20,6 +20,7 @@ public class SAMLUserAdapter extends AbstractUserAttributesAdapter {
     }
 
     public SAMLUserAdapter(Map<String, String> map) {
+        this.attributes = null;
         this.map = map;
     }
 
