@@ -1,5 +1,6 @@
 package uk.ac.warwick.userlookup;
 
+import org.opensaml.SAMLAttribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.warwick.sso.client.SAMLUserAdapter;
@@ -26,9 +27,7 @@ public final class UserBuilder {
     }
 
     public User populateUserFromSAML(final Map<String, String> results) {
-        Properties props = new Properties();
-        props.putAll(results);
-        SAMLUserAdapter samlUserAdapter = new SAMLUserAdapter(props);
+        SAMLUserAdapter samlUserAdapter = new SAMLUserAdapter(results);
         return this.populateUsingAdapter(results, samlUserAdapter);
     }
 
