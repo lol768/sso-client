@@ -74,8 +74,7 @@ public class DatabaseUserCache implements UserCache {
 		UserCacheItem item = null;
 
 		try {
-			item = (UserCacheItem) template.queryForObject("select objectdata from objectcache where " + _keyName + " = '"
-					+ key.toString() + "'", new RowMapper() {
+			item = (UserCacheItem) template.queryForObject("select objectdata from objectcache where " + _keyName + " = ?", new String[]{key.toString()}, new RowMapper() {
 
 				public Object mapRow(final ResultSet rs, final int rowNum) throws SQLException {
 					ObjectInputStream ois;
