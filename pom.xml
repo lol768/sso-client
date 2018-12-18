@@ -12,7 +12,7 @@
 
     <groupId>uk.ac.warwick.sso</groupId>
     <artifactId>sso-client-project</artifactId>
-    <version>2.60</version>
+    <version>2.60.1</version>
     <packaging>pom</packaging>
 
     <name>SSO Client Project</name>
@@ -30,7 +30,7 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <configuration>
-                        <!-- https://issues.apache.org/jira/browse/SUREFIRE-1588 🤦 -->
+                        <!-- https://issues.apache.org/jira/browse/SUREFIRE-1588 :facepalm: -->
                         <useSystemClassLoader>false</useSystemClassLoader>
                     </configuration>
                 </plugin>
