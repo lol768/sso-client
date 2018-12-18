@@ -134,6 +134,67 @@ public class SSOClientFilterTest  {
 	}
 
 	@Test
+	public void testBasicAuthBase64Padding() throws Exception {
+		wireFilter();
+
+		BaseConfiguration configuration = new BaseConfiguration();
+		configuration.addProperty("httpbasic.allow", true);
+		configuration.addProperty("mode", "old");
+		setConfigAndHandler(configuration);
+
+		// Users A, B, C have 0, 1 and 2 characters of padding each
+
+		final User alice = new User("alice");
+		alice.setFoundUser(true);
+
+		final User bob = new User("bob");
+		bob.setFoundUser(true);
+
+		final User cyle = new User("cyle");
+		cyle.setFoundUser(true);
+
+		m.checking(new Expectations(){{
+			one(userLookup).getUserByIdAndPassNonLoggingIn("alice", "aaa");
+				will(returnValue(alice));
+			one(userLookup).getUserByIdAndPassNonLoggingIn("bob", "aaaa");
+				will(returnValue(bob));
+			one(userLookup).getUserByIdAndPassNonLoggingIn("cyle", "aa");
+				will(returnValue(cyle));
+			one(userLookup).getOnCampusService(); will(returnValue(onCampusService));
+		}});
+
+		// header values generated from cURL
+		req.addHeader("Authorization", "Basic YWxpY2U6YWFh");
+		f.doFilter(req, res, chain);
+
+		User user = (User) req.getAttribute(SSOClientFilter.USER_KEY);
+		assertNotNull(user);
+		assertTrue("should be found user", user.isFoundUser());
+		assertEquals("alice", ((HttpServletRequest)chain.getRequest()).getRemoteUser());
+
+		newRequestGuff();
+
+		req.addHeader("Authorization", "Basic Ym9iOmFhYWE=");
+		f.doFilter(req, res, chain);
+
+		user = (User) req.getAttribute(SSOClientFilter.USER_KEY);
+		assertNotNull(user);
+		assertTrue("should be found user", user.isFoundUser());
+		assertEquals("bob", ((HttpServletRequest)chain.getRequest()).getRemoteUser());
+
+		newRequestGuff();
+
+		req.addHeader("Authorization", "Basic Y3lsZTphYQ==");
+		f.doFilter(req, res, chain);
+
+		user = (User) req.getAttribute(SSOClientFilter.USER_KEY);
+		assertNotNull(user);
+		assertTrue("should be found user", user.isFoundUser());
+		assertEquals("cyle", ((HttpServletRequest)chain.getRequest()).getRemoteUser());
+
+	}
+
+	@Test
 	public void testMasquerade() throws Exception {
 		wireFilter();
 
