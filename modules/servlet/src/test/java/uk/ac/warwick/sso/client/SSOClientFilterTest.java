@@ -17,7 +17,6 @@ import org.junit.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import sun.misc.BASE64Encoder;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.core.OnCampusService;
 import uk.ac.warwick.sso.client.core.OnCampusServiceImpl;
@@ -25,6 +24,7 @@ import uk.ac.warwick.userlookup.*;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -67,7 +67,7 @@ public class SSOClientFilterTest  {
 	}
 	
 	private void addAuth(String user, String pass) throws Exception {
-		req.addHeader("Authorization", "Basic " + new BASE64Encoder().encodeBuffer((user + ":" + pass).getBytes("UTF-8")));
+		req.addHeader("Authorization", String.format("Basic %s", Base64.getEncoder().encodeToString((user + ":" + pass).getBytes(StandardCharsets.UTF_8))));
 	}
 
 	@Test
