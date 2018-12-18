@@ -3,9 +3,9 @@ package uk.ac.warwick.sso.client;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Random;
 
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * Salted hash used for client-side caching of passwords.
@@ -61,7 +61,6 @@ abstract class SaltedDigest {
 	}
 
 	private static String base64(final byte[] input) {
-		byte[] bytes = Base64.encodeBase64(input);
-		return new String(bytes, ASCII);
+		return Base64.getEncoder().encodeToString(input);
 	}
 }

@@ -8,7 +8,6 @@ import org.opensaml.SAMLNameIdentifier;
 import org.opensaml.SAMLSubject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.misc.BASE64Decoder;
 import uk.ac.warwick.sso.client.cache.UserCache;
 import uk.ac.warwick.sso.client.cache.UserCacheItem;
 import uk.ac.warwick.sso.client.core.*;
@@ -27,6 +26,8 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -118,8 +119,8 @@ public class SSOClientHandlerImpl implements SSOClientHandler {
         LOGGER.info("Doing BASIC auth:" + auth64);
         final int authStartPos = 6;
         auth64 = auth64.substring(authStartPos);
-        BASE64Decoder decoder = new BASE64Decoder();
-        String auth = new String(decoder.decodeBuffer(auth64.trim()));
+        Base64.Decoder decoder = Base64.getDecoder();
+        String auth = new String(decoder.decode(auth64.trim()), StandardCharsets.UTF_8);
 
         if (!auth.contains(":")) {
             LOGGER.debug("Returning anon user as auth was invalid: " + auth);
