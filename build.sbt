@@ -46,7 +46,6 @@ lazy val clientCoreDeps = Seq(
   "net.spy" % "spymemcached" % "2.10.6",
   "org.slf4j" % "slf4j-simple" % "1.7.10" % Optional,
   "uk.ac.warwick.util" % "warwickutils-cache" % s"$warwickUtilsVersion" % Optional,
-  "org.mortbay.jetty" % "org.mortbay.jetty" % "5.1.4" % Optional,
   "junit" % "junit" % "4.12" % Optional,
   "org.jmock" % "jmock-junit4" % "2.5.1" % Optional,
   "org.hamcrest" % "hamcrest-library" % "1.3" % Optional,
@@ -108,8 +107,8 @@ lazy val playAppDeps = Seq[ModuleID](
 
 lazy val playTestDeps = Seq[ModuleID](
   jdbc,
-  component("play-iteratees"),
-  component("play-iteratees-reactive-streams"),
+  "com.typesafe.play" %% "play-iteratees" % "2.6.1",
+  "com.typesafe.play" %% "play-iteratees-reactive-streams" % "2.6.1",
   "org.scalatest" %% "scalatest" % "3.0.3",
   "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.0",
   "org.scalacheck" %% "scalacheck" % "1.13.5",
@@ -147,7 +146,6 @@ lazy val servletDependencies = Seq(
   "org.springframework" % "spring-jdbc" % s"$springVersion" % Optional,
   "org.slf4j" % "slf4j-simple" % "1.7.10" % Test,
   "uk.ac.warwick.util" % "warwickutils-cache" % s"$warwickUtilsVersion" % "test",
-  "org.mortbay.jetty" % "org.mortbay.jetty" % "5.1.4" % "test",
   "junit" % "junit" % "4.12" % "test",
   "org.jmock" % "jmock-junit4" % "2.5.1" % "test",
   "org.hamcrest" % "hamcrest-library" % "1.3" % "test",
