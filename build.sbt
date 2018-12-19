@@ -1,4 +1,3 @@
-
 def libraryVersion = "2.60.1" // propagates downwards
 def warwickUtilsVersion = "20180823"
 def jettyVersion = "8.2.0.v20160908"
@@ -129,19 +128,11 @@ lazy val clientServlet = Project(id="sso-client", base = file("./modules/servlet
   .settings(commonSettingsJava: _*)
   .settings(
     name := """sso-client""",
-    cucumber := Cucumber.run,
+    cucumber := Cucumber.run((fullClasspath in Test).value.files),
     libraryDependencies ++= servletDependencies,
   ).dependsOn(clientCore)
 
-lazy val servletDependencies = Seq(
-  "org.jruby" % "jruby-complete" % "1.4.0",
-  "info.cukes" % "cucumber-deps" % "0.6.3",
-  "org.jruby" % "jruby-openssl" % "0.7.1",
-  "org.jruby" % "jopenssl" % "0.7.1",
-  "org.jruby" % "jruby-complete" % "1.4.0",
-  "info.cukes" % "cucumber-deps" % "0.6.3",
-  "org.jruby" % "jruby-openssl" % "0.7.1",
-  "org.jruby" % "jopenssl" % "0.7.1",
+lazy val servletDependencies: Seq[ModuleID] = Seq(
   "uk.ac.warwick.sso" % "sso-client-core" % s"$libraryVersion",
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % Optional,
   "javax.servlet.jsp" % "javax.servlet.jsp-api" % "2.3.1" % Optional,
@@ -166,8 +157,7 @@ lazy val servletDependencies = Seq(
   "org.jruby" % "jruby-complete" % "1.4.0" % "test",
   "info.cukes" % "cucumber-deps" % "0.6.3" % "test",
   "org.jruby" % "jruby-openssl" % "0.7.1" % "test",
-  "org.jruby" % "jopenssl" % "0.7.1" % "test",
-  "junit" % "junit" % "4.12" % Test
+  "org.jruby" % "jopenssl" % "0.7.1" % "test"
 ) ++ clientCoreDeps
 
 // ---------- End Servlet ----------
