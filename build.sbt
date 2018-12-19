@@ -123,11 +123,14 @@ dependencyOverrides += "xml-apis" % "xml-apis" % "1.4.01"
 
 // ---------- Start Servlet ----------
 
+val cucumber = taskKey[Unit]("Runs cucumber integratoin tests")
+
 lazy val clientServlet = Project(id="sso-client", base = file("./modules/servlet/"))
   .settings(commonSettingsJava: _*)
   .settings(
     name := """sso-client""",
-    libraryDependencies ++= servletDependencies
+    cucumber := Cucumber.run,
+    libraryDependencies ++= servletDependencies,
   ).dependsOn(clientCore)
 
 lazy val servletDependencies = Seq(
