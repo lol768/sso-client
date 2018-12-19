@@ -165,7 +165,7 @@ lazy val servletDependencies = Seq(
   "org.jruby" % "jruby-openssl" % "0.7.1" % "test",
   "org.jruby" % "jopenssl" % "0.7.1" % "test",
   "junit" % "junit" % "4.12" % Test
-)
+) ++ clientCoreDeps
 
 // ---------- End Servlet ----------
 
