@@ -145,7 +145,7 @@ lazy val servletDependencies = Seq(
   "taglibs" % "standard" % "1.1.2" % Optional,
   "org.springframework" % "spring-jdbc" % s"$springVersion" % Optional,
   "org.slf4j" % "slf4j-simple" % "1.7.10" % Test,
-  "uk.ac.warwick.util" % "warwickutils-cache" % s"$warwickUtilsVersion" % "test",
+  "uk.ac.warwick.util" % "warwickutils-cache" % s"$warwickUtilsVersion" % "test" classifier "tests",
   "junit" % "junit" % "4.12" % "test",
   "org.jmock" % "jmock-junit4" % "2.5.1" % "test",
   "org.hamcrest" % "hamcrest-library" % "1.3" % "test",
