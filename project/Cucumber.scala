@@ -8,7 +8,7 @@ object Cucumber {
     val fo = ForkOptions().withRunJVMOptions(Vector[String]("-cp", classPath.map(_.getAbsolutePath).mkString(":")))
     println( classPath.map(_.getAbsolutePath).mkString(":"))
     val process = sbt.Fork.java.fork(fo, mainClass +: args)
-    if process.exitValue() != 0 {
+    if (process.exitValue() != 0) {
       throw new IllegalStateException("Cucumber run was not successful")
     }
   }
