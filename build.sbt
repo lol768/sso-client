@@ -22,7 +22,7 @@ lazy val clientCore = Project(id="sso-client-core", base = file("./modules/core/
   )
 
 lazy val clientCoreDeps = Seq(
-  "javax.servlet" % "javax.servlet-api" % "3.1.0" ,
+  "javax.servlet" % "javax.servlet-api" % "3.1.0" % Optional,
   "javax.inject" % "javax.inject" % "1",
   "org.slf4j" % "slf4j-api" % "1.7.10",
   "org.slf4j" % "log4j-over-slf4j" % "1.7.10",
@@ -98,7 +98,6 @@ lazy val clientPlayTesting = (project in file("./modules/play/testing")).enableP
 
 lazy val playAppDeps = Seq[ModuleID](
   guice,
-  "uk.ac.warwick.sso" % "sso-client-core" % libraryVersion,
   component("play-jdbc-api"),
   "xerces" % "xercesImpl" % "2.11.0",
   "xalan" % "xalan" % "2.7.1"
@@ -133,7 +132,6 @@ lazy val clientServlet = Project(id="sso-client", base = file("./modules/servlet
   ).dependsOn(clientCore)
 
 lazy val servletDependencies: Seq[ModuleID] = Seq(
-  "uk.ac.warwick.sso" % "sso-client-core" % s"$libraryVersion",
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % Optional,
   "javax.servlet.jsp" % "javax.servlet.jsp-api" % "2.3.1" % Optional,
   "taglibs" % "standard" % "1.1.2" % Optional,
