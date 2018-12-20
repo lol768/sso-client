@@ -85,6 +85,7 @@ lazy val clientPlayLibrary = (project in file("./modules/play/library")).enableP
     libraryDependencies ++= playAppDeps ++ playTestDeps
   )
   .settings(repositorySettings :_*)
+  .dependsOn(clientCore)
 
 // Helper library for other apps' tests.
 lazy val clientPlayTesting = (project in file("./modules/play/testing")).enablePlugins(PlayScala)
