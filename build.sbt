@@ -45,7 +45,6 @@ lazy val clientCoreDeps = Seq(
   "net.spy" % "spymemcached" % "2.10.6" % Optional ,
   "org.slf4j" % "slf4j-simple" % "1.7.10" % "test",
   "uk.ac.warwick.util" % "warwickutils-cache" % s"$warwickUtilsVersion" % "test",
-  "org.mortbay.jetty" % "org.mortbay.jetty" % "5.1.4" % "test",
   "junit" % "junit" % "4.12" % "test",
   "org.jmock" % "jmock-junit4" % "2.5.1" % "test",
   "org.hamcrest" % "hamcrest-library" % "1.3" % "test",
