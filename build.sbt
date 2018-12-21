@@ -30,7 +30,7 @@ lazy val clientCore = Project(id="sso-client-core", base = file("./modules/core/
 
 
 lazy val clientCoreDeps = Seq(
-  "javax.servlet" % "javax.servlet-api" % "3.1.0" % Provided,
+  "javax.servlet" % "javax.servlet-api" % "3.1.0",
   "javax.inject" % "javax.inject" % "1",
   "org.slf4j" % "slf4j-api" % "1.7.10",
   "org.slf4j" % "log4j-over-slf4j" % "1.7.10",
