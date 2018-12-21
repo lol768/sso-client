@@ -18,8 +18,16 @@ lazy val clientCore = Project(id="sso-client-core", base = file("./modules/core/
   .settings(commonSettingsJava: _*)
   .settings(
     name := """sso-client-core""",
-    libraryDependencies ++= clientCoreDeps
+    libraryDependencies ++= clientCoreDeps,
+    resourceGenerators in Compile += Def.task {
+      val file = (resourceManaged in Compile).value / "ssoclient.version"
+      val contents = "version=%s".format(version.value)
+      IO.write(file, contents)
+      Seq(file)
+    }.taskValue
   )
+
+
 
 lazy val clientCoreDeps = Seq(
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % Provided,
