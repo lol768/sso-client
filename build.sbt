@@ -34,7 +34,7 @@ lazy val clientCoreDeps = Seq(
   "javax.inject" % "javax.inject" % "1",
   "org.slf4j" % "slf4j-api" % "1.7.10",
   "xfire" % "opensaml" % "1.0.1",
-  "org.apache.santuario" % "xmlsec" % "1.4.3" exclude("javax.servlet", "servlet-api"),
+  "org.apache.santuario" % "xmlsec" % "1.5.8" exclude("javax.servlet", "servlet-api"),
   "taglibs" % "standard" % "1.1.2" % Optional ,
   "org.apache.httpcomponents" % "httpclient" % "4.5.2",
   "org.apache.httpcomponents" % "httpmime" % "4.4.1",
