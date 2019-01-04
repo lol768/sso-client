@@ -30,16 +30,15 @@ lazy val clientCore = Project(id="sso-client-core", base = file("./modules/core/
 
 
 lazy val clientCoreDeps = Seq(
-  "javax.servlet" % "javax.servlet-api" % "3.1.0",
+  "javax.servlet" % "javax.servlet-api" % "3.1.0" % Optional,
   "javax.inject" % "javax.inject" % "1",
   "org.slf4j" % "slf4j-api" % "1.7.10",
-  "org.slf4j" % "log4j-over-slf4j" % "1.7.10",
   "xfire" % "opensaml" % "1.0.1",
-  "org.apache.santuario" % "xmlsec" % "1.4.3",
+  "org.apache.santuario" % "xmlsec" % "1.4.3" exclude("javax.servlet", "servlet-api"),
   "taglibs" % "standard" % "1.1.2" % Optional ,
   "org.apache.httpcomponents" % "httpclient" % "4.5.2",
   "org.apache.httpcomponents" % "httpmime" % "4.4.1",
-  "commons-configuration" % "commons-configuration" % "1.1",
+  "commons-configuration" % "commons-configuration" % "1.1" exclude("servletapi", "servletapi"),
   "net.oauth.core" % "oauth" % "20090825",
   "net.oauth.core" % "oauth-provider" % "20090531",
   "net.oauth.core" % "oauth-httpclient4" % "20090913",
@@ -51,26 +50,27 @@ lazy val clientCoreDeps = Seq(
   "org.bouncycastle" % "bcprov-jdk15on" % "1.60",
   "net.sf.ehcache" % "ehcache" % "2.9.0" % Optional ,
   "net.spy" % "spymemcached" % "2.10.6" % Optional ,
-  "org.slf4j" % "slf4j-simple" % "1.7.10" % "test",
-  "uk.ac.warwick.util" % "warwickutils-cache" % warwickUtilsVersion % "test",
-  "junit" % "junit" % "4.12" % "test",
-  "org.jmock" % "jmock-junit4" % "2.5.1" % "test",
-  "org.hamcrest" % "hamcrest-library" % "1.3" % "test",
-  "org.eclipse.jetty" % "jetty-server" % jettyVersion % "test",
-  "org.eclipse.jetty" % "jetty-http" % jettyVersion % "test",
-  "org.eclipse.jetty" % "jetty-io" % jettyVersion % "test",
-  "org.eclipse.jetty" % "jetty-continuation" % jettyVersion % "test",
-  "org.eclipse.jetty" % "jetty-websocket" % jettyVersion % "test",
-  "org.eclipse.jetty" % "jetty-util" % jettyVersion % "test",
-  "org.eclipse.jetty" % "jetty-webapp" % jettyVersion % "test",
-  "org.springframework" % "spring-test" % springVersion % "test",
-  "jmock" % "jmock-cglib" % "1.2.0" % "test",
-  "xalan" % "xalan" % "2.7.0" % "test",
-  "xerces" % "xercesImpl" % "2.6.0" % "test",
-  "org.jruby" % "jruby-complete" % "1.4.0" % "test",
-  "info.cukes" % "cucumber-deps" % "0.6.3" % "test",
-  "org.jruby" % "jruby-openssl" % "0.7.1" % "test",
-  "org.jruby" % "jopenssl" % "0.7.1" % "test",
+
+  "org.slf4j" % "slf4j-simple" % "1.7.10" % Test,
+  "uk.ac.warwick.util" % "warwickutils-cache" % warwickUtilsVersion % Test,
+  "junit" % "junit" % "4.12" % Test,
+  "org.jmock" % "jmock-junit4" % "2.5.1" % Test,
+  "org.hamcrest" % "hamcrest-library" % "1.3" % Test,
+  "org.eclipse.jetty" % "jetty-server" % jettyVersion % Test,
+  "org.eclipse.jetty" % "jetty-http" % jettyVersion % Test,
+  "org.eclipse.jetty" % "jetty-io" % jettyVersion % Test,
+  "org.eclipse.jetty" % "jetty-continuation" % jettyVersion % Test,
+  "org.eclipse.jetty" % "jetty-websocket" % jettyVersion % Test,
+  "org.eclipse.jetty" % "jetty-util" % jettyVersion % Test,
+  "org.eclipse.jetty" % "jetty-webapp" % jettyVersion % Test,
+  "org.springframework" % "spring-test" % springVersion % Test,
+  "jmock" % "jmock-cglib" % "1.2.0" % Test,
+  "xalan" % "xalan" % "2.7.0" % Test,
+  "xerces" % "xercesImpl" % "2.6.0" % Test,
+  "org.jruby" % "jruby-complete" % "1.4.0" % Test,
+  "info.cukes" % "cucumber-deps" % "0.6.3" % Test,
+  "org.jruby" % "jruby-openssl" % "0.7.1" % Test,
+  "org.jruby" % "jopenssl" % "0.7.1" % Test,
 )
 
 
@@ -126,6 +126,8 @@ lazy val playTestDeps = Seq[ModuleID](
 // https://bugs.elab.warwick.ac.uk/browse/SSO-1653
 dependencyOverrides += "xml-apis" % "xml-apis" % "1.4.01"
 
+excludeDependencies += "commons-logging" % "commons-logging"
+
 // ---------- End Play ----------
 
 // ---------- Start Servlet ----------
@@ -140,38 +142,39 @@ lazy val clientServlet = Project(id="sso-client", base = file("./modules/servlet
     libraryDependencies ++= servletDependencies,
   ).dependsOn(clientCore)
 
-lazy val servletDependencies: Seq[ModuleID] = Seq(
+lazy val servletDependencies: Seq[ModuleID] = clientCoreDeps ++ Seq(
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % Optional,
   "javax.servlet.jsp" % "javax.servlet.jsp-api" % "2.3.1" % Optional,
   "taglibs" % "standard" % "1.1.2" % Optional,
   "org.springframework" % "spring-jdbc" % springVersion % Optional,
   "org.slf4j" % "slf4j-simple" % "1.7.10" % Test,
-  "uk.ac.warwick.util" % "warwickutils-cache" % warwickUtilsVersion % "test" classifier "tests",
-  "junit" % "junit" % "4.12" % "test",
-  "org.jmock" % "jmock-junit4" % "2.5.1" % "test",
-  "org.hamcrest" % "hamcrest-library" % "1.3" % "test",
-  "org.eclipse.jetty" % "jetty-server" % jettyVersion % "test",
-  "org.eclipse.jetty" % "jetty-http" % jettyVersion % "test",
-  "org.eclipse.jetty" % "jetty-io" % jettyVersion % "test",
-  "org.eclipse.jetty" % "jetty-continuation" % jettyVersion % "test",
-  "org.eclipse.jetty" % "jetty-websocket" % jettyVersion % "test",
-  "org.eclipse.jetty" % "jetty-util" % jettyVersion % "test",
-  "org.eclipse.jetty" % "jetty-webapp" % jettyVersion % "test",
-  "org.springframework" % "spring-test" % springVersion % "test",
-  "jmock" % "jmock-cglib" % "1.2.0" % "test",
-  "xalan" % "xalan" % "2.7.0" % "test",
-  "xerces" % "xercesImpl" % "2.6.0" % "test",
-  "org.jruby" % "jruby-complete" % "1.4.0" % "test",
-  "info.cukes" % "cucumber-deps" % "0.6.3" % "test",
-  "org.jruby" % "jruby-openssl" % "0.7.1" % "test",
-  "org.jruby" % "jopenssl" % "0.7.1" % "test"
-) ++ clientCoreDeps
+  
+  "uk.ac.warwick.util" % "warwickutils-cache" % warwickUtilsVersion % Test classifier "tests",
+  "junit" % "junit" % "4.12" % Test,
+  "org.jmock" % "jmock-junit4" % "2.5.1" % Test,
+  "org.hamcrest" % "hamcrest-library" % "1.3" % Test,
+  "org.eclipse.jetty" % "jetty-server" % jettyVersion % Test,
+  "org.eclipse.jetty" % "jetty-http" % jettyVersion % Test,
+  "org.eclipse.jetty" % "jetty-io" % jettyVersion % Test,
+  "org.eclipse.jetty" % "jetty-continuation" % jettyVersion % Test,
+  "org.eclipse.jetty" % "jetty-websocket" % jettyVersion % Test,
+  "org.eclipse.jetty" % "jetty-util" % jettyVersion % Test,
+  "org.eclipse.jetty" % "jetty-webapp" % jettyVersion % Test,
+  "org.springframework" % "spring-test" % springVersion % Test,
+  "jmock" % "jmock-cglib" % "1.2.0" % Test,
+  "xalan" % "xalan" % "2.7.0" % Test,
+  "xerces" % "xercesImpl" % "2.6.0" % Test,
+  "org.jruby" % "jruby-complete" % "1.4.0" % Test,
+  "info.cukes" % "cucumber-deps" % "0.6.3" % Test,
+  "org.jruby" % "jruby-openssl" % "0.7.1" % Test,
+  "org.jruby" % "jopenssl" % "0.7.1" % Test
+)
 
 // ---------- End Servlet ----------
 
 lazy val commonSettings = Seq(
-  scalaVersion := "2.12.2",
-  crossScalaVersions := Seq("2.11.8", "2.12.2"),
+  scalaVersion := "2.12.8",
+  crossScalaVersions := Seq("2.12.8"),
   publishMavenStyle := true,
   compileOrder := CompileOrder.ScalaThenJava, // maybe faster?
 
