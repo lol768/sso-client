@@ -38,7 +38,11 @@ lazy val clientCoreDeps = Seq(
   "taglibs" % "standard" % "1.1.2" % Optional ,
   "org.apache.httpcomponents" % "httpclient" % "4.5.2",
   "org.apache.httpcomponents" % "httpmime" % "4.4.1",
-  "commons-configuration" % "commons-configuration" % "1.1" exclude("servletapi", "servletapi"),
+  "commons-configuration" % "commons-configuration" % "1.1"
+    exclude("servletapi", "servletapi")
+    exclude("commons-beanutils", "commons-beanutils")
+    exclude("commons-beanutils", "commons-beanutils-bean-collections")
+    exclude("commons-beanutils", "commons-beanutils-core"),
   "net.oauth.core" % "oauth" % "20090825",
   "net.oauth.core" % "oauth-provider" % "20090531",
   "net.oauth.core" % "oauth-httpclient4" % "20090913",
