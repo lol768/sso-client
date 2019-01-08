@@ -56,7 +56,7 @@ class PlayHttpRequestHeader(req: RequestHeader) extends HttpRequest {
     try {
       req.cookies.map(toCoreCookie).toSeq
     } catch {
-      case _=> Nil
+      case _: Throwable => Nil
     }
   }.asJava
 

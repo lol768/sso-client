@@ -1,7 +1,7 @@
 def libraryVersion = "2.60.1" // propagates downwards
-def warwickUtilsVersion = "20180823"
+def warwickUtilsVersion = "20190108"
 def jettyVersion = "8.2.0.v20160908"
-def springVersion = "4.1.4.RELEASE"
+def springVersion = "4.3.21.RELEASE"
 
 lazy val root = Project(id="sso-client-project", base = file("."))
   .aggregate(clientCore, clientPlay, clientServlet)
@@ -38,7 +38,7 @@ lazy val clientCoreDeps = Seq(
   "taglibs" % "standard" % "1.1.2" % Optional ,
   "org.apache.httpcomponents" % "httpclient" % "4.5.2",
   "org.apache.httpcomponents" % "httpmime" % "4.4.1",
-  "commons-configuration" % "commons-configuration" % "1.1"
+  "commons-configuration" % "commons-configuration" % "1.10"
     exclude("servletapi", "servletapi")
     exclude("commons-beanutils", "commons-beanutils")
     exclude("commons-beanutils", "commons-beanutils-bean-collections")
@@ -69,8 +69,8 @@ lazy val clientCoreDeps = Seq(
   "org.eclipse.jetty" % "jetty-webapp" % jettyVersion % Test,
   "org.springframework" % "spring-test" % springVersion % Test,
   "jmock" % "jmock-cglib" % "1.2.0" % Test,
-  "xalan" % "xalan" % "2.7.0" % Test,
-  "xerces" % "xercesImpl" % "2.6.0" % Test,
+  "xalan" % "xalan" % "2.7.2" % Test,
+  "xerces" % "xercesImpl" % "2.12.0" % Test,
   "org.jruby" % "jruby-complete" % "1.4.0" % Test,
   "info.cukes" % "cucumber-deps" % "0.6.3" % Test,
   "org.jruby" % "jruby-openssl" % "0.7.1" % Test,
@@ -112,8 +112,12 @@ lazy val clientPlayTesting = (project in file("./modules/play/testing")).enableP
 lazy val playAppDeps = Seq[ModuleID](
   guice,
   component("play-jdbc-api"),
-  "xerces" % "xercesImpl" % "2.11.0",
-  "xalan" % "xalan" % "2.7.1"
+
+  // https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-72445
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.11.3",
+
+  "xerces" % "xercesImpl" % "2.12.0",
+  "xalan" % "xalan" % "2.7.2"
 )
 
 lazy val playTestDeps = Seq[ModuleID](
@@ -166,12 +170,13 @@ lazy val servletDependencies: Seq[ModuleID] = clientCoreDeps ++ Seq(
   "org.eclipse.jetty" % "jetty-webapp" % jettyVersion % Test,
   "org.springframework" % "spring-test" % springVersion % Test,
   "jmock" % "jmock-cglib" % "1.2.0" % Test,
-  "xalan" % "xalan" % "2.7.0" % Test,
-  "xerces" % "xercesImpl" % "2.6.0" % Test,
+  "xalan" % "xalan" % "2.7.2" % Test,
+  "xerces" % "xercesImpl" % "2.12.0" % Test,
   "org.jruby" % "jruby-complete" % "1.4.0" % Test,
   "info.cukes" % "cucumber-deps" % "0.6.3" % Test,
   "org.jruby" % "jruby-openssl" % "0.7.1" % Test,
-  "org.jruby" % "jopenssl" % "0.7.1" % Test
+  "org.jruby" % "jopenssl" % "0.7.1" % Test,
+  "org.apache.commons" % "commons-collections4" % "4.2" % Test
 )
 
 // ---------- End Servlet ----------

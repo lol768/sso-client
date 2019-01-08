@@ -50,7 +50,7 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
   override def clear(): Unit = noThanksWeAreImmutable
   override def clearProperty(s: String): Unit = noThanksWeAreImmutable
 
-  override def getList(s: String): util.List[_] = getList(s, Collections.EMPTY_LIST)
+  override def getList(s: String): util.List[AnyRef] = getList(s, Collections.EMPTY_LIST)
 
   /**
     * First we see if config at `s` is a list itself. If it isn't...
@@ -60,8 +60,8 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
     * We implement that here by finding the first prefix that's a list, and gathering subitems
     * from each member.
     */
-  override def getList(s: String, fallback: util.List[_]): util.List[_] =
-    getStringList(s) orElse {
+  override def getList(s: String, fallback: util.List[_]): util.List[AnyRef] =
+    (getStringList(s) orElse {
       // any part of the key could be an array... we have to find it, then dig through each item in it.
       findListKey(s).flatMap { listKey =>
         val childKey = s.substring(listKey.length + 1)
@@ -75,10 +75,10 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
       }
     } getOrElse {
       fallback
-    }
+    }).asInstanceOf[util.List[AnyRef]]
 
   /** From a dot.separated.key, finds the first prefix that is a list. */
-  def findListKey(key: String) = {
+  def findListKey(key: String): Option[String] = {
     val parts = key.split("\\.")
     Stream.from(1).take(parts.length) map { n =>
       parts.take(n).mkString(".")
@@ -88,10 +88,13 @@ class PlayConfiguration(conf: Configuration) extends ApacheConfiguration {
   }
 
   override def getProperty(s: String): AnyRef =
-    conf.entrySet
-      .find { case (k, v) => k == s }
-      .map { case (k, v) => v.unwrapped }
-      .orNull
+    if (conf.entrySet.exists { case (k, _) => k == s })
+      conf.entrySet
+        .find { case (k, _) => k == s }
+        .map { case (_, v) => v.unwrapped }
+        .orNull
+    else
+      Some(getList(s)).filterNot(_.isEmpty).orNull
 
   override def getKeys: util.Iterator[String] = conf.keys.iterator.asJava
   override def getKeys(prefix: String): util.Iterator[String] = conf.get[Configuration](prefix).keys.iterator.asJava
