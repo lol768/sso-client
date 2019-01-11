@@ -1,7 +1,5 @@
 package warwick.sso
 
-import com.google.common.collect.Iterators
-import com.typesafe.config.ConfigException
 import org.apache.commons.configuration.Configuration
 import org.scalatestplus.play.PlaySpec
 import uk.ac.warwick.sso.client.SSOConfiguration

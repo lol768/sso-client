@@ -10,6 +10,7 @@ import uk.ac.warwick.util.collections.Pair;
 import uk.ac.warwick.util.collections.PairIterator;
 
 import java.security.PublicKey;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -52,8 +53,8 @@ public class SSOConfigTrustedApplicationsManager implements TrustedApplicationsM
         builder.put(this.application.getProviderID(), currentApp);
         
         List<Pair<String, String>> pairs = Lists.newArrayList(PairIterator.of(
-            config.getList("trustedapps.app.providerid"),
-            config.getList("trustedapps.app.publickey")
+            Arrays.asList(config.getStringArray("trustedapps.app.providerid")),
+            Arrays.asList(config.getStringArray("trustedapps.app.publickey"))
         ));
 
         for (Pair<String, String> providerIDAndPublicKey : pairs) {
