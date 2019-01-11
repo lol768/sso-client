@@ -1,6 +1,6 @@
 package uk.ac.warwick.userlookup;
 
-import org.apache.commons.collections4.EnumerationUtils;
+import org.apache.commons.collections.EnumerationUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.server.Handler;
