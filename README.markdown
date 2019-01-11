@@ -26,7 +26,7 @@ Using a snapshot version locally
 -------------
 
 If you are working on a `-SNAPSHOT` version and you want to try it in another app,
-run `./sbt publishLocal publishM2` to get it into your local `~/.m2` and `~/.ivy2/` cache and then update your 
+run `./sbt publishM2 publishLocal` to get it into your local `~/.m2` and `~/.ivy2/` cache and then update your 
 app's dependencies to use that version.
 
 It's important to only do this with snapshots because normal release versions are designed

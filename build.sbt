@@ -13,7 +13,6 @@ lazy val root = Project(id="sso-client-project", base = file("."))
 
 // ---------- Start Core ----------
 
-
 lazy val clientCore = Project(id="sso-client-core", base = file("./modules/core/"))
   .settings(commonSettingsJava: _*)
   .settings(
@@ -52,6 +51,7 @@ lazy val clientCoreDeps = Seq(
   "uk.ac.warwick.util" % "warwickutils-core" % warwickUtilsVersion,
   "uk.ac.warwick.util" % "warwickutils-web" % warwickUtilsVersion,
   "org.bouncycastle" % "bcprov-jdk15on" % "1.60",
+  "commons-collections" % "commons-collections" % "3.2.2",
   "net.sf.ehcache" % "ehcache" % "2.9.0" % Optional ,
   "net.spy" % "spymemcached" % "2.10.6" % Optional ,
 
@@ -176,7 +176,6 @@ lazy val servletDependencies: Seq[ModuleID] = clientCoreDeps ++ Seq(
   "info.cukes" % "cucumber-deps" % "0.6.3" % Test,
   "org.jruby" % "jruby-openssl" % "0.7.1" % Test,
   "org.jruby" % "jopenssl" % "0.7.1" % Test,
-  "org.apache.commons" % "commons-collections4" % "4.2" % Test
 )
 
 // ---------- End Servlet ----------
