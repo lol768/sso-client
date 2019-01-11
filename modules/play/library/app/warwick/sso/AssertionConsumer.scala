@@ -1,7 +1,6 @@
 package warwick.sso
 
 import javax.inject.{Inject, Provider}
-
 import org.slf4j.LoggerFactory
 import play.api.data._
 import play.api.data.Forms._
@@ -9,6 +8,7 @@ import play.api.mvc.Cookie.SameSite
 import play.api.mvc._
 import uk.ac.warwick.sso.client.{AttributeAuthorityResponseFetcherImpl, SSOConfiguration, ShireCommand}
 
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 object AssertionConsumer {
@@ -95,7 +95,7 @@ class AssertionConsumer @Inject() (
     try {
       req.cookies.get(config.getString("shire.sscookie.name")).isDefined
     } catch {
-      case _ => false
+      case NonFatal(_) => false
     }
   }
 

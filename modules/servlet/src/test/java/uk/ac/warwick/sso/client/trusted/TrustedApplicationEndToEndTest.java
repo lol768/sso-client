@@ -15,6 +15,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -22,7 +23,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mortbay.servlet.MultiPartFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.warwick.sso.client.SSOClientFilter;
@@ -31,7 +31,9 @@ import uk.ac.warwick.userlookup.User;
 import uk.ac.warwick.userlookup.UserLookupAdapter;
 
 import javax.servlet.DispatcherType;
+import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -60,9 +62,12 @@ public class TrustedApplicationEndToEndTest {
         server = new Server(PORT);
 
         ServletContextHandler handler = new ServletContextHandler();
-        handler.addServlet(UsernameEchoingServlet.class, "/user");
+        ServletHolder sh = new ServletHolder(UsernameEchoingServlet.class);
+        sh.getRegistration().setMultipartConfig(new MultipartConfigElement(System.getProperty("java.io.tmpdir"), 1048576, 1048576, 262144));
+        handler.addServlet(sh, "/user");
 
-        handler.addFilter(MultiPartFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
+
+        // handler.addFilter(MultiPartFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
         handler.addFilter(SSOClientFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST));
         final FilterHolder taFilterHolder = handler.addFilter(TrustedApplicationFilter.class, "*", EnumSet.of(DispatcherType.REQUEST));
 
@@ -135,6 +140,7 @@ public class TrustedApplicationEndToEndTest {
         assertEquals("cuscav", EntityUtils.toString(httpClient.execute(request).getEntity()).trim());
     }
 
+    @MultipartConfig
     public static class UsernameEchoingServlet extends HttpServlet {
         @Override
         protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

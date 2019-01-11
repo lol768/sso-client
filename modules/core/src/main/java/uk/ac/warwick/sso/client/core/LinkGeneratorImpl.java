@@ -9,6 +9,7 @@ import uk.ac.warwick.util.core.StringUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.List;
 
 public class LinkGeneratorImpl implements LinkGenerator {
@@ -151,17 +152,14 @@ public class LinkGeneratorImpl implements LinkGenerator {
 
             String queryString = stripQueryStringParam(urlParamKey, getRequest().getQueryString());
 
-            List<String> keys = getConfig().getList("shire.stripparams.key");
-            if (keys != null) {
-                for (String key : keys) {
-                    queryString = stripQueryStringParam(key, queryString);
-                }
+            for (String key : getConfig().getStringArray("shire.stripparams.key")) {
+                queryString = stripQueryStringParam(key, queryString);
             }
 
             if (queryString.startsWith("&")) {
                 queryString = queryString.replaceFirst("&", "");
             }
-            if (queryString != null && queryString.length() > 0) {
+            if (queryString.length() > 0) {
                 target += "?" + queryString;
             }
             if (LOGGER.isDebugEnabled()) {
