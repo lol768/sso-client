@@ -1,4 +1,4 @@
-def libraryVersion = "2.60.1" // propagates downwards
+def libraryVersion = "2.61" // propagates downwards
 def warwickUtilsVersion = "20190108"
 def jettyVersion = "8.2.0.v20160908"
 def springVersion = "4.3.21.RELEASE"
