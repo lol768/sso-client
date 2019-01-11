@@ -28,6 +28,7 @@ lazy val clientCore = Project(id="sso-client-core", base = file("./modules/core/
 
 
 
+
 lazy val clientCoreDeps = Seq(
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % Optional,
   "javax.inject" % "javax.inject" % "1",
@@ -96,7 +97,6 @@ lazy val clientPlayLibrary = (project in file("./modules/play/library")).enableP
     name := """sso-client-play""",
     libraryDependencies ++= playAppDeps ++ playTestDeps
   )
-  .settings(repositorySettings :_*)
   .dependsOn(clientCore)
 
 // Helper library for other apps' tests.
@@ -107,7 +107,6 @@ lazy val clientPlayTesting = (project in file("./modules/play/testing")).enableP
     name := """sso-client-play-testing""",
     libraryDependencies ++= playAppDeps ++ playTestDeps
   )
-  .settings(repositorySettings :_*)
 
 lazy val playAppDeps = Seq[ModuleID](
   guice,
@@ -192,7 +191,7 @@ lazy val commonSettings = Seq(
   resolvers += WarwickNexus,
   resolvers += DefaultMavenRepository,
   resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven"
-)
+) ++ repositorySettings
 
 lazy val commonSettingsJava = commonSettings ++ Seq(
   crossPaths := false, // stops SBT butchering the Maven artifactIds by appending Scala versions
