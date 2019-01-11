@@ -7,6 +7,7 @@ import play.api.mvc._
 import uk.ac.warwick.sso.client.core.{Cookie, HttpRequest}
 
 import scala.collection.JavaConverters._
+import scala.util.control.NonFatal
 
 /**
  * Extension of PlayHttpRequestHeader that takes a full request, and so
@@ -56,7 +57,7 @@ class PlayHttpRequestHeader(req: RequestHeader) extends HttpRequest {
     try {
       req.cookies.map(toCoreCookie).toSeq
     } catch {
-      case _: Throwable => Nil
+      case NonFatal(_) => Nil
     }
   }.asJava
 
