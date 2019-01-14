@@ -179,7 +179,11 @@ lazy val commonSettings = Seq(
   version := libraryVersion,
   resolvers += WarwickNexus,
   resolvers += DefaultMavenRepository,
-  resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven"
+  resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven",
+
+  // Fix publishing on SBT 1.x
+  // https://github.com/sbt/sbt/issues/3570
+  updateOptions := updateOptions.value.withGigahorse(false)
 ) ++ repositorySettings
 
 lazy val commonSettingsJava = commonSettings ++ Seq(
