@@ -4,7 +4,7 @@
 
 Add the dependency to your `build.sbt`:
 
-    resolvers += "nexus" at "https://mvn.elab.warwick.ac.uk/nexus/content/groups/public"
+    resolvers += "nexus" at "https://mvn.elab.warwick.ac.uk/nexus/repository/public/"
     credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
     
     libraryDependencies += "uk.ac.warwick.sso" %% "sso-client-play" % CurrentVersion

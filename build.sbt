@@ -4,7 +4,7 @@ version in ThisBuild := "2.62-SNAPSHOT" // propagates downwards
 pomIncludeRepository in ThisBuild := { _ => false }
 publishMavenStyle in ThisBuild := true
 
-def warwickUtilsVersion = "20190108"
+def warwickUtilsVersion = "20190114"
 def jettyVersion = "8.2.0.v20160908"
 def springVersion = "4.3.21.RELEASE"
 
@@ -20,7 +20,7 @@ lazy val root = (project in file("."))
 lazy val clientCore = (project in file("./modules/core"))
   .settings(commonSettingsJava: _*)
   .settings(
-    name := """sso-client-core""",
+    name := "sso-client-core",
     libraryDependencies ++= clientCoreDeps,
     resourceGenerators in Compile += Def.task {
       val file = (resourceManaged in Compile).value / "ssoclient.version"
@@ -35,6 +35,8 @@ lazy val clientCoreDeps = Seq(
   "javax.inject" % "javax.inject" % "1",
   "org.slf4j" % "slf4j-api" % "1.7.10",
   "xfire" % "opensaml" % "1.0.1",
+  "xalan" % "xalan" % "2.7.2",
+  "xerces" % "xercesImpl" % "2.12.0",
   "org.apache.santuario" % "xmlsec" % "1.5.8" exclude("javax.servlet", "servlet-api"),
   "taglibs" % "standard" % "1.1.2" % Optional ,
   "org.apache.httpcomponents" % "httpclient" % "4.5.2",
@@ -71,8 +73,6 @@ lazy val clientCoreDeps = Seq(
   "org.eclipse.jetty" % "jetty-webapp" % jettyVersion % Test,
   "org.springframework" % "spring-test" % springVersion % Test,
   "jmock" % "jmock-cglib" % "1.2.0" % Test,
-  "xalan" % "xalan" % "2.7.2" % Test,
-  "xerces" % "xercesImpl" % "2.12.0" % Test,
   "org.jruby" % "jruby-complete" % "1.4.0" % Test,
   "info.cukes" % "cucumber-deps" % "0.6.3" % Test,
   "org.jruby" % "jruby-openssl" % "0.7.1" % Test,
@@ -94,7 +94,7 @@ lazy val clientPlayLibrary = (project in file("./modules/play/library"))
   .enablePlugins(PlayScala)
   .settings(commonSettings :_*)
   .settings(
-    name := """sso-client-play""",
+    name := "sso-client-play",
     libraryDependencies ++= playAppDeps ++ playTestDeps
   )
   .dependsOn(clientCore)
@@ -105,7 +105,7 @@ lazy val clientPlayTesting = (project in file("./modules/play/testing"))
   .dependsOn(clientPlayLibrary)
   .settings(commonSettings :_*)
   .settings(
-    name := """sso-client-play-testing""",
+    name := "sso-client-play-testing",
     libraryDependencies ++= playAppDeps ++ playTestDeps
   )
 
@@ -114,10 +114,7 @@ lazy val playAppDeps = Seq[ModuleID](
   component("play-jdbc-api"),
 
   // https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-72445
-  "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.11.3",
-
-  "xerces" % "xercesImpl" % "2.12.0",
-  "xalan" % "xalan" % "2.7.2"
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.11.3"
 )
 
 lazy val playTestDeps = Seq[ModuleID](
@@ -145,7 +142,7 @@ val cucumber = taskKey[Unit]("Runs cucumber integration tests")
 lazy val clientServlet = (project in file("./modules/servlet"))
   .settings(commonSettingsJava: _*)
   .settings(
-    name := """sso-client""",
+    name := "sso-client",
     cucumber := Cucumber.run((fullClasspath in Test).value.files),
     libraryDependencies ++= servletDependencies
   ).dependsOn(clientCore)
@@ -170,8 +167,6 @@ lazy val servletDependencies: Seq[ModuleID] = clientCoreDeps ++ Seq(
   "org.eclipse.jetty" % "jetty-webapp" % jettyVersion % Test,
   "org.springframework" % "spring-test" % springVersion % Test,
   "jmock" % "jmock-cglib" % "1.2.0" % Test,
-  "xalan" % "xalan" % "2.7.2" % Test,
-  "xerces" % "xercesImpl" % "2.12.0" % Test,
   "org.jruby" % "jruby-complete" % "1.4.0" % Test,
   "info.cukes" % "cucumber-deps" % "0.6.3" % Test,
   "org.jruby" % "jruby-openssl" % "0.7.1" % Test,
