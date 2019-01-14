@@ -1,4 +1,9 @@
-def libraryVersion = "2.62-SNAPSHOT" // propagates downwards
+
+version in ThisBuild := "2.62-SNAPSHOT" // propagates downwards
+
+pomIncludeRepository in ThisBuild := { _ => false }
+publishMavenStyle in ThisBuild := true
+
 def warwickUtilsVersion = "20190108"
 def jettyVersion = "8.2.0.v20160908"
 def springVersion = "4.3.21.RELEASE"
@@ -71,7 +76,7 @@ lazy val clientCoreDeps = Seq(
   "org.jruby" % "jruby-complete" % "1.4.0" % Test,
   "info.cukes" % "cucumber-deps" % "0.6.3" % Test,
   "org.jruby" % "jruby-openssl" % "0.7.1" % Test,
-  "org.jruby" % "jopenssl" % "0.7.1" % Test,
+  "org.jruby" % "jopenssl" % "0.7.1" % Test
 )
 
 
@@ -142,7 +147,7 @@ lazy val clientServlet = (project in file("./modules/servlet"))
   .settings(
     name := """sso-client""",
     cucumber := Cucumber.run((fullClasspath in Test).value.files),
-    libraryDependencies ++= servletDependencies,
+    libraryDependencies ++= servletDependencies
   ).dependsOn(clientCore)
 
 lazy val servletDependencies: Seq[ModuleID] = clientCoreDeps ++ Seq(
@@ -170,7 +175,7 @@ lazy val servletDependencies: Seq[ModuleID] = clientCoreDeps ++ Seq(
   "org.jruby" % "jruby-complete" % "1.4.0" % Test,
   "info.cukes" % "cucumber-deps" % "0.6.3" % Test,
   "org.jruby" % "jruby-openssl" % "0.7.1" % Test,
-  "org.jruby" % "jopenssl" % "0.7.1" % Test,
+  "org.jruby" % "jopenssl" % "0.7.1" % Test
 )
 
 // ---------- End Servlet ----------
@@ -181,7 +186,6 @@ lazy val commonSettings = Seq(
   publishMavenStyle := true,
 
   organization := "uk.ac.warwick.sso",
-  version := libraryVersion,
   resolvers += WarwickNexus,
   resolvers += DefaultMavenRepository,
   resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven"
@@ -192,6 +196,4 @@ lazy val commonSettingsJava = commonSettings ++ Seq(
   autoScalaLibrary := false // don't include the Scala library in the artifacts
 )
 
-ThisBuild / pomIncludeRepository := { _ => false }
-ThisBuild / publishMavenStyle := true
 
