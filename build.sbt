@@ -1,11 +1,10 @@
-def libraryVersion = "2.61" // propagates downwards
+def libraryVersion = "2.62-SNAPSHOT" // propagates downwards
 def warwickUtilsVersion = "20190108"
 def jettyVersion = "8.2.0.v20160908"
 def springVersion = "4.3.21.RELEASE"
 
-lazy val root = Project(id="sso-client-project", base = file("."))
+lazy val root = (project in file("."))
   .aggregate(clientCore, clientPlay, clientServlet)
-  .settings(commonSettings :_*)
   .settings(
     publish := {},
     publishArtifact := false
@@ -13,7 +12,7 @@ lazy val root = Project(id="sso-client-project", base = file("."))
 
 // ---------- Start Core ----------
 
-lazy val clientCore = Project(id="sso-client-core", base = file("./modules/core/"))
+lazy val clientCore = (project in file("./modules/core"))
   .settings(commonSettingsJava: _*)
   .settings(
     name := """sso-client-core""",
@@ -25,9 +24,6 @@ lazy val clientCore = Project(id="sso-client-core", base = file("./modules/core/
       Seq(file)
     }.taskValue
   )
-
-
-
 
 lazy val clientCoreDeps = Seq(
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % Optional,
@@ -82,16 +78,15 @@ lazy val clientCoreDeps = Seq(
 // ---------- End Core ----------
 
 // ---------- Start Play ----------
-lazy val clientPlay = Project(id="sso-client-play", base = file("./modules/play/"))
+lazy val clientPlay = (project in file("./modules/play"))
   .aggregate(clientPlayLibrary, clientPlayTesting)
-  .settings(commonSettingsJava: _*)
   .settings(
-    name := """sso-client-play""",
     publish := {},
     publishArtifact := false
-  ).dependsOn(clientCore)
+  )
 
-lazy val clientPlayLibrary = (project in file("./modules/play/library")).enablePlugins(PlayScala)
+lazy val clientPlayLibrary = (project in file("./modules/play/library"))
+  .enablePlugins(PlayScala)
   .settings(commonSettings :_*)
   .settings(
     name := """sso-client-play""",
@@ -100,7 +95,8 @@ lazy val clientPlayLibrary = (project in file("./modules/play/library")).enableP
   .dependsOn(clientCore)
 
 // Helper library for other apps' tests.
-lazy val clientPlayTesting = (project in file("./modules/play/testing")).enablePlugins(PlayScala)
+lazy val clientPlayTesting = (project in file("./modules/play/testing"))
+  .enablePlugins(PlayScala)
   .dependsOn(clientPlayLibrary)
   .settings(commonSettings :_*)
   .settings(
@@ -141,7 +137,7 @@ excludeDependencies += "commons-logging" % "commons-logging"
 
 val cucumber = taskKey[Unit]("Runs cucumber integration tests")
 
-lazy val clientServlet = Project(id="sso-client", base = file("./modules/servlet/"))
+lazy val clientServlet = (project in file("./modules/servlet"))
   .settings(commonSettingsJava: _*)
   .settings(
     name := """sso-client""",
@@ -183,11 +179,9 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.12.8",
   crossScalaVersions := Seq("2.12.8"),
   publishMavenStyle := true,
-  compileOrder := CompileOrder.ScalaThenJava, // maybe faster?
 
   organization := "uk.ac.warwick.sso",
   version := libraryVersion,
-  exportJars := true,
   resolvers += WarwickNexus,
   resolvers += DefaultMavenRepository,
   resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven"
@@ -197,3 +191,7 @@ lazy val commonSettingsJava = commonSettings ++ Seq(
   crossPaths := false, // stops SBT butchering the Maven artifactIds by appending Scala versions
   autoScalaLibrary := false // don't include the Scala library in the artifacts
 )
+
+ThisBuild / pomIncludeRepository := { _ => false }
+ThisBuild / publishMavenStyle := true
+
