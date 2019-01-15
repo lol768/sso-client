@@ -48,7 +48,8 @@ lazy val clientCoreDeps = Seq(
   "org.apache.httpcomponents" % "httpcore" % "4.4.6",
   "uk.ac.warwick.util" % "warwickutils-cache" % warwickUtilsVersion,
   "uk.ac.warwick.util" % "warwickutils-core" % warwickUtilsVersion,
-  "uk.ac.warwick.util" % "warwickutils-web" % warwickUtilsVersion,
+  "uk.ac.warwick.util" % "warwickutils-web" % warwickUtilsVersion
+    exclude("uk.ac.warwick.sso", "sso-client"),
   "org.bouncycastle" % "bcprov-jdk15on" % "1.60",
   "commons-collections" % "commons-collections" % "3.2.2",
   "net.sf.ehcache" % "ehcache" % "2.9.0" % Optional ,
@@ -122,9 +123,6 @@ lazy val playTestDeps = Seq[ModuleID](
   "org.mockito" % "mockito-all" % "1.10.19",
   "com.h2database" % "h2" % "1.4.193"
 ).map(_ % Test)
-
-// https://bugs.elab.warwick.ac.uk/browse/SSO-1653
-dependencyOverrides += "xml-apis" % "xml-apis" % "1.4.01"
 
 excludeDependencies += "commons-logging" % "commons-logging"
 
