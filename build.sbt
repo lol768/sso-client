@@ -1,11 +1,10 @@
-def libraryVersion = "2.61" // propagates downwards
-def warwickUtilsVersion = "20190108"
+def libraryVersion = "2.62-SNAPSHOT" // propagates downwards
+def warwickUtilsVersion = "20190114"
 def jettyVersion = "8.2.0.v20160908"
 def springVersion = "4.3.21.RELEASE"
 
-lazy val root = Project(id="sso-client-project", base = file("."))
+lazy val root = (project in file("."))
   .aggregate(clientCore, clientPlay, clientServlet)
-  .settings(commonSettings :_*)
   .settings(
     publish := {},
     publishArtifact := false
@@ -13,10 +12,10 @@ lazy val root = Project(id="sso-client-project", base = file("."))
 
 // ---------- Start Core ----------
 
-lazy val clientCore = Project(id="sso-client-core", base = file("./modules/core/"))
+lazy val clientCore = (project in file("./modules/core"))
   .settings(commonSettingsJava: _*)
   .settings(
-    name := """sso-client-core""",
+    name := "sso-client-core",
     libraryDependencies ++= clientCoreDeps,
     resourceGenerators in Compile += Def.task {
       val file = (resourceManaged in Compile).value / "ssoclient.version"
@@ -26,14 +25,13 @@ lazy val clientCore = Project(id="sso-client-core", base = file("./modules/core/
     }.taskValue
   )
 
-
-
-
 lazy val clientCoreDeps = Seq(
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % Optional,
   "javax.inject" % "javax.inject" % "1",
   "org.slf4j" % "slf4j-api" % "1.7.10",
   "xfire" % "opensaml" % "1.0.1",
+  "xalan" % "xalan" % "2.7.2",
+  "xerces" % "xercesImpl" % "2.12.0",
   "org.apache.santuario" % "xmlsec" % "1.5.8" exclude("javax.servlet", "servlet-api"),
   "taglibs" % "standard" % "1.1.2" % Optional ,
   "org.apache.httpcomponents" % "httpclient" % "4.5.2",
@@ -50,7 +48,8 @@ lazy val clientCoreDeps = Seq(
   "org.apache.httpcomponents" % "httpcore" % "4.4.6",
   "uk.ac.warwick.util" % "warwickutils-cache" % warwickUtilsVersion,
   "uk.ac.warwick.util" % "warwickutils-core" % warwickUtilsVersion,
-  "uk.ac.warwick.util" % "warwickutils-web" % warwickUtilsVersion,
+  "uk.ac.warwick.util" % "warwickutils-web" % warwickUtilsVersion
+    exclude("uk.ac.warwick.sso", "sso-client"),
   "org.bouncycastle" % "bcprov-jdk15on" % "1.60",
   "commons-collections" % "commons-collections" % "3.2.2",
   "net.sf.ehcache" % "ehcache" % "2.9.0" % Optional ,
@@ -70,8 +69,6 @@ lazy val clientCoreDeps = Seq(
   "org.eclipse.jetty" % "jetty-webapp" % jettyVersion % Test,
   "org.springframework" % "spring-test" % springVersion % Test,
   "jmock" % "jmock-cglib" % "1.2.0" % Test,
-  "xalan" % "xalan" % "2.7.2" % Test,
-  "xerces" % "xercesImpl" % "2.12.0" % Test,
   "org.jruby" % "jruby-complete" % "1.4.0" % Test,
   "info.cukes" % "cucumber-deps" % "0.6.3" % Test,
   "org.jruby" % "jruby-openssl" % "0.7.1" % Test,
@@ -82,29 +79,29 @@ lazy val clientCoreDeps = Seq(
 // ---------- End Core ----------
 
 // ---------- Start Play ----------
-lazy val clientPlay = Project(id="sso-client-play", base = file("./modules/play/"))
+lazy val clientPlay = (project in file("./modules/play"))
   .aggregate(clientPlayLibrary, clientPlayTesting)
-  .settings(commonSettingsJava: _*)
   .settings(
-    name := """sso-client-play""",
     publish := {},
     publishArtifact := false
-  ).dependsOn(clientCore)
+  )
 
-lazy val clientPlayLibrary = (project in file("./modules/play/library")).enablePlugins(PlayScala)
+lazy val clientPlayLibrary = (project in file("./modules/play/library"))
+  .enablePlugins(PlayScala)
   .settings(commonSettings :_*)
   .settings(
-    name := """sso-client-play""",
+    name := "sso-client-play",
     libraryDependencies ++= playAppDeps ++ playTestDeps
   )
   .dependsOn(clientCore)
 
 // Helper library for other apps' tests.
-lazy val clientPlayTesting = (project in file("./modules/play/testing")).enablePlugins(PlayScala)
+lazy val clientPlayTesting = (project in file("./modules/play/testing"))
+  .enablePlugins(PlayScala)
   .dependsOn(clientPlayLibrary)
   .settings(commonSettings :_*)
   .settings(
-    name := """sso-client-play-testing""",
+    name := "sso-client-play-testing",
     libraryDependencies ++= playAppDeps ++ playTestDeps
   )
 
@@ -113,10 +110,7 @@ lazy val playAppDeps = Seq[ModuleID](
   component("play-jdbc-api"),
 
   // https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-72445
-  "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.11.3",
-
-  "xerces" % "xercesImpl" % "2.12.0",
-  "xalan" % "xalan" % "2.7.2"
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.11.3"
 )
 
 lazy val playTestDeps = Seq[ModuleID](
@@ -130,9 +124,6 @@ lazy val playTestDeps = Seq[ModuleID](
   "com.h2database" % "h2" % "1.4.193"
 ).map(_ % Test)
 
-// https://bugs.elab.warwick.ac.uk/browse/SSO-1653
-dependencyOverrides += "xml-apis" % "xml-apis" % "1.4.01"
-
 excludeDependencies += "commons-logging" % "commons-logging"
 
 // ---------- End Play ----------
@@ -141,10 +132,10 @@ excludeDependencies += "commons-logging" % "commons-logging"
 
 val cucumber = taskKey[Unit]("Runs cucumber integration tests")
 
-lazy val clientServlet = Project(id="sso-client", base = file("./modules/servlet/"))
+lazy val clientServlet = (project in file("./modules/servlet"))
   .settings(commonSettingsJava: _*)
   .settings(
-    name := """sso-client""",
+    name := "sso-client",
     cucumber := Cucumber.run((fullClasspath in Test).value.files),
     libraryDependencies ++= servletDependencies,
   ).dependsOn(clientCore)
@@ -169,8 +160,6 @@ lazy val servletDependencies: Seq[ModuleID] = clientCoreDeps ++ Seq(
   "org.eclipse.jetty" % "jetty-webapp" % jettyVersion % Test,
   "org.springframework" % "spring-test" % springVersion % Test,
   "jmock" % "jmock-cglib" % "1.2.0" % Test,
-  "xalan" % "xalan" % "2.7.2" % Test,
-  "xerces" % "xercesImpl" % "2.12.0" % Test,
   "org.jruby" % "jruby-complete" % "1.4.0" % Test,
   "info.cukes" % "cucumber-deps" % "0.6.3" % Test,
   "org.jruby" % "jruby-openssl" % "0.7.1" % Test,
@@ -183,17 +172,23 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.12.8",
   crossScalaVersions := Seq("2.12.8"),
   publishMavenStyle := true,
-  compileOrder := CompileOrder.ScalaThenJava, // maybe faster?
 
   organization := "uk.ac.warwick.sso",
   version := libraryVersion,
-  exportJars := true,
   resolvers += WarwickNexus,
   resolvers += DefaultMavenRepository,
-  resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven"
+  resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven",
+
+  // Fix publishing on SBT 1.x
+  // https://github.com/sbt/sbt/issues/3570
+  updateOptions := updateOptions.value.withGigahorse(false)
 ) ++ repositorySettings
 
 lazy val commonSettingsJava = commonSettings ++ Seq(
   crossPaths := false, // stops SBT butchering the Maven artifactIds by appending Scala versions
   autoScalaLibrary := false // don't include the Scala library in the artifacts
 )
+
+ThisBuild / pomIncludeRepository := { _ => false }
+ThisBuild / publishMavenStyle := true
+

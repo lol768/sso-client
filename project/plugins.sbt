@@ -1,7 +1,7 @@
 import sbt._
 import Defaults._
 
-resolvers += "nexus" at "https://mvn.elab.warwick.ac.uk/nexus/content/groups/public"
+resolvers += "nexus" at "https://mvn.elab.warwick.ac.uk/nexus/repository/public/"
 credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
 
 addSbtPlugin("uk.ac.warwick" % "play-warwick" % "0.7")
