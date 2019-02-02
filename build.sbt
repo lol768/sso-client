@@ -117,9 +117,9 @@ lazy val playTestDeps = Seq[ModuleID](
   jdbc,
   "com.typesafe.play" %% "play-iteratees" % "2.6.1",
   "com.typesafe.play" %% "play-iteratees-reactive-streams" % "2.6.1",
-  "org.scalatest" %% "scalatest" % "3.0.3",
-  "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.0",
-  "org.scalacheck" %% "scalacheck" % "1.13.5",
+  "org.scalatest" %% "scalatest" % "3.0.5",
+  "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.1",
+  "org.scalacheck" %% "scalacheck" % "1.14.0",
   "org.mockito" % "mockito-all" % "1.10.19",
   "com.h2database" % "h2" % "1.4.193"
 ).map(_ % Test)
