@@ -1,5 +1,5 @@
-def libraryVersion = "2.61" // propagates downwards
-def warwickUtilsVersion = "20190114"
+def libraryVersion = "2.62" // propagates downwards
+def warwickUtilsVersion = "20190125"
 def jettyVersion = "8.2.0.v20160908"
 def springVersion = "4.3.21.RELEASE"
 
@@ -175,14 +175,14 @@ lazy val commonSettings = Seq(
 
   organization := "uk.ac.warwick.sso",
   version := libraryVersion,
-  resolvers += WarwickNexus,
+  resolvers += WarwickPublicNexus,
   resolvers += DefaultMavenRepository,
   resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven",
 
   // Fix publishing on SBT 1.x
   // https://github.com/sbt/sbt/issues/3570
   updateOptions := updateOptions.value.withGigahorse(false)
-) ++ repositorySettings
+) ++ publicRepositorySettings
 
 lazy val commonSettingsJava = commonSettings ++ Seq(
   crossPaths := false, // stops SBT butchering the Maven artifactIds by appending Scala versions
