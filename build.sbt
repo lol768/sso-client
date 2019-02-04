@@ -185,6 +185,7 @@ lazy val commonSettings = Seq(
 ) ++ publicRepositorySettings
 
 lazy val commonSettingsJava = commonSettings ++ Seq(
+  crossScalaVersions := Nil,
   crossPaths := false, // stops SBT butchering the Maven artifactIds by appending Scala versions
   autoScalaLibrary := false // don't include the Scala library in the artifacts
 )
