@@ -6,7 +6,7 @@ val scala212 = "2.12.8"
 val scala213 = "2.13.0-M5"
 
 ThisBuild / version := "2.63-SNAPSHOT" 
-ThisBuild / organization := "uk.ac.warwick.sso",
+ThisBuild / organization := "uk.ac.warwick.sso"
 
 ThisBuild / scalaVersion := scala212
 ThisBuild / crossScalaVersions := Seq(scala212)
