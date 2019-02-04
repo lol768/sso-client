@@ -169,8 +169,8 @@ lazy val servletDependencies: Seq[ModuleID] = clientCoreDeps ++ Seq(
 // ---------- End Servlet ----------
 
 lazy val commonSettings = Seq(
-  scalaVersion := "2.12.8",
-  crossScalaVersions := Seq("2.12.8"),
+  scalaVersion := "2.12.7",
+  crossScalaVersions := Seq("2.12.7"),
   publishMavenStyle := true,
 
   organization := "uk.ac.warwick.sso",
