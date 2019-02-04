@@ -1,7 +1,17 @@
-def libraryVersion = "2.63-SNAPSHOT" // propagates downwards
 def warwickUtilsVersion = "20190125"
 def jettyVersion = "8.2.0.v20160908"
 def springVersion = "4.3.21.RELEASE"
+
+val scala212 = "2.12.8"
+val scala213 = "2.13.0-M5"
+
+ThisBuild / version := "2.63-SNAPSHOT" 
+ThisBuild / organization := "uk.ac.warwick.sso",
+
+ThisBuild / scalaVersion := scala212
+ThisBuild / crossScalaVersions := Seq(scala212)
+ThisBuild / pomIncludeRepository := { _ => false }
+ThisBuild / publishMavenStyle := true
 
 lazy val root = (project in file("."))
   .aggregate(clientCore, clientPlay, clientServlet)
@@ -169,12 +179,6 @@ lazy val servletDependencies: Seq[ModuleID] = clientCoreDeps ++ Seq(
 // ---------- End Servlet ----------
 
 lazy val commonSettings = Seq(
-  scalaVersion := "2.12.7",
-  crossScalaVersions := Seq("2.12.7"),
-  publishMavenStyle := true,
-
-  organization := "uk.ac.warwick.sso",
-  version := libraryVersion,
   resolvers += WarwickPublicNexus,
   resolvers += DefaultMavenRepository,
   resolvers += "oauth" at "http://oauth.googlecode.com/svn/code/maven",
@@ -185,11 +189,8 @@ lazy val commonSettings = Seq(
 ) ++ publicRepositorySettings
 
 lazy val commonSettingsJava = commonSettings ++ Seq(
-  crossScalaVersions := Nil,
+  crossScalaVersions := Seq(scala212),
   crossPaths := false, // stops SBT butchering the Maven artifactIds by appending Scala versions
   autoScalaLibrary := false // don't include the Scala library in the artifacts
 )
-
-ThisBuild / pomIncludeRepository := { _ => false }
-ThisBuild / publishMavenStyle := true
 
