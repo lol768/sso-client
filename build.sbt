@@ -194,3 +194,14 @@ lazy val commonSettingsJava = commonSettings ++ Seq(
   autoScalaLibrary := false // don't include the Scala library in the artifacts
 )
 
+lazy val localSnapshot = taskKey[Unit]("Distribute snapshot version locally")
+ThisBuild / localSnapshot := (Def.taskDyn {
+  if (isSnapshot.value) {
+    Def.task {
+      publishLocal.value
+      publishM2.value
+    }
+  } else {
+    throw new IllegalStateException("You should only publish snapshots locally")
+  }
+}).value

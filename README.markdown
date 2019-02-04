@@ -3,19 +3,24 @@ SSO Client
 
 A Java library for reading from SSO in other apps.
 
-In early 2019, SSO Client was changed to use the SBT build system. The instructions below have been updated
+User documentation is available at [warwick.ac.uk/sso](https://warwick.ac.uk/sso). This README concerns only how to build and release the project.
+
+In early 2019, SSO Client was changed to use the SBT build system. The instructions below have been updated. A wrapper is included so you don't need to install SBT, just have Java installed and use `./sbt`.
 
 Versioning
 -----------
 
-Development should be done on a -SNAPSHOT version. When ready to release
-a new version, commit a change to the non-SNAPSHOT version, deploy that as below,
-then commit a change to the next SNAPSHOT version.
+Development should be done on a -SNAPSHOT version.
 
-Update the version by editing `build.sbt` and modifying the `libraryVersion`. This will
+To get a new release ready:
+  * Create a `release/*` branch
+  * Bump its version to the next non-SNAPSHOT
+  * PR and merge it to `master`
+  * Deploy as below
+  * Update `develop` to the next SNAPSHOT version.
+
+Update the version by editing `build.sbt` and modifying the `version` property. This will
 be inherited for all sub-projects - that is, you only need to change the version here.
-
-You shouldn't need to update `modules/play/build.sbt`.
 
 Pushing a release onto Nexus
 -------------
@@ -26,13 +31,9 @@ Using a snapshot version locally
 -------------
 
 If you are working on a `-SNAPSHOT` version and you want to try it in another app,
-run `./sbt publishM2 publishLocal` to get it into your local `~/.m2` and `~/.ivy2/` cache and then update your 
-app's dependencies to use that version.
+run `./sbt localSnapshot` to get it into your local `~/.m2` and `~/.ivy2/` cache. Then update your 
+app's dependencies to use that version while testing.
 
-It's important to only do this with snapshots because normal release versions are designed
+This task will only work with snapshots because normal release versions are designed
 to be immutable, and you'll find it won't update with your changes without great difficulty.
 
-##### Snapshot sso-client-play
-
-The above step should be sufficient, because all sub-projects will be installed to the local Maven repository
-and Ivy cache with the provided command.
